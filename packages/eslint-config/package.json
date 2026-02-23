@@ -6,8 +6,11 @@
   "exports": {
     "./react": "./react.js"
   },
+  "dependencies": {
+    "@eslint/compat": "^2.0.2"
+  },
   "peerDependencies": {
-    "eslint": "^9.0.0",
+    "eslint": "^9.0.0 || ^10.0.0",
     "typescript": "^5.0.0"
   }
 }

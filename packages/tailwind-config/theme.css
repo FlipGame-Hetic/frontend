@@ -1,0 +1,15 @@
+@theme {
+  --color-neon-pink: #FF2D6B;
+  --color-neon-cyan: #00F0FF;
+  --color-neon-purple: #B026FF;
+  --color-neon-yellow: #FFE156;
+
+  --color-surface-dark: #0A0A0F;
+  --color-surface-card: #12121A;
+  --color-surface-border: #1E1E2E;
+
+  --font-display: "Orbitron", sans-serif;
+  --font-body: "Inter", sans-serif;
+
+  --shadow-neon: 0 0 12px rgba(0, 240, 255, 0.4);
+}

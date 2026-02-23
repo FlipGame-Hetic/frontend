@@ -20,3 +20,7 @@ Thumbs.db
 coverage/
 test-results/
 playwright-report/
+
+# misc
+flipper-monorepo-setup-guide.md
+CLAUDE.md

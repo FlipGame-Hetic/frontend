@@ -1,4 +1,4 @@
 {
-  "extends": "@flipper/tsconfig/react.json",
-  "include": ["src"],
+  "extends": "@frontend/tsconfig/react.json",
+  "include": ["src", "tests"],
 }

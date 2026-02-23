@@ -1,10 +1,10 @@
 {
-  "extends": "@flipper/tsconfig/react.json",
+  "extends": "@frontend/tsconfig/react.json",
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
     },
   },
-  "include": ["src", "e2e"],
+  "include": ["src", "tests", "e2e"],
 }

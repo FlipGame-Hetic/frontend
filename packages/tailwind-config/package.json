@@ -2,8 +2,7 @@
   "name": "@frontend/tailwind-config",
   "private": true,
   "version": "0.0.0",
-  "type": "module",
   "exports": {
-    ".": "./tailwind.preset.ts"
+    "./theme.css": "./theme.css"
   }
 }
