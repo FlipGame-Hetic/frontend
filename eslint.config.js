@@ -15,7 +15,7 @@ export default [
       "**/dist/**",
       "**/node_modules/**",
       "**/*.config.*",
-      "**/postcss.config.*",
+      "**/*.workspace.*",
     ],
   },
 ];
