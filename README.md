@@ -10,13 +10,13 @@ Multiplayer Fighting pinball game running on a two-screen physical setup. Each s
 ┌─────────────────────────────────────────────────────────┐
 │                    Physical Setup                       │
 │                                                         │
-│   ┌──────────────────┐     ┌──────────────────────┐    │
-│   │   front-screen   │     │    back-screen        │    │
-│   │   :3000          │     │    :3001              │    │
-│   │                  │     │                       │    │
-│   │  Player-facing   │     │  Scoreboard /         │    │
-│   │  3D playfield    │     │  secondary view       │    │
-│   └──────────────────┘     └──────────────────────┘    │
+│   ┌──────────────────┐     ┌──────────────────────┐     │
+│   │   front-screen   │     │    back-screen       │     │
+│   │   :3000          │     │    :3001             │     │
+│   │                  │     │                      │     │
+│   │  Player-facing   │     │  Scoreboard /        │     │
+│   │  3D playfield    │     │  secondary view      │     │
+│   └──────────────────┘     └──────────────────────┘     │
 └─────────────────────────────────────────────────────────┘
          │                          │
          └──────────┬───────────────┘
@@ -152,7 +152,7 @@ frontend/
 Both apps map `@/` to their own `src/`:
 
 ```ts
-import { MyComponent } from "@/components/MyComponent";
+import { MyComponent } from "@/components/MyComponent"
 ```
 
 ---
@@ -200,4 +200,6 @@ The visual theme is defined once in `packages/tailwind-config/theme.css` and imp
 
 ## Team
 
-Arnaud · Louis · Arthur · Alexis · Maxime
+Arnaud Fischer · Louis Dondey · Arthur Jenck · Alexis Gontier · Maxime Bidan
+
+v1.0.0 - 24/02/26
