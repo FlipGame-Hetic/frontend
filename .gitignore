@@ -1,0 +1,26 @@
+# .gitignore
+node_modules/
+dist/
+*.tsbuildinfo
+
+# env
+.env
+.env.*
+!.env.example
+
+# editor
+.vscode/settings.json
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# test
+coverage/
+test-results/
+playwright-report/
+
+# misc
+flipper-monorepo-setup-guide.md
+CLAUDE.md

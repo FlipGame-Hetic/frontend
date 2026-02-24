@@ -1,0 +1,4 @@
+{
+  "extends": "@frontend/tsconfig/base.json",
+  "include": ["src", "tests"],
+}

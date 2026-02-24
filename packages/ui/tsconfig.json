@@ -1,0 +1,4 @@
+{
+  "extends": "@frontend/tsconfig/react.json",
+  "include": ["src", "tests"],
+}

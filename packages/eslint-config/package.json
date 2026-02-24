@@ -1,0 +1,16 @@
+{
+  "name": "@frontend/eslint-config",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    "./react": "./react.js"
+  },
+  "dependencies": {
+    "@eslint/compat": "^2.0.2"
+  },
+  "peerDependencies": {
+    "eslint": "^9.0.0 || ^10.0.0",
+    "typescript": "^5.0.0"
+  }
+}
