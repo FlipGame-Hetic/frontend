@@ -15,8 +15,8 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "vitest run --workspace vitest.workspace.ts",
-    "test:watch": "vitest --workspace vitest.workspace.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "test:e2e": "pnpm --filter './apps/*' run test:e2e",
     "clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules apps/*/dist",
     "prepare": "husky"
