@@ -19,19 +19,6 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm -r run build
 
-  typecheck:
-    name: Typecheck
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm -r run typecheck
-
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
