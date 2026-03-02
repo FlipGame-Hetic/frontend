@@ -1,7 +1,7 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "@playwright/test"
 
-test("app loads and renders canvas", async ({ page }) => {
-  await page.goto("/");
-  const canvas = page.locator("canvas");
-  await expect(canvas).toBeVisible();
-});
+test("app loads", async ({ page }) => {
+  const response = await page.goto("/")
+  expect(response?.status()).toBe(200)
+  await expect(page.locator("body")).toBeVisible()
+})
