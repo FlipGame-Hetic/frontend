@@ -9,6 +9,7 @@
     "dev": "pnpm --filter './apps/*' --parallel run dev",
     "dev:front": "pnpm --filter @frontend/front-screen dev",
     "dev:back": "pnpm --filter @frontend/back-screen dev",
+    "dev:dmd": "pnpm --filter @frontend/dmd-screen dev",
     "build": "pnpm -r run build",
     "typecheck": "pnpm -r run typecheck",
     "lint": "eslint .",

@@ -38,7 +38,7 @@ jobs:
     needs: [build]
     strategy:
       matrix:
-        app: [front-screen, back-screen]
+        app: [front-screen, back-screen, dmd-screen]
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
