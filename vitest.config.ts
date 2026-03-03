@@ -32,6 +32,13 @@ export default defineConfig({
           include: ["packages/ui/tests/**/*.test.{ts,tsx}"],
         },
       },
+      {
+        extends: "apps/dmd-screen/vite.config.ts",
+        test: {
+          root: "apps/dmd-screen",
+          include: ["apps/dmd-screen/tests/**/*.test.{ts,tsx}"],
+        },
+      },
     ],
   },
 })
