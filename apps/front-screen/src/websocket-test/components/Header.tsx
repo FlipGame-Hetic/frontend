@@ -1,6 +1,11 @@
+import type { ConnectionStatus } from "@/lib/websocket/websocket.types"
 import { SocketStatus } from "@/websocket-test/components/SocketStatus"
 
-export function Header() {
+interface Props {
+  status: ConnectionStatus
+}
+
+export function Header({ status }: Props) {
   return (
     <header className="flex items-center justify-between border-b border-cyan-400/20 pb-4">
       <div>
@@ -16,7 +21,7 @@ export function Header() {
         </h1>
       </div>
 
-      <SocketStatus />
+      <SocketStatus status={status} />
     </header>
   )
 }
