@@ -1,9 +1,5 @@
-function App() {
-  return (
-    <>
-      <h1>FrontScreen</h1>
-    </>
-  )
-}
+import { WebsocketTest } from "@/websocket-test/WebsocketTest"
 
-export default App
+export default function App() {
+  return <WebsocketTest />
+}
