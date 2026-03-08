@@ -1,4 +1,4 @@
-import type { ConnectionStatus } from "@/lib/websocket/websocket.types"
+import type { ConnectionStatus } from "@frontend/types"
 import { SocketStatus } from "@/websocket-test/components/SocketStatus"
 
 interface Props {

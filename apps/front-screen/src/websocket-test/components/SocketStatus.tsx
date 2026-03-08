@@ -1,4 +1,4 @@
-import type { ConnectionStatus } from "@/lib/websocket/websocket.types"
+import type { ConnectionStatus } from "@frontend/types"
 
 const statusConfig: Record<ConnectionStatus, { dot: string; label: string; subtitle: string }> = {
   connected: {

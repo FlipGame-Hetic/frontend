@@ -247,9 +247,15 @@ importers:
 
   apps/front-screen:
     dependencies:
+      '@frontend/types':
+        specifier: workspace:*
+        version: link:../../packages/types
       '@frontend/utils':
         specifier: workspace:*
         version: link:../../packages/utils
+      '@frontend/ws':
+        specifier: workspace:*
+        version: link:../../packages/ws
       '@react-three/drei':
         specifier: ^10.7.7
         version: 10.7.7(@react-three/fiber@9.5.0(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(three@0.183.1))(@types/react@19.2.14)(@types/three@0.183.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(three@0.183.1)
