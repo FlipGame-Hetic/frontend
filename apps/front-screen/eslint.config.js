@@ -13,6 +13,11 @@ export default [
     },
   },
   {
+    rules: {
+      "react/no-unknown-property": "off",
+    },
+  },
+  {
     ignores: ["dist/**"],
   },
 ];
