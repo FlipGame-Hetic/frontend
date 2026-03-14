@@ -5,6 +5,7 @@ import World from "./components/World"
 export default function App() {
   return (
     <>
+      {/* <WebsocketTest /> */}
       <World cameraSettings={{ position: [0, 20, 25], fov: 35 }}>
         <ambientLight intensity={0.5} />
         <directionalLight position={[5, 5, 5]} intensity={1} />
