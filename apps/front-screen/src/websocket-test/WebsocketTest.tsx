@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react"
 
-import { useWebSocket } from "@/lib/websocket/useWebSocket"
+import type { GameMessage } from "@frontend/types"
+import { useGameSocket } from "@frontend/ws"
 import { EventLog } from "@/websocket-test/components/EventLog"
 import { Header } from "@/websocket-test/components/Header"
 import { CyberLayout } from "@/websocket-test/components/layout/CyberLayout"
@@ -29,18 +30,18 @@ function toLogEntry(type: string, payload: unknown, direction: "→" | "←"): L
 export function WebsocketTest() {
   const [log, setLog] = useState<LogEntry[]>([])
 
-  const { status, sendMessage } = useWebSocket(import.meta.env.VITE_WS_URL, {
-    onMessage: (message) => {
-      setLog((prev) => [toLogEntry(message.type, message, "←"), ...prev.slice(0, 49)])
-    },
-  })
+  const onMessage = useCallback((message: GameMessage) => {
+    setLog((prev) => [toLogEntry(message._type, message, "←"), ...prev.slice(0, 49)])
+  }, [])
+
+  const { status, send } = useGameSocket({ onMessage })
 
   const dispatch = useCallback<Dispatcher>(
     (type, payload = {}) => {
-      sendMessage({ type, payload } as Parameters<typeof sendMessage>[0])
+      send({ dir: "outbound", device_id: "front-screen", _type: type, ...(payload as object) })
       setLog((prev) => [toLogEntry(type, payload, "→"), ...prev.slice(0, 49)])
     },
-    [sendMessage],
+    [send],
   )
 
   return (
