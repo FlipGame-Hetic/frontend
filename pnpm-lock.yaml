@@ -168,6 +168,9 @@ importers:
       '@frontend/utils':
         specifier: workspace:*
         version: link:../../packages/utils
+      '@frontend/ws':
+        specifier: workspace:*
+        version: link:../../packages/ws
       '@react-three/drei':
         specifier: ^10.7.7
         version: 10.7.7(@react-three/fiber@9.5.0(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(three@0.183.1))(@types/react@19.2.14)(@types/three@0.183.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(three@0.183.1)
@@ -186,9 +189,6 @@ importers:
       three:
         specifier: ^0.183.1
         version: 0.183.1
-      zustand:
-        specifier: ^5.0.11
-        version: 5.0.11(@types/react@19.2.14)(react@19.2.4)(use-sync-external-store@1.6.0(react@19.2.4))
     devDependencies:
       '@eslint/js':
         specifier: ^9.39.1
