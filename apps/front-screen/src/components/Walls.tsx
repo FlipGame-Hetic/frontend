@@ -1,8 +1,8 @@
-import { RigidBody, type CuboidArgs } from "@react-three/rapier"
-import type { Vector3Tuple } from "three"
-import Wall from "./Wall"
+import { CuboidCollider, RigidBody, type CuboidArgs } from "@react-three/rapier"
 import { useControls } from "leva"
 import { useMemo } from "react"
+import type { Vector3Tuple } from "three"
+import Wall from "./Wall"
 
 interface TableParams {
   playfieldWidth: number
@@ -87,8 +87,8 @@ function computeWalls(t: TableParams): WallConfig[] {
   const totalWidth = (t.playfieldWidth + t.shooterLaneWidth) / 2
   const floorCenterX = t.shooterLaneWidth / 2
   const floor: WallConfig = {
-    args: [totalWidth, 0.05, halfL],
-    position: [floorCenterX, 0, 0],
+    args: [totalWidth, 0.5, halfL],
+    position: [floorCenterX, -0.5, 0],
     color: "#cfcfcf",
   }
 
@@ -130,11 +130,32 @@ const Walls = () => {
 
   const walls = useMemo(() => computeWalls(table), [table])
 
+  const drainSensor = useMemo(() => {
+    const halfDrain = table.drainWidth / 2
+    const halfL = table.length / 2
+    return {
+      args: [halfDrain, table.wallHeight, table.wallThickness] as CuboidArgs,
+      position: [0, table.wallHeight, halfL] as Vector3Tuple,
+    }
+  }, [table])
+
   return (
     <RigidBody type="fixed" colliders={false}>
       {walls.map((wall, i) => (
         <Wall key={i} {...wall} />
       ))}
+      <CuboidCollider
+        sensor
+        name="drain"
+        args={drainSensor.args}
+        position={drainSensor.position}
+        onIntersectionEnter={(collision) => {
+          if (collision.colliderObject?.name === "ball") {
+            // TODO: Send WS message
+            // console.log("Balle perdue")
+          }
+        }}
+      />
     </RigidBody>
   )
 }

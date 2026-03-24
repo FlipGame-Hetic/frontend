@@ -1,6 +1,7 @@
 import { Physics } from "@react-three/rapier"
 import { useControls } from "leva"
 import type { ReactNode } from "react"
+import { TIME_STEP } from "./physicsConfig"
 
 interface PhysicsManagerProps {
   isDebug: boolean
@@ -14,7 +15,7 @@ const PhysicsManager = ({ children, isDebug }: PhysicsManagerProps) => {
   })
 
   return (
-    <Physics debug={isDebug} gravity={[0, gravityY, gravityZ]}>
+    <Physics debug={isDebug} gravity={[0, gravityY, gravityZ]} timeStep={TIME_STEP}>
       {children}
     </Physics>
   )

@@ -4,7 +4,7 @@ import type { CameraProps } from "@react-three/fiber"
 import { Leva } from "leva"
 import BallsManager from "./components/balls/BallsManager"
 import DebugCamera from "./components/DebugCamera"
-import PhysicsManager from "./components/PhysicsManager"
+import PhysicsManager from "./components/physics/PhysicsManager"
 import Walls from "./components/Walls"
 import World from "./components/World"
 
