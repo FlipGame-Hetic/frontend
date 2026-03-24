@@ -1,10 +1,12 @@
+"use client"
+
 import type { CameraProps } from "@react-three/fiber"
-import { Physics } from "@react-three/rapier"
 import { Leva } from "leva"
+import BallsManager from "./components/balls/BallsManager"
 import DebugCamera from "./components/DebugCamera"
+import PhysicsManager from "./components/PhysicsManager"
 import Walls from "./components/Walls"
 import World from "./components/World"
-import BallsManager from "./components/balls/BallsManager"
 
 const isDebug = import.meta.env.MODE === "development"
 
@@ -23,10 +25,10 @@ export default function App() {
         <directionalLight position={[5, 5, 5]} intensity={1} />
         <DebugCamera cameraPosition={cameraSettings.position} cameraFov={cameraSettings.fov} />
 
-        <Physics debug>
+        <PhysicsManager isDebug={isDebug}>
           <BallsManager />
           <Walls />
-        </Physics>
+        </PhysicsManager>
       </World>
     </>
   )

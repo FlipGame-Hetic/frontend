@@ -30,6 +30,7 @@ interface WallConfig {
   args: CuboidArgs
   position: Vector3Tuple
   rotation?: Vector3Tuple
+  color?: string
 }
 
 function computeWalls(t: TableParams): WallConfig[] {
@@ -83,7 +84,15 @@ function computeWalls(t: TableParams): WallConfig[] {
     })
   }
 
-  return [...straight, ...arc]
+  const totalWidth = (t.playfieldWidth + t.shooterLaneWidth) / 2
+  const floorCenterX = t.shooterLaneWidth / 2
+  const floor: WallConfig = {
+    args: [totalWidth, 0.05, halfL],
+    position: [floorCenterX, 0, 0],
+    color: "#cfcfcf",
+  }
+
+  return [...straight, ...arc, floor]
 }
 
 const Walls = () => {

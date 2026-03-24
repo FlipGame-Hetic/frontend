@@ -17,7 +17,7 @@ const Ball = ({ id, position, radius = 0.3 }: BallProps) => {
 
   useFrame(() => {
     const currentPosition = ballRef.current?.translation()
-    if (currentPosition && currentPosition.y <= -5) {
+    if (currentPosition && currentPosition.y <= -2) {
       deleteBall(id)
     }
   })
@@ -26,7 +26,7 @@ const Ball = ({ id, position, radius = 0.3 }: BallProps) => {
     <RigidBody ref={ballRef} type="dynamic" position={position} colliders="ball">
       <mesh>
         <sphereGeometry args={[radius, 32, 32]} />
-        <meshStandardMaterial color="silver" />
+        <meshStandardMaterial color="white" />
       </mesh>
     </RigidBody>
   )
