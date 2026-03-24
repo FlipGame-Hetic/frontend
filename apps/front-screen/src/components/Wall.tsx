@@ -1,10 +1,10 @@
+import type { PositionType } from "@/types/worldTypes"
 import { CuboidCollider, type CuboidArgs } from "@react-three/rapier"
-import type { Vector3Tuple } from "three"
 
 interface WallProps {
   args: CuboidArgs
-  position: Vector3Tuple
-  rotation?: Vector3Tuple
+  position: PositionType
+  rotation?: PositionType
 }
 
 const Wall = ({ args, position, rotation }: WallProps) => {

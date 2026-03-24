@@ -4,6 +4,7 @@ import { Leva } from "leva"
 import DebugCamera from "./components/DebugCamera"
 import Walls from "./components/Walls"
 import World from "./components/World"
+import BallsManager from "./components/balls/BallsManager"
 
 const isDebug = import.meta.env.MODE === "development"
 
@@ -23,6 +24,7 @@ export default function App() {
         <DebugCamera cameraPosition={cameraSettings.position} cameraFov={cameraSettings.fov} />
 
         <Physics debug>
+          <BallsManager />
           <Walls />
         </Physics>
       </World>
