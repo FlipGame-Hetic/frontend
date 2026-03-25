@@ -1,10 +1,11 @@
-"use client"
-
 import type { CameraProps } from "@react-three/fiber"
 import { Leva } from "leva"
 import BallsManager from "./components/balls/BallsManager"
 import DebugCamera from "./components/DebugCamera"
 import PhysicsManager from "./components/physics/PhysicsManager"
+import FlipperJoints from "./components/flipperJoints/FlipperJoints"
+import { LEFT_POSITION, RIGHT_POSITION } from "./components/flipperJoints/flipperConfig"
+import Gutters from "./components/Gutters"
 import Walls from "./components/Walls"
 import World from "./components/World"
 
@@ -28,6 +29,9 @@ export default function App() {
         <PhysicsManager isDebug={isDebug}>
           <BallsManager />
           <Walls />
+          <Gutters />
+          <FlipperJoints position={LEFT_POSITION} side="left" />
+          <FlipperJoints position={RIGHT_POSITION} side="right" />
         </PhysicsManager>
       </World>
     </>

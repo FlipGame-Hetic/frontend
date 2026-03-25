@@ -4,7 +4,8 @@ import { useFrame } from "@react-three/fiber"
 import type { RapierRigidBody } from "@react-three/rapier"
 import { RigidBody } from "@react-three/rapier"
 import { useRef } from "react"
-import { REAL_GRAVITY_Y } from "./physics/physicsConfig"
+import { BALL_MASS } from "../balls/BallConfig"
+import { REAL_GRAVITY_Y } from "../physics/physicsConfig"
 
 interface BallProps {
   id: string
@@ -48,6 +49,7 @@ const Ball = ({ id, position, radius = 0.3 }: BallProps) => {
       gravityScale={0}
       ccd
       name="ball"
+      mass={BALL_MASS}
     >
       <mesh>
         <sphereGeometry args={[radius, 32, 32]} />
