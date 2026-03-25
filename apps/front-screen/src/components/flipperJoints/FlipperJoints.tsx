@@ -3,9 +3,15 @@ import type { PositionType } from "@/types/worldTypes"
 import { useGLTF } from "@react-three/drei"
 import { useFrame } from "@react-three/fiber"
 import type { RapierRigidBody } from "@react-three/rapier"
-import { MeshCollider, RigidBody, useRevoluteJoint } from "@react-three/rapier"
+import {
+  MeshCollider,
+  RigidBody,
+  useRevoluteJoint,
+  type CollisionEnterPayload,
+  type CollisionPayload,
+} from "@react-three/rapier"
 import { useControls } from "leva"
-import { useRef, type RefObject } from "react"
+import { useCallback, useRef, type RefObject } from "react"
 import type { Mesh } from "three"
 import {
   FLIPPER_ACTIVE_RESTITUTION,
@@ -29,12 +35,17 @@ const FlipperJoints = ({ position, side }: FlipperJointsProps) => {
   const anchorRef = useRef<RapierRigidBody>(null)
   const flipperRef = useRef<RapierRigidBody>(null)
   const pressedKeys = useKeyboard()
+  const ballContactCount = useRef(0)
 
   const { nodes } = useGLTF("/models/flipperJoints/scene.gltf")
   const flipperGeometry = (nodes.Cube000_0 as Mesh).geometry
 
   const isLeft = side === "left"
   const activationKeys = isLeft ? LEFT_KEYS : RIGHT_KEYS
+
+  const { autoMode } = useControls("Main", {
+    autoMode: false,
+  })
 
   const {
     restAngle,
@@ -73,16 +84,30 @@ const FlipperJoints = ({ position, side }: FlipperJointsProps) => {
   useFrame(() => {
     if (!jointRef.current || !flipperRef.current) return
 
-    const isPressed = activationKeys.some((key) => pressedKeys.current.has(key))
+    const keyPressed = activationKeys.some((key) => pressedKeys.current.has(key))
+    const isPressed = keyPressed || (autoMode && ballContactCount.current > 0)
     const target = isLeft ? (isPressed ? maxAngle : restAngle) : isPressed ? -maxAngle : -restAngle
 
     jointRef.current.configureMotorPosition(target, stiffness, damping)
 
+    // TODO: SERT UNIQUEMENT POUR LEVA : A SUPPRIMER QUAND ON AURA TROUVE LES BONNES VALEURS
     const currentRestitution = isPressed ? activeRestitution : restRestitution
     for (let i = 0; i < flipperRef.current.numColliders(); i++) {
       flipperRef.current.collider(i).setRestitution(currentRestitution)
     }
   })
+
+  const handleCollisionEnter = useCallback(({ other }: CollisionEnterPayload) => {
+    if (other.rigidBodyObject?.name === "ball") {
+      ballContactCount.current++
+    }
+  }, [])
+
+  const handleCollisionExit = useCallback(({ other }: CollisionPayload) => {
+    if (other.rigidBodyObject?.name === "ball") {
+      ballContactCount.current = Math.max(0, ballContactCount.current - 1)
+    }
+  }, [])
 
   return (
     <>
@@ -96,6 +121,8 @@ const FlipperJoints = ({ position, side }: FlipperJointsProps) => {
         ccd
         name={`flipper-${side}`}
         mass={mass}
+        onCollisionEnter={handleCollisionEnter}
+        onCollisionExit={handleCollisionExit}
       >
         <MeshCollider type="hull">
           <mesh

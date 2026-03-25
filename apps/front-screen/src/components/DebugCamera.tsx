@@ -13,7 +13,7 @@ const DebugCamera = ({ cameraPosition, cameraFov }: DebugCameraProps) => {
   const controlsRef = useRef<ComponentRef<typeof OrbitControls>>(null)
   const getState = useThree((s) => s.get)
 
-  const { enabled } = useControls({
+  const { enabled } = useControls("Main", {
     enabled: { value: false, label: "Orbit controls" },
   })
 
