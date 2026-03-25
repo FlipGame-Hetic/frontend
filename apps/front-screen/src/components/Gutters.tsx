@@ -12,9 +12,9 @@ interface GutterConfig {
 const Gutters = () => {
   const { wallX, flipperX, startZ, endZ, height, thickness } = useControls("Gutters", {
     wallX: { value: 4, min: 0, max: 8, step: 0.05, label: "Walls X" },
-    flipperX: { value: 1.8, min: 0, max: 8, step: 0.05, label: "Center X" },
-    startZ: { value: 7, min: 0, max: 14, step: 0.05, label: "Start Z" },
-    endZ: { value: 9.25, min: 0, max: 14, step: 0.05, label: "End Z" },
+    flipperX: { value: 1.85, min: 0, max: 8, step: 0.05, label: "Center X" },
+    startZ: { value: 8.05, min: 0, max: 14, step: 0.05, label: "Start Z" },
+    endZ: { value: 9.2, min: 0, max: 14, step: 0.05, label: "End Z" },
     height: { value: 0.5, min: 0, max: 4, step: 0.05, label: "Height" },
     thickness: { value: 0.1, min: 0, max: 3, step: 0.05, label: "Thickess" },
   })

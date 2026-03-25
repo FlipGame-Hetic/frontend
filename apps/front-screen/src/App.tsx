@@ -8,6 +8,7 @@ import { LEFT_POSITION, RIGHT_POSITION } from "./components/flipperJoints/joints
 import Gutters from "./components/Gutters"
 import Walls from "./components/Walls"
 import World from "./components/World"
+import BumpersManager from "./components/bumbers/BumpersManager"
 
 const isDebug = import.meta.env.MODE === "development"
 
@@ -30,6 +31,7 @@ export default function App() {
           <BallsManager />
           <Walls />
           <Gutters />
+          <BumpersManager />
           <FlipperJoints position={LEFT_POSITION} side="left" />
           <FlipperJoints position={RIGHT_POSITION} side="right" />
         </PhysicsManager>

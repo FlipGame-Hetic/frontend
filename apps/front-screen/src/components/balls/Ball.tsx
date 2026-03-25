@@ -4,8 +4,8 @@ import { useFrame } from "@react-three/fiber"
 import type { RapierRigidBody } from "@react-three/rapier"
 import { RigidBody } from "@react-three/rapier"
 import { useRef } from "react"
-import { BALL_MASS } from "./ballConfig"
 import { REAL_GRAVITY_Y } from "../physics/physicsConfig"
+import { BALL_MASS, BALL_MAX_SPEED, BALL_RADIUS, BALL_RESTITUTION } from "./ballConfig"
 
 interface BallProps {
   id: string
@@ -13,7 +13,7 @@ interface BallProps {
   radius?: number
 }
 
-const Ball = ({ id, position, radius = 0.3 }: BallProps) => {
+const Ball = ({ id, position, radius = BALL_RADIUS }: BallProps) => {
   const { deleteBall } = useBallStore()
   const ballRef = useRef<RapierRigidBody>(null)
   const groundThreshold = radius + 0.1
@@ -38,6 +38,13 @@ const Ball = ({ id, position, radius = 0.3 }: BallProps) => {
     } else {
       body.setGravityScale(1, true)
     }
+
+    const vel = body.linvel()
+    const speed = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z)
+    if (speed > BALL_MAX_SPEED) {
+      const ratio = BALL_MAX_SPEED / speed
+      body.setLinvel({ x: vel.x * ratio, y: vel.y * ratio, z: vel.z * ratio }, true)
+    }
   })
 
   return (
@@ -50,6 +57,7 @@ const Ball = ({ id, position, radius = 0.3 }: BallProps) => {
       ccd
       name="ball"
       mass={BALL_MASS}
+      restitution={BALL_RESTITUTION}
     >
       <mesh>
         <sphereGeometry args={[radius, 32, 32]} />
