@@ -18,7 +18,7 @@ import {
   MOTOR_STIFFNESS,
   REST_ANGLE,
   RIGHT_KEYS,
-} from "./flipperConfig"
+} from "./jointsConfig"
 
 interface FlipperJointsProps {
   position: PositionType

@@ -4,7 +4,7 @@ import { useFrame } from "@react-three/fiber"
 import type { RapierRigidBody } from "@react-three/rapier"
 import { RigidBody } from "@react-three/rapier"
 import { useRef } from "react"
-import { BALL_MASS } from "../balls/BallConfig"
+import { BALL_MASS } from "./ballConfig"
 import { REAL_GRAVITY_Y } from "../physics/physicsConfig"
 
 interface BallProps {
