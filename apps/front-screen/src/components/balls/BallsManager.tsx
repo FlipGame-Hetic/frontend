@@ -1,6 +1,6 @@
 import useBallStore from "@/stores/useBallStore"
 import { useControls, button } from "leva"
-import Ball from "../Ball"
+import Ball from "./Ball"
 
 const spawnConfig = { x: 0 }
 
