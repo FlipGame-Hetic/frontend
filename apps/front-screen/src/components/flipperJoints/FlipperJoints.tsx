@@ -15,9 +15,14 @@ import { useCallback, useRef, type RefObject } from "react"
 import type { Mesh } from "three"
 import {
   FLIPPER_ANGVEL_THRESHOLD,
+  FLIPPER_BALL_SPEED_CONTRIBUTION,
+  FLIPPER_FRICTION,
+  FLIPPER_IMPACT_SPEED_THRESHOLD,
   FLIPPER_IMPULSE_MULTIPLIER,
   FLIPPER_JOINT_MASS,
+  FLIPPER_MAX_IMPULSE,
   FLIPPER_MESH_OFFSET_X,
+  FLIPPER_MIN_IMPULSE,
   FLIPPER_PIVOT_TO_TIP,
   FLIPPER_RESTITUTION,
   LEFT_KEYS,
@@ -38,6 +43,7 @@ const FlipperJoints = ({ position, side }: FlipperJointsProps) => {
   const flipperRef = useRef<RapierRigidBody>(null)
   const pressedKeys = useKeyboard()
   const ballContactCount = useRef(0)
+  const isActivelyFlippingRef = useRef(false)
 
   const { nodes } = useGLTF("/models/flipperJoints/scene.gltf")
   const flipperGeometry = (nodes.Cube000_0 as Mesh).geometry
@@ -56,9 +62,14 @@ const FlipperJoints = ({ position, side }: FlipperJointsProps) => {
     damping,
     meshOffsetX,
     mass,
+    friction,
     restitution,
     impulseMultiplier,
     angvelThreshold,
+    impactSpeedThreshold,
+    ballSpeedContribution,
+    minImpulse,
+    maxImpulse,
     pivotToTip,
   } = useControls("Flippers", {
     restAngle: { value: REST_ANGLE, min: -1.2, max: 0, step: 0.05 },
@@ -67,9 +78,24 @@ const FlipperJoints = ({ position, side }: FlipperJointsProps) => {
     damping: { value: MOTOR_DAMPING, min: 5, max: 500, step: 5 },
     meshOffsetX: { value: FLIPPER_MESH_OFFSET_X, min: 0, max: 1.5, step: 0.05 },
     mass: { value: FLIPPER_JOINT_MASS, min: 0, max: 10.0, step: 0.5 },
-    restitution: { value: FLIPPER_RESTITUTION, min: 0, max: 1.0, step: 0.05 },
+    friction: { value: FLIPPER_FRICTION, min: 0, max: 1.0, step: 0.01 },
+    restitution: { value: FLIPPER_RESTITUTION, min: 0, max: 0.1, step: 0.001 },
     impulseMultiplier: { value: FLIPPER_IMPULSE_MULTIPLIER, min: 0.1, max: 5.0, step: 0.1 },
     angvelThreshold: { value: FLIPPER_ANGVEL_THRESHOLD, min: 0, max: 5.0, step: 0.1 },
+    impactSpeedThreshold: {
+      value: FLIPPER_IMPACT_SPEED_THRESHOLD,
+      min: 0,
+      max: 10,
+      step: 0.05,
+    },
+    ballSpeedContribution: {
+      value: FLIPPER_BALL_SPEED_CONTRIBUTION,
+      min: 0,
+      max: 2,
+      step: 0.05,
+    },
+    minImpulse: { value: FLIPPER_MIN_IMPULSE, min: 0, max: 100, step: 0.5 },
+    maxImpulse: { value: FLIPPER_MAX_IMPULSE, min: 1, max: 200, step: 1 },
     pivotToTip: { value: FLIPPER_PIVOT_TO_TIP, min: 0.3, max: 2.0, step: 0.05 },
   })
 
@@ -92,6 +118,7 @@ const FlipperJoints = ({ position, side }: FlipperJointsProps) => {
 
     const keyPressed = activationKeys.some((key) => pressedKeys.current.has(key))
     const isPressed = keyPressed || (autoMode && ballContactCount.current > 0)
+    isActivelyFlippingRef.current = isPressed
     const target = isLeft ? (isPressed ? maxAngle : restAngle) : isPressed ? -maxAngle : -restAngle
 
     jointRef.current.configureMotorPosition(target, stiffness, damping)
@@ -105,6 +132,7 @@ const FlipperJoints = ({ position, side }: FlipperJointsProps) => {
 
       if (!flipperRef.current || !other.rigidBody) return
       if (other.rigidBodyObject?.name !== "ball") return
+      if (!isActivelyFlippingRef.current) return
 
       const angvel = flipperRef.current.angvel()
       const angSpeed = Math.abs(angvel.y)
@@ -131,12 +159,29 @@ const FlipperJoints = ({ position, side }: FlipperJointsProps) => {
       const nx = dirX / dirLen
       const nz = dirZ / dirLen
 
+      const ballVelocity = other.rigidBody.linvel()
+      const ballSpeedAlongFlipper = Math.max(0, ballVelocity.x * nx + ballVelocity.z * nz)
+
       const ballMass = other.rigidBody.mass()
-      const impulseMag = tangentialSpeed * ballMass * impulseMultiplier
+      const combinedImpactSpeed = tangentialSpeed + ballSpeedAlongFlipper * ballSpeedContribution
+
+      if (combinedImpactSpeed < impactSpeedThreshold) return
+
+      const rawImpulse = combinedImpactSpeed * ballMass * impulseMultiplier
+      const impulseMag = Math.min(maxImpulse, Math.max(minImpulse, rawImpulse))
 
       other.rigidBody.applyImpulse({ x: nx * impulseMag, y: 0, z: nz * impulseMag }, true)
     },
-    [angvelThreshold, impulseMultiplier, pivotToTip, isLeft],
+    [
+      angvelThreshold,
+      ballSpeedContribution,
+      impactSpeedThreshold,
+      impulseMultiplier,
+      isLeft,
+      maxImpulse,
+      minImpulse,
+      pivotToTip,
+    ],
   )
 
   const handleCollisionExit = useCallback(({ other }: CollisionPayload) => {
@@ -160,6 +205,7 @@ const FlipperJoints = ({ position, side }: FlipperJointsProps) => {
         restitution={restitution}
         onCollisionEnter={handleCollisionEnter}
         onCollisionExit={handleCollisionExit}
+        friction={friction}
       >
         <MeshCollider type="hull">
           <mesh
