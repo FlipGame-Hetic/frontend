@@ -15,6 +15,7 @@ interface BallProps {
 
 const Ball = ({ id, position, radius = BALL_RADIUS }: BallProps) => {
   const { deleteBall } = useBallStore()
+  const isPlaying = useBallStore((state) => state.playingBallIds.includes(id))
   const ballRef = useRef<RapierRigidBody>(null)
   const groundThreshold = radius + 0.1
 
@@ -39,6 +40,8 @@ const Ball = ({ id, position, radius = BALL_RADIUS }: BallProps) => {
       body.setGravityScale(1, true)
     }
 
+    if (!isPlaying) return
+
     const vel = body.linvel()
     const speed = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z)
     if (speed > BALL_MAX_SPEED) {
@@ -56,6 +59,7 @@ const Ball = ({ id, position, radius = BALL_RADIUS }: BallProps) => {
       gravityScale={0}
       ccd
       name="ball"
+      userData={{ ballId: id }}
       mass={BALL_MASS}
       restitution={BALL_RESTITUTION}
     >

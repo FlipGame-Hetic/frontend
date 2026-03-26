@@ -1,3 +1,4 @@
+import useBallStore from "@/stores/useBallStore"
 import { CuboidCollider, RigidBody, type CuboidArgs } from "@react-three/rapier"
 import { useControls } from "leva"
 import { useMemo } from "react"
@@ -31,6 +32,15 @@ interface WallConfig {
   position: Vector3Tuple
   rotation?: Vector3Tuple
   color?: string
+}
+
+function hasBallId(value: unknown): value is { ballId: string } {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "ballId" in value &&
+    typeof value.ballId === "string"
+  )
 }
 
 function computeWalls(t: TableParams): WallConfig[] {
@@ -128,6 +138,9 @@ const Walls = () => {
     },
   })
 
+  const setBallPlaying = useBallStore((state) => state.setBallPlaying)
+  const hasPlayingBall = useBallStore((state) => state.playingBallIds.length > 0)
+
   const walls = useMemo(() => computeWalls(table), [table])
 
   const drainSensor = useMemo(() => {
@@ -136,6 +149,17 @@ const Walls = () => {
     return {
       args: [halfDrain, table.wallHeight, table.wallThickness] as CuboidArgs,
       position: [0, table.wallHeight, halfL] as Vector3Tuple,
+    }
+  }, [table])
+
+  const laneExitSensor = useMemo(() => {
+    const halfP = table.playfieldWidth / 2
+    const halfL = table.length / 2
+    const laneX = halfP + table.shooterLaneWidth / 2
+    const laneExitZ = -(halfL - table.arcRadius)
+    return {
+      args: [table.shooterLaneWidth / 2, table.wallHeight, 0.5] as CuboidArgs,
+      position: [laneX, table.wallHeight, laneExitZ] as Vector3Tuple,
     }
   }, [table])
 
@@ -149,13 +173,34 @@ const Walls = () => {
         name="drain"
         args={drainSensor.args}
         position={drainSensor.position}
-        onIntersectionEnter={(collision) => {
-          if (collision.colliderObject?.name === "ball") {
-            // TODO: Send WS message
-            // console.log("Balle perdue")
+        onIntersectionEnter={({ rigidBodyObject }) => {
+          if (rigidBodyObject?.name === "ball") {
+            if (hasBallId(rigidBodyObject.userData)) {
+              setBallPlaying(rigidBodyObject.userData.ballId, false)
+            }
           }
         }}
       />
+      <CuboidCollider
+        sensor
+        name="lane-exit"
+        args={laneExitSensor.args}
+        position={laneExitSensor.position}
+        onIntersectionExit={({ rigidBodyObject }) => {
+          if (rigidBodyObject?.name === "ball") {
+            if (hasBallId(rigidBodyObject.userData)) {
+              setBallPlaying(rigidBodyObject.userData.ballId, true)
+            }
+          }
+        }}
+      />
+      {hasPlayingBall && (
+        <CuboidCollider
+          name="lane-gate"
+          args={laneExitSensor.args}
+          position={laneExitSensor.position}
+        />
+      )}
     </RigidBody>
   )
 }
