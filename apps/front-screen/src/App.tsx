@@ -4,10 +4,11 @@ import BallsManager from "./components/balls/BallsManager"
 import DebugCamera from "./components/DebugCamera"
 import PhysicsManager from "./components/physics/PhysicsManager"
 import FlipperJoints from "./components/flipperJoints/FlipperJoints"
-import { LEFT_POSITION, RIGHT_POSITION } from "./components/flipperJoints/flipperConfig"
+import { LEFT_POSITION, RIGHT_POSITION } from "./components/flipperJoints/jointsConfig"
 import Gutters from "./components/Gutters"
 import Walls from "./components/Walls"
 import World from "./components/World"
+import BumpersManager from "./components/bumbers/BumpersManager"
 
 const isDebug = import.meta.env.MODE === "development"
 
@@ -30,6 +31,7 @@ export default function App() {
           <BallsManager />
           <Walls />
           <Gutters />
+          <BumpersManager />
           <FlipperJoints position={LEFT_POSITION} side="left" />
           <FlipperJoints position={RIGHT_POSITION} side="right" />
         </PhysicsManager>
