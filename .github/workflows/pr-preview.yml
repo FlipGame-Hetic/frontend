@@ -1,0 +1,120 @@
+name: PR Preview
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  deploy-preview:
+    name: Deploy Preview
+    runs-on: ubuntu-latest
+    if: github.event.action != 'closed'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build all apps
+        run: pnpm -r run build
+
+      - name: Prepare preview structure
+        run: |
+          mkdir -p preview-output/front-screen
+          mkdir -p preview-output/back-screen
+          mkdir -p preview-output/dmd-screen
+          cp -r apps/front-screen/dist/. preview-output/front-screen/
+          cp -r apps/back-screen/dist/. preview-output/back-screen/
+          cp -r apps/dmd-screen/dist/. preview-output/dmd-screen/
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./preview-output
+          destination_dir: preview/pr-${{ github.event.number }}
+          keep_files: true
+
+      - name: Post PR comment with preview URLs
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const baseUrl = `https://${owner}.github.io/${repo}/preview/pr-${prNumber}`;
+
+            const body = [
+              '<!-- pr-preview -->',
+              '## Preview Deployments',
+              '',
+              '| App | URL |',
+              '|-----|-----|',
+              `| front-screen | [${baseUrl}/front-screen](${baseUrl}/front-screen) |`,
+              `| back-screen | [${baseUrl}/back-screen](${baseUrl}/back-screen) |`,
+              `| dmd-screen | [${baseUrl}/dmd-screen](${baseUrl}/dmd-screen) |`,
+            ].join('\n');
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner,
+              repo,
+              issue_number: prNumber,
+            });
+
+            const existing = comments.find(c => c.body.includes('<!-- pr-preview -->'));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: prNumber,
+                body,
+              });
+            }
+
+  cleanup-preview:
+    name: Cleanup Preview
+    runs-on: ubuntu-latest
+    if: github.event.action == 'closed'
+    steps:
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+
+      - name: Configure git user
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Remove preview directory and push
+        run: |
+          if [ -d "preview/pr-${{ github.event.number }}" ]; then
+            git rm -rf "preview/pr-${{ github.event.number }}"
+            git commit -m "chore: remove preview for PR #${{ github.event.number }}"
+            git push
+          fi
