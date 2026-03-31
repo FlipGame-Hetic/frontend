@@ -39,6 +39,12 @@
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.30.1",
+  "pnpm": {
+    "overrides": {
+      "flatted": ">=3.4.2",
+      "minimatch": ">=10.2.3"
+    }
+  },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@frontend/eslint-config": "workspace:*",
