@@ -36,12 +36,12 @@ jobs:
 
       - name: Prepare preview structure
         run: |
-          mkdir -p preview-output/pr-${{ github.event.number }}/front-screen
-          mkdir -p preview-output/pr-${{ github.event.number }}/back-screen
-          mkdir -p preview-output/pr-${{ github.event.number }}/dmd-screen
-          cp -r apps/front-screen/dist/. preview-output/pr-${{ github.event.number }}/front-screen/
-          cp -r apps/back-screen/dist/. preview-output/pr-${{ github.event.number }}/back-screen/
-          cp -r apps/dmd-screen/dist/. preview-output/pr-${{ github.event.number }}/dmd-screen/
+          mkdir -p preview-output/front-screen
+          mkdir -p preview-output/back-screen
+          mkdir -p preview-output/dmd-screen
+          cp -r apps/front-screen/dist/. preview-output/front-screen/
+          cp -r apps/back-screen/dist/. preview-output/back-screen/
+          cp -r apps/dmd-screen/dist/. preview-output/dmd-screen/
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
