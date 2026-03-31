@@ -52,6 +52,7 @@ jobs:
           keep_files: true
 
       - name: Post PR comment with preview URLs
+        if: always()
         uses: actions/github-script@v7
         with:
           script: |
