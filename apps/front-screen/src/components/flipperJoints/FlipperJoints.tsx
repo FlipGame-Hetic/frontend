@@ -45,7 +45,7 @@ const FlipperJoints = ({ position, side }: FlipperJointsProps) => {
   const ballContactCount = useRef(0)
   const isActivelyFlippingRef = useRef(false)
 
-  const { nodes } = useGLTF("/models/flipperJoints/scene.gltf")
+  const { nodes } = useGLTF(`${import.meta.env.BASE_URL}models/flipperJoints/scene.gltf`)
   const flipperGeometry = (nodes.Cube000_0 as Mesh).geometry
 
   const isLeft = side === "left"
