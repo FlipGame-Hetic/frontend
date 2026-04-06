@@ -10,11 +10,16 @@ import Walls from "./components/Walls"
 import World from "./components/World"
 import BumpersManager from "./components/bumbers/BumpersManager"
 import Plunger from "./components/plunger/Plunger"
+import { useIoTInputs } from "./hooks/useIoTInputs"
+import { useScreenHub } from "./hooks/useScreenHub"
 
 const isDebug = import.meta.env.MODE === "development"
 
 export default function App() {
   const cameraSettings = { position: [0, 20, 25] as [number, number, number], fov: 35 }
+
+  useIoTInputs()
+  useScreenHub()
 
   return (
     <>

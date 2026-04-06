@@ -1,15 +1,15 @@
 import { useEffect, useRef } from "react"
+import { getPressedKeys, pressKey, releaseKey } from "@/stores/inputStore"
 
 const useKeyboard = () => {
-  const pressedKeys = useRef<Set<string>>(new Set())
+  const pressedKeys = useRef<Set<string>>(getPressedKeys())
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      pressedKeys.current.add(e.code)
+      pressKey(e.code)
     }
-
     const handleKeyUp = (e: KeyboardEvent) => {
-      pressedKeys.current.delete(e.code)
+      releaseKey(e.code)
     }
 
     window.addEventListener("keydown", handleKeyDown)
