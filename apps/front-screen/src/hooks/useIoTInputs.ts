@@ -2,15 +2,13 @@ import { useCallback } from "react"
 import { useGameSocket } from "@frontend/ws"
 import type { ButtonPayload, GameMessage, GyroPayload, PlungerPayload } from "@frontend/types"
 import { pressKey, releaseKey } from "@/stores/inputStore"
+import { LEFT_KEYS, RIGHT_KEYS } from "@/components/flipperJoints/jointsConfig"
+import { PLUNGER_KEY } from "@/components/plunger/plungerConfig"
 import useGameStore from "@/stores/useGameStore"
 
-/**
- * Maps ESP32 button IDs to keyboard codes used by the physics components.
- * Adjust these to match your hardware button wiring.
- */
 const BUTTON_KEY_MAP: Record<string, string[]> = {
-  left_flipper: ["ShiftLeft"],
-  right_flipper: ["ShiftRight"],
+  left_flipper: LEFT_KEYS,
+  right_flipper: RIGHT_KEYS,
 }
 
 export function useIoTInputs(): void {
@@ -33,9 +31,9 @@ export function useIoTInputs(): void {
         case "Plunger": {
           const { released } = message as GameMessage & PlungerPayload
           if (released) {
-            releaseKey("Space")
+            releaseKey(PLUNGER_KEY)
           } else {
-            pressKey("Space")
+            pressKey(PLUNGER_KEY)
           }
           break
         }
