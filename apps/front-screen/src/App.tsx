@@ -12,14 +12,18 @@ import BumpersManager from "./components/bumbers/BumpersManager"
 import Plunger from "./components/plunger/Plunger"
 import { useIoTInputs } from "./hooks/useIoTInputs"
 import { useScreenHub } from "./hooks/useScreenHub"
+import { WebsocketTest } from "./websocket-test/WebsocketTest"
 
 const isDebug = import.meta.env.MODE === "development"
+const isWsTest = isDebug && new URLSearchParams(window.location.search).has("wstest")
 
 export default function App() {
   const cameraSettings = { position: [0, 20, 25] as [number, number, number], fov: 35 }
 
   useIoTInputs()
   useScreenHub()
+
+  if (isWsTest) return <WebsocketTest />
 
   return (
     <>
