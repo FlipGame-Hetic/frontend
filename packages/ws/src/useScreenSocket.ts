@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import type { ConnectionStatus, ScreenEnvelope, ScreenId } from "@frontend/types"
-
-const RECONNECT_DELAY_MS = 3000
+import { RECONNECT_DELAY_MS, DEFAULT_SCREEN_HUB_URL } from "./wsConfig"
 
 export interface UseScreenSocketOptions {
   screenId: ScreenId
@@ -21,7 +20,7 @@ export function useScreenSocket(options: UseScreenSocketOptions): UseScreenSocke
   const baseUrl =
     options.baseUrl ??
     (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_SCREEN_HUB_URL ??
-    "ws://localhost:8080"
+    DEFAULT_SCREEN_HUB_URL
 
   const wsUrl = `${baseUrl}/ws/screen/${screenId}?token=${token}`
 

@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import type { ConnectionStatus, GameMessage } from "@frontend/types"
-
-const DEFAULT_WS_URL = "ws://localhost:8080/ws/bridge"
-const RECONNECT_DELAY_MS = 3000
+import { RECONNECT_DELAY_MS, DEFAULT_WS_URL } from "./wsConfig"
 
 export interface UseGameSocketOptions {
   url?: string

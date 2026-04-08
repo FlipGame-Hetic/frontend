@@ -12,9 +12,8 @@ export function useScreenHub(): void {
   const { send } = useScreenSocket({
     screenId: SCREEN_ID,
     token: TOKEN,
-    onMessage: (envelope) => {
-      console.warn("[screen-hub] received:", envelope)
-    },
+    // TODO: traiter les enveloppes reçues (sync score, mises à jour depuis les autres écrans)
+    onMessage: undefined,
   })
 
   const score = useGameStore((s) => s.score)
