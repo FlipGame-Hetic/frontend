@@ -17,12 +17,10 @@ export interface PlayingData {
 
 export class PlayingScene implements Scene {
   private data: PlayingData = { score: 0, player: 1, totalPlayers: 1, ballNumber: 1 }
-  private prevScore = 0
   private scoreChangedAt = 0
 
   update(data: Partial<PlayingData>): void {
     if (data.score !== undefined && data.score !== this.data.score) {
-      this.prevScore = this.data.score
       this.scoreChangedAt = Date.now()
     }
     Object.assign(this.data, data)
