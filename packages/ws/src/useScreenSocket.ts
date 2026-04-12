@@ -1,40 +1,48 @@
 import { useCallback, useEffect, useRef, useState } from "react"
-import type { ConnectionStatus, GameMessage } from "@frontend/types"
-import { RECONNECT_DELAY_MS, DEFAULT_WS_URL } from "./wsConfig"
+import type { ConnectionStatus, ScreenEnvelope, ScreenId } from "@frontend/types"
+import { RECONNECT_DELAY_MS, DEFAULT_SCREEN_HUB_URL } from "./wsConfig"
 
-export interface UseGameSocketOptions {
-  url?: string
-  onMessage?: (message: GameMessage) => void
+export interface UseScreenSocketOptions {
+  screenId: ScreenId
+  token: string
+  baseUrl?: string
+  onMessage?: (envelope: ScreenEnvelope) => void
 }
 
-export interface UseGameSocketReturn {
+export interface UseScreenSocketReturn {
   status: ConnectionStatus
-  send: (message: GameMessage) => void
+  send: (envelope: ScreenEnvelope) => void
 }
 
-export function useGameSocket(options?: UseGameSocketOptions): UseGameSocketReturn {
-  const wsUrl =
-    options?.url ??
-    (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_WS_URL ??
-    DEFAULT_WS_URL
+export function useScreenSocket(options: UseScreenSocketOptions): UseScreenSocketReturn {
+  const { screenId, token } = options
+
+  const baseUrl =
+    options.baseUrl ??
+    (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_SCREEN_HUB_URL ??
+    DEFAULT_SCREEN_HUB_URL
+
+  const wsUrl = `${baseUrl}/ws/screen/${screenId}?token=${token}`
 
   const [status, setStatus] = useState<ConnectionStatus>("disconnected")
   const wsRef = useRef<WebSocket | null>(null)
   const reconnectTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
-  const onMessageRef = useRef(options?.onMessage)
+  const onMessageRef = useRef(options.onMessage)
 
   useEffect(() => {
-    onMessageRef.current = options?.onMessage
+    onMessageRef.current = options.onMessage
   })
 
-  const send = useCallback((message: GameMessage) => {
+  const send = useCallback((envelope: ScreenEnvelope) => {
     const ws = wsRef.current
     if (ws?.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify(message))
+      ws.send(JSON.stringify(envelope))
     }
   }, [])
 
   useEffect(() => {
+    if (!token) return
+
     let disposed = false
 
     function connect() {
@@ -53,15 +61,10 @@ export function useGameSocket(options?: UseGameSocketOptions): UseGameSocketRetu
         if (disposed) return
         const raw = typeof event.data === "string" ? event.data : ""
         try {
-          const parsed = JSON.parse(raw) as GameMessage
+          const parsed = JSON.parse(raw) as ScreenEnvelope
           onMessageRef.current?.(parsed)
         } catch {
-          onMessageRef.current?.({
-            dir: "inbound",
-            device_id: "unknown",
-            _type: "Raw",
-            data: raw,
-          })
+          // ignore malformed frames
         }
       }
 
@@ -72,7 +75,6 @@ export function useGameSocket(options?: UseGameSocketOptions): UseGameSocketRetu
       }
 
       ws.onerror = () => {
-        // onerror is always followed by onclose — let onclose handle reconnect
         ws.close()
       }
     }
@@ -84,7 +86,7 @@ export function useGameSocket(options?: UseGameSocketOptions): UseGameSocketRetu
       clearTimeout(reconnectTimer.current)
       wsRef.current?.close()
     }
-  }, [wsUrl])
+  }, [wsUrl, token])
 
   return { status, send }
 }
