@@ -2,8 +2,7 @@ import type { RenderContext, Scene } from "../types"
 import { setPixel } from "../buffer"
 import { drawString, measureString } from "../font"
 import { drawHearts } from "../icons"
-
-const MAX_BALLS = 3
+import { MAX_BALLS, heartsWidth } from "../constants"
 
 export interface StartData {
   player: number
@@ -63,9 +62,7 @@ export class StartScene implements Scene {
     )
 
     // 3 hearts centered (representing full lives at game start)
-    const heartSpacing = 7
-    const heartsWidth = MAX_BALLS * heartSpacing - 2
-    const heartsX = Math.floor((cols - heartsWidth) / 2)
+    const heartsX = Math.floor((cols - heartsWidth(MAX_BALLS)) / 2)
     drawHearts(buffer, cols, heartsX, Math.floor(rows * 0.68), MAX_BALLS, MAX_BALLS, alpha, 0)
   }
 }

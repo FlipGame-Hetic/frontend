@@ -49,8 +49,11 @@ function App() {
         return
       }
 
+      const prev = sceneManager.activeScene
       sceneManager.update(gameData.current)
-      setActiveScene(sceneManager.activeScene)
+      if (sceneManager.activeScene !== prev) {
+        setActiveScene(sceneManager.activeScene)
+      }
     },
     [sceneManager],
   )

@@ -1,5 +1,6 @@
 import type { DotBuffer } from "./types"
 import { setPixel } from "./buffer"
+import { HEART_SPACING } from "./constants"
 
 // 5×5 pixel heart icon. Bit 4 = leftmost pixel.
 const HEART_BITMAP = [0b01010, 0b11111, 0b11111, 0b01110, 0b00100]
@@ -32,8 +33,7 @@ export function drawHearts(
   brightness = 1.0,
   dimBrightness = 0.15,
 ): void {
-  const heartSpacing = 7 // 5px wide + 2px gap
   for (let i = 0; i < maxCount; i++) {
-    drawHeart(buffer, cols, x + i * heartSpacing, y, i < filledCount ? brightness : dimBrightness)
+    drawHeart(buffer, cols, x + i * HEART_SPACING, y, i < filledCount ? brightness : dimBrightness)
   }
 }

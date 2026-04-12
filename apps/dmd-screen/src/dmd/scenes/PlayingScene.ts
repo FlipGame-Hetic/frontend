@@ -3,8 +3,8 @@ import { setPixel } from "../buffer"
 import { drawString } from "../font"
 import { drawBigString, measureBigString } from "../font-big"
 import { drawHearts } from "../icons"
+import { MAX_BALLS, heartsWidth } from "../constants"
 
-const MAX_BALLS = 3
 const SCORE_FLASH_MS = 300
 const DOT_ROW_PULSE_HZ = 1
 
@@ -55,9 +55,7 @@ export class PlayingScene implements Scene {
 
     // Lives — bottom right as hearts
     const livesRemaining = MAX_BALLS - ballNumber + 1
-    const heartSpacing = 7
-    const heartsWidth = MAX_BALLS * heartSpacing - 2
-    const heartsX = Math.floor(cols * 0.9) - heartsWidth
+    const heartsX = Math.floor(cols * 0.9) - heartsWidth(MAX_BALLS)
     drawHearts(buffer, cols, heartsX, infoY, livesRemaining, MAX_BALLS)
   }
 }

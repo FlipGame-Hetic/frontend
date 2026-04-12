@@ -2,8 +2,8 @@ import type { RenderContext, Scene } from "../types"
 import { drawString, measureString } from "../font"
 import { drawBigString, measureBigString } from "../font-big"
 import { drawHearts } from "../icons"
+import { MAX_BALLS, heartsWidth } from "../constants"
 
-const MAX_BALLS = 3
 const FLASH_DURATION_MS = 600
 const FLASH_INTERVAL_MS = 100
 
@@ -50,9 +50,7 @@ export class BallLostScene implements Scene {
     const heartPulse =
       localMs >= FLASH_DURATION_MS ? 0.6 + 0.4 * Math.sin((localMs / 800) * Math.PI) : 0.0
 
-    const heartSpacing = 7
-    const heartsWidth = MAX_BALLS * heartSpacing - 2
-    const heartsX = Math.floor((cols - heartsWidth) / 2)
+    const heartsX = Math.floor((cols - heartsWidth(MAX_BALLS)) / 2)
     drawHearts(buffer, cols, heartsX, 52, livesRemaining, MAX_BALLS, heartPulse, heartPulse * 0.15)
 
     // Player label

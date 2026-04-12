@@ -16,7 +16,7 @@ export class BonusScene implements Scene {
   }
 
   render(ctx: RenderContext): void {
-    const { buffer, cols, rows, deltaMs, elapsedMs } = ctx
+    const { buffer, cols, rows, elapsedMs } = ctx
     const { score, player } = this.data
 
     // Tick displayScore toward actual score — fast ticking for bonus feel
@@ -40,9 +40,6 @@ export class BonusScene implements Scene {
     const playerText = "PLAYER " + String(player)
     const pw = measureString(playerText)
     drawString(buffer, cols, playerText, Math.floor((cols - pw) / 2), rows - 10, 1, 0.5)
-
-    // Suppress unused warning
-    void deltaMs
   }
 
   enter(): void {
