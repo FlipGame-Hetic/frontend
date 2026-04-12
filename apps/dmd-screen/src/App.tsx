@@ -1,47 +1,39 @@
-import { useCallback, useMemo, useRef, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import type { GameMessage } from "@frontend/types"
 import { useGameSocket } from "@frontend/ws"
 import { DEFAULT_DMD_CONFIG } from "@/dmd/config"
 import type { DmdConfig } from "@/dmd/config"
 import { DmdCanvas } from "@/dmd/DmdCanvas"
-import { TestScene } from "@/dmd/scenes/TestScene"
-import { ScoreScene } from "@/dmd/scenes/ScoreScene"
 import { DevOverlay } from "@/components/DevOverlay"
+import { SceneManager } from "@/dmd/SceneManager"
+import type { Scene } from "@/dmd/types"
 
 function App() {
   const [config, setConfig] = useState<DmdConfig>(DEFAULT_DMD_CONFIG)
-
-  const testScene = useMemo(() => new TestScene(), [])
-  const scoreScene = useMemo(() => new ScoreScene(), [])
-  const hasWsData = useRef(false)
-  const [activeScene, setActiveScene] = useState<"test" | "score">("test")
+  const sceneManager = useMemo(() => new SceneManager(), [])
+  const [activeScene, setActiveScene] = useState<Scene>(() => sceneManager.activeScene)
 
   const onMessage = useCallback(
     (message: GameMessage) => {
       if (message._type === "GameState") {
-        if (!hasWsData.current) {
-          hasWsData.current = true
-          setActiveScene("score")
-        }
-        scoreScene.update({
+        sceneManager.update({
+          state: message.state as string,
+          ball_number: message.ball_number as number,
           score: message.score as number,
           player: message.player as number,
-          totalPlayers: message.total_players as number,
-          ballNumber: message.ball_number as number,
-          phase: message.state as string,
+          total_players: message.total_players as number,
         })
+        setActiveScene(sceneManager.activeScene)
       }
     },
-    [scoreScene],
+    [sceneManager],
   )
 
   useGameSocket({ onMessage })
 
-  const scene = activeScene === "score" ? scoreScene : testScene
-
   return (
     <>
-      <DmdCanvas config={config} scene={scene} />
+      <DmdCanvas config={config} scene={activeScene} />
       {import.meta.env.DEV && <DevOverlay config={config} onChange={setConfig} />}
     </>
   )

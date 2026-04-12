@@ -1,7 +1,30 @@
 import type { RenderContext, Scene } from "../types"
 import { setPixel } from "../buffer"
+import type { DotBuffer } from "../types"
 import { drawString, measureString } from "../font"
 import { drawBigString, measureBigString } from "../font-big"
+
+const MAX_BALLS = 3
+
+// 5×5 pixel heart icon. Bit 4 = leftmost pixel.
+const HEART_BITMAP = [0b01010, 0b11111, 0b11111, 0b01110, 0b00100]
+
+function drawHeart(
+  buffer: DotBuffer,
+  cols: number,
+  x: number,
+  y: number,
+  brightness: number,
+): void {
+  for (let row = 0; row < HEART_BITMAP.length; row++) {
+    const bits = HEART_BITMAP[row] ?? 0
+    for (let col = 0; col < 5; col++) {
+      if (bits & (1 << (4 - col))) {
+        setPixel(buffer, cols, x + col, y + row, brightness)
+      }
+    }
+  }
+}
 
 export interface ScoreData {
   score: number
@@ -35,17 +58,22 @@ export class ScoreScene implements Scene {
     const scoreY = Math.floor(rows * 0.15)
     drawBigString(buffer, cols, scoreText, scoreX, scoreY)
 
-    // Player & ball info
+    // Player info
     const playerText = "PLAYER " + String(player)
-    const ballText = "BALL " + String(ballNumber)
-
     const playerX = Math.floor(cols * 0.1)
-    const ballWidth = measureString(ballText)
-    const ballX = Math.floor(cols * 0.9) - ballWidth
-
     const infoY = scoreY + 18
     drawString(buffer, cols, playerText, playerX, infoY)
-    drawString(buffer, cols, ballText, ballX, infoY)
+
+    // Lives display: filled hearts for remaining, dim for lost
+    const livesRemaining = MAX_BALLS - ballNumber + 1
+    const heartSpacing = 7 // 5px wide + 2px gap
+    const heartsWidth = MAX_BALLS * heartSpacing - 2
+    const heartsX = Math.floor(cols * 0.9) - heartsWidth
+    for (let i = 0; i < MAX_BALLS; i++) {
+      const hx = heartsX + i * heartSpacing
+      const brightness = i < livesRemaining ? 1.0 : 0.15
+      drawHeart(buffer, cols, hx, infoY, brightness)
+    }
 
     // Phase indicator at bottom
     if (phase === "waiting") {
