@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react"
 import { useScreenSocket } from "@frontend/ws"
 import type { ScreenEnvelope } from "@frontend/types"
 import useGameStore from "@/stores/useGameStore"
+import { registerScreenSend } from "@/stores/screenSender"
 
 const SCREEN_ID = "front_screen" as const
 
@@ -15,6 +16,10 @@ export function useScreenHub(): void {
     // TODO: traiter les enveloppes reçues (sync score, mises à jour depuis les autres écrans)
     onMessage: undefined,
   })
+
+  useEffect(() => {
+    registerScreenSend(send)
+  }, [send])
 
   const score = useGameStore((s) => s.score)
   const phase = useGameStore((s) => s.phase)

@@ -1,4 +1,5 @@
 import type { PositionType } from "@/types/worldTypes"
+import { sendBumperHit } from "@/stores/screenSender"
 import { useFrame } from "@react-three/fiber"
 import type { RapierRigidBody } from "@react-three/rapier"
 import { RigidBody, type CollisionEnterPayload } from "@react-three/rapier"
@@ -17,9 +18,10 @@ import {
 
 interface BumperProps {
   position: PositionType
+  bumperId: number
 }
 
-const Bumper = ({ position }: BumperProps) => {
+const Bumper = ({ position, bumperId }: BumperProps) => {
   const bodyRef = useRef<RapierRigidBody>(null)
   const meshRef = useRef<Mesh>(null)
   const isBouncing = useRef(false)
@@ -46,6 +48,8 @@ const Bumper = ({ position }: BumperProps) => {
       if (!bodyRef.current || !other.rigidBody) return
       if (other.rigidBodyObject?.name !== "ball") return
 
+      sendBumperHit(bumperId)
+
       const bumperPos = bodyRef.current.translation()
       const ballPos = other.rigidBody.translation()
 
@@ -65,7 +69,7 @@ const Bumper = ({ position }: BumperProps) => {
 
       stuckBall.current = { body: other.rigidBody, frames: 0 }
     },
-    [impulseStrength],
+    [impulseStrength, bumperId],
   )
 
   useFrame(() => {

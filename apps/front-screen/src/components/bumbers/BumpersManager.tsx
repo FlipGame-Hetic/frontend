@@ -5,7 +5,7 @@ const BumpersManager = () => {
   return (
     <>
       {BUMPER_POSITIONS.map((position, i) => (
-        <Bumper key={i} position={position} />
+        <Bumper key={i} position={position} bumperId={i} />
       ))}
     </>
   )
