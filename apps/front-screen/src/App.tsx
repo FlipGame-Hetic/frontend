@@ -10,6 +10,7 @@ import Walls from "./components/Walls"
 import World from "./components/World"
 import BumpersManager from "./components/bumbers/BumpersManager"
 import Plunger from "./components/plunger/Plunger"
+import RampsManager from "./components/ramps/RampsManager"
 
 const isDebug = import.meta.env.MODE === "development"
 
@@ -31,6 +32,7 @@ export default function App() {
         <PhysicsManager isDebug={isDebug}>
           <BallsManager />
           <Walls />
+          <RampsManager />
           <Gutters />
           <BumpersManager />
           <FlipperJoints position={LEFT_POSITION} side="left" />
