@@ -1,47 +1,68 @@
 import { useCallback, useMemo, useRef, useState } from "react"
-import type { GameMessage } from "@frontend/types"
-import { useGameSocket } from "@frontend/ws"
+import type { ScreenEnvelope } from "@frontend/types"
+import { useScreenSocket } from "@frontend/ws"
 import { DEFAULT_DMD_CONFIG } from "@/dmd/config"
 import type { DmdConfig } from "@/dmd/config"
 import { DmdCanvas } from "@/dmd/DmdCanvas"
-import { TestScene } from "@/dmd/scenes/TestScene"
-import { ScoreScene } from "@/dmd/scenes/ScoreScene"
 import { DevOverlay } from "@/components/DevOverlay"
+import { SceneManager } from "@/dmd/SceneManager"
+import type { GameData } from "@/dmd/SceneManager"
+import type { Scene } from "@/dmd/types"
+
+const SCREEN_ID = "dmd_screen" as const
+const TOKEN =
+  (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_SCREEN_TOKEN ?? "dev"
 
 function App() {
   const [config, setConfig] = useState<DmdConfig>(DEFAULT_DMD_CONFIG)
+  const sceneManager = useMemo(() => new SceneManager(), [])
+  const [activeScene, setActiveScene] = useState<Scene>(() => sceneManager.activeScene)
 
-  const testScene = useMemo(() => new TestScene(), [])
-  const scoreScene = useMemo(() => new ScoreScene(), [])
-  const hasWsData = useRef(false)
-  const [activeScene, setActiveScene] = useState<"test" | "score">("test")
+  // Merged game state — updated incrementally from score_update and phase_change envelopes
+  const gameData = useRef<GameData>({
+    state: "idle",
+    ball_number: 1,
+    score: 0,
+    player: 1,
+    total_players: 1,
+  })
 
   const onMessage = useCallback(
-    (message: GameMessage) => {
-      if (message._type === "GameState") {
-        if (!hasWsData.current) {
-          hasWsData.current = true
-          setActiveScene("score")
+    (envelope: ScreenEnvelope) => {
+      const payload = envelope.payload as Record<string, unknown>
+
+      if (envelope.event_type === "score_update") {
+        gameData.current = {
+          ...gameData.current,
+          score: (payload.score as number | undefined) ?? gameData.current.score,
+          player: (payload.player as number | undefined) ?? gameData.current.player,
+          ball_number: (payload.ball as number | undefined) ?? gameData.current.ball_number,
         }
-        scoreScene.update({
-          score: message.score as number,
-          player: message.player as number,
-          totalPlayers: message.total_players as number,
-          ballNumber: message.ball_number as number,
-          phase: message.state as string,
-        })
+      } else if (envelope.event_type === "phase_change") {
+        gameData.current = {
+          ...gameData.current,
+          state: (payload.phase as string | undefined) ?? gameData.current.state,
+          ball_number: (payload.ball as number | undefined) ?? gameData.current.ball_number,
+          player: (payload.player as number | undefined) ?? gameData.current.player,
+        }
+      } else {
+        return
+      }
+
+      const prev = sceneManager.activeScene
+      sceneManager.update(gameData.current)
+      if (sceneManager.activeScene !== prev) {
+        setActiveScene(sceneManager.activeScene)
       }
     },
-    [scoreScene],
+    [sceneManager],
   )
 
-  useGameSocket({ onMessage })
-
-  const scene = activeScene === "score" ? scoreScene : testScene
+  useScreenSocket({ screenId: SCREEN_ID, token: TOKEN, onMessage })
 
   return (
     <>
-      <DmdCanvas config={config} scene={scene} />
+      <DmdCanvas config={config} scene={activeScene} />
       {import.meta.env.DEV && <DevOverlay config={config} onChange={setConfig} />}
     </>
   )

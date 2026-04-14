@@ -10,7 +10,7 @@ export interface DmdConfig {
 export const DEFAULT_DMD_CONFIG: DmdConfig = {
   cols: 128,
   rows: 72,
-  dotColor: "#FFFFFF",
+  dotColor: "#FF8C00",
   bgColor: "#000000",
   offOpacity: 0.05,
   gapRatio: 0.2,
