@@ -12,7 +12,9 @@ import {
 } from "@react-three/rapier"
 import { useControls } from "leva"
 import { useCallback, useRef, type RefObject } from "react"
+import * as THREE from "three"
 import type { Mesh } from "three"
+import { usePlayfieldFrame } from "../physics/usePlayfieldFrame"
 import {
   FLIPPER_ANGVEL_THRESHOLD,
   FLIPPER_BALL_SPEED_CONTRIBUTION,
@@ -50,6 +52,12 @@ const FlipperJoints = ({ position, side }: FlipperJointsProps) => {
 
   const isLeft = side === "left"
   const activationKeys = isLeft ? LEFT_KEYS : RIGHT_KEYS
+
+  const { localToWorldVector, worldToLocalVector } = usePlayfieldFrame()
+  const tmpAngvel = useRef(new THREE.Vector3())
+  const tmpDelta = useRef(new THREE.Vector3())
+  const tmpBallVel = useRef(new THREE.Vector3())
+  const tmpImpulse = useRef(new THREE.Vector3())
 
   const { autoMode } = useControls("Main", {
     autoMode: false,
@@ -134,22 +142,31 @@ const FlipperJoints = ({ position, side }: FlipperJointsProps) => {
       if (other.rigidBodyObject?.name !== "ball") return
       if (!isActivelyFlippingRef.current) return
 
-      const angvel = flipperRef.current.angvel()
-      const angSpeed = Math.abs(angvel.y)
+      const angvelWorld = flipperRef.current.angvel()
+      const angvelLocal = worldToLocalVector(angvelWorld, tmpAngvel.current)
+      const angSpeed = Math.abs(angvelLocal.y)
 
       if (angSpeed < angvelThreshold) return
 
       const flipperPos = flipperRef.current.translation()
       const ballPos = other.rigidBody.translation()
 
-      const dx = ballPos.x - flipperPos.x
-      const dz = ballPos.z - flipperPos.z
+      const deltaLocal = worldToLocalVector(
+        {
+          x: ballPos.x - flipperPos.x,
+          y: ballPos.y - flipperPos.y,
+          z: ballPos.z - flipperPos.z,
+        },
+        tmpDelta.current,
+      )
+      const dx = deltaLocal.x
+      const dz = deltaLocal.z
       const distFromPivot = Math.sqrt(dx * dx + dz * dz)
       const effectiveDist = Math.min(distFromPivot, pivotToTip)
 
       const tangentialSpeed = angSpeed * effectiveDist
 
-      const sign = Math.sign(angvel.y) * (isLeft ? 1 : -1)
+      const sign = Math.sign(angvelLocal.y) * (isLeft ? 1 : -1)
       const dirX = -dz * sign
       const dirZ = dx * sign
       const dirLen = Math.sqrt(dirX * dirX + dirZ * dirZ)
@@ -159,8 +176,8 @@ const FlipperJoints = ({ position, side }: FlipperJointsProps) => {
       const nx = dirX / dirLen
       const nz = dirZ / dirLen
 
-      const ballVelocity = other.rigidBody.linvel()
-      const ballSpeedAlongFlipper = Math.max(0, ballVelocity.x * nx + ballVelocity.z * nz)
+      const ballVelLocal = worldToLocalVector(other.rigidBody.linvel(), tmpBallVel.current)
+      const ballSpeedAlongFlipper = Math.max(0, ballVelLocal.x * nx + ballVelLocal.z * nz)
 
       const ballMass = other.rigidBody.mass()
       const combinedImpactSpeed = tangentialSpeed + ballSpeedAlongFlipper * ballSpeedContribution
@@ -170,7 +187,11 @@ const FlipperJoints = ({ position, side }: FlipperJointsProps) => {
       const rawImpulse = combinedImpactSpeed * ballMass * impulseMultiplier
       const impulseMag = Math.min(maxImpulse, Math.max(minImpulse, rawImpulse))
 
-      other.rigidBody.applyImpulse({ x: nx * impulseMag, y: 0, z: nz * impulseMag }, true)
+      const impulseWorld = localToWorldVector(
+        { x: nx * impulseMag, y: 0, z: nz * impulseMag },
+        tmpImpulse.current,
+      )
+      other.rigidBody.applyImpulse(impulseWorld, true)
     },
     [
       angvelThreshold,
@@ -178,9 +199,11 @@ const FlipperJoints = ({ position, side }: FlipperJointsProps) => {
       impactSpeedThreshold,
       impulseMultiplier,
       isLeft,
+      localToWorldVector,
       maxImpulse,
       minImpulse,
       pivotToTip,
+      worldToLocalVector,
     ],
   )
 

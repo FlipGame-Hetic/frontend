@@ -5,7 +5,9 @@ import type { RapierRigidBody, CollisionPayload } from "@react-three/rapier"
 import { CuboidCollider, RigidBody } from "@react-three/rapier"
 import { useControls, button } from "leva"
 import { useCallback, useRef } from "react"
+import * as THREE from "three"
 import type { Group } from "three"
+import { usePlayfieldFrame } from "../physics/usePlayfieldFrame"
 import {
   PLUNGER_BALL_SPAWN,
   PLUNGER_CHARGE_FACTOR,
@@ -37,6 +39,10 @@ const Plunger = () => {
   const rodGroupRef = useRef<Group>(null)
   const rodBodyRef = useRef<RapierRigidBody>(null)
   const torusRefs = useRef<(Group | null)[]>([])
+
+  const { localToWorldVector } = usePlayfieldFrame()
+  const tmpImpulse = useRef(new THREE.Vector3())
+  const tmpRodTarget = useRef(new THREE.Vector3())
 
   const handleSpawn = useCallback(() => {
     if (useBallStore.getState().balls.length === 0) {
@@ -77,7 +83,23 @@ const Plunger = () => {
           const scaledCharge = Math.pow(charge, PLUNGER_CHARGE_FACTOR)
           const impulse =
             PLUNGER_MIN_IMPULSE + (PLUNGER_MAX_IMPULSE - PLUNGER_MIN_IMPULSE) * scaledCharge
-          ballInLane.applyImpulse({ x: 0, y: 0, z: -impulse * ballInLane.mass() }, true)
+          const impulseWorld = localToWorldVector(
+            { x: 0, y: 0, z: -impulse * ballInLane.mass() },
+            tmpImpulse.current,
+          )
+          ballInLane.applyImpulse(impulseWorld, true)
+          console.log("[plunger] fired", {
+            charge: charge.toFixed(3),
+            impulseMagnitude: impulse.toFixed(2),
+            ballMass: ballInLane.mass().toFixed(3),
+            impulseWorld: [
+              impulseWorld.x.toFixed(2),
+              impulseWorld.y.toFixed(2),
+              impulseWorld.z.toFixed(2),
+            ],
+          })
+        } else {
+          console.log("[plunger] release with no ballInLane — sensor never triggered")
         }
       } else {
         chargeRef.current = 0
@@ -101,11 +123,11 @@ const Plunger = () => {
 
     if (rodBodyRef.current) {
       const [px, py, pz] = PLUNGER_POSITION
-      rodBodyRef.current.setNextKinematicTranslation({
-        x: px,
-        y: py,
-        z: pz + compression,
-      })
+      const worldTarget = localToWorldVector(
+        { x: px, y: py, z: pz + compression },
+        tmpRodTarget.current,
+      )
+      rodBodyRef.current.setNextKinematicTranslation(worldTarget)
     }
 
     const compressedSpacing = PLUNGER_SPRING_SPACING * (1 - chargeRef.current * 0.6)
@@ -130,7 +152,7 @@ const Plunger = () => {
       </RigidBody>
 
       <RigidBody ref={rodBodyRef} type="kinematicPosition" colliders={false}>
-        <CuboidCollider args={[PLUNGER_ROD_RADIUS, PLUNGER_ROD_RADIUS, PLUNGER_ROD_LENGTH / 2]} />
+        <CuboidCollider args={[0.45, PLUNGER_ROD_RADIUS, PLUNGER_ROD_LENGTH / 2]} />
       </RigidBody>
 
       <group ref={rodGroupRef}>

@@ -2,10 +2,17 @@ import useBallStore from "@/stores/useBallStore"
 import type { PositionType } from "@/types/worldTypes"
 import { useFrame } from "@react-three/fiber"
 import type { RapierRigidBody } from "@react-three/rapier"
-import { RigidBody, useBeforePhysicsStep, type CollisionPayload } from "@react-three/rapier"
-import { useCallback, useRef } from "react"
-import { REAL_GRAVITY_Y } from "../physics/physicsConfig"
-import { BALL_MASS, BALL_MAX_SPEED, BALL_RADIUS, BALL_RESTITUTION } from "./ballConfig"
+import { RigidBody, useBeforePhysicsStep } from "@react-three/rapier"
+import { useRef } from "react"
+import { PLAYFIELD_ALONG_ACCEL } from "../physics/physicsConfig"
+import { usePlayfieldFrame } from "../physics/usePlayfieldFrame"
+import {
+  BALL_LINEAR_DAMPING,
+  BALL_MASS,
+  BALL_MAX_SPEED,
+  BALL_RADIUS,
+  BALL_RESTITUTION,
+} from "./ballConfig"
 
 interface BallProps {
   id: string
@@ -15,37 +22,50 @@ interface BallProps {
 
 const Ball = ({ id, position, radius = BALL_RADIUS }: BallProps) => {
   const { deleteBall } = useBallStore()
-  const isPlaying = useBallStore((state) => state.playingBallIds.includes(id))
   const isRamping = useBallStore((state) => state.rampingBallIds.includes(id))
   const ballRef = useRef<RapierRigidBody>(null)
   const initialVelocityApplied = useRef(false)
-  const contactCountRef = useRef(0)
+  const hasLanded = useRef(false)
   const initialVelocity = useBallStore(
     (state) => state.balls.find((b) => b.id === id)?.initialVelocity,
   )
-
-  const handleCollisionEnter = useCallback(({ other }: CollisionPayload) => {
-    if (other.rigidBodyObject?.name === "ball") return
-    contactCountRef.current += 1
-  }, [])
-
-  const handleCollisionExit = useCallback(({ other }: CollisionPayload) => {
-    if (other.rigidBodyObject?.name === "ball") return
-
-    if (contactCountRef.current > 0) {
-      contactCountRef.current -= 1
-      return
-    }
-
-    contactCountRef.current = 0
-  }, [])
+  const { localToWorldVector, worldToLocalVector } = usePlayfieldFrame()
 
   useBeforePhysicsStep(() => {
-    if (initialVelocityApplied.current || !initialVelocity) return
     const body = ballRef.current
     if (!body) return
-    body.setLinvel({ x: initialVelocity[0], y: initialVelocity[1], z: initialVelocity[2] }, true)
-    initialVelocityApplied.current = true
+
+    if (!initialVelocityApplied.current && initialVelocity) {
+      body.setLinvel({ x: initialVelocity[0], y: initialVelocity[1], z: initialVelocity[2] }, true)
+      initialVelocityApplied.current = true
+    }
+
+    const forceMagnitude = body.mass() * PLAYFIELD_ALONG_ACCEL
+    const worldForce = localToWorldVector({ x: 0, y: 0, z: forceMagnitude })
+    body.addForce({ x: worldForce.x, y: worldForce.y, z: worldForce.z }, true)
+
+    if (isRamping) return
+
+    const posWorld = body.translation()
+    const posLocal = worldToLocalVector(posWorld)
+
+    if (!hasLanded.current && posLocal.y <= BALL_RADIUS + 0.01) {
+      hasLanded.current = true
+    }
+
+    if (!hasLanded.current) return
+
+    const velWorld = body.linvel()
+    const velLocal = worldToLocalVector(velWorld)
+    if (velLocal.y > 0) {
+      velLocal.y = 0
+      const velWorldClamped = localToWorldVector({
+        x: velLocal.x,
+        y: velLocal.y,
+        z: velLocal.z,
+      })
+      body.setLinvel({ x: velWorldClamped.x, y: velWorldClamped.y, z: velWorldClamped.z }, true)
+    }
   })
 
   useFrame(() => {
@@ -59,18 +79,6 @@ const Ball = ({ id, position, radius = BALL_RADIUS }: BallProps) => {
       deleteBall(id)
       return
     }
-
-    const isAirborne = contactCountRef.current === 0
-
-    if (isAirborne) {
-      body.setGravityScale(0, true)
-      const mass = body.mass()
-      body.addForce({ x: 0, y: REAL_GRAVITY_Y * mass, z: 0 }, true)
-    } else {
-      body.setGravityScale(1, true)
-    }
-
-    if (!isPlaying) return
 
     const vel = body.linvel()
     const speed = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z)
@@ -90,8 +98,7 @@ const Ball = ({ id, position, radius = BALL_RADIUS }: BallProps) => {
       userData={{ ballId: id }}
       mass={BALL_MASS}
       restitution={BALL_RESTITUTION}
-      onCollisionEnter={handleCollisionEnter}
-      onCollisionExit={handleCollisionExit}
+      linearDamping={BALL_LINEAR_DAMPING}
     >
       <mesh>
         <sphereGeometry args={[radius, 32, 32]} />

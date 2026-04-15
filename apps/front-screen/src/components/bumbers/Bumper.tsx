@@ -4,7 +4,9 @@ import type { RapierRigidBody } from "@react-three/rapier"
 import { RigidBody, type CollisionEnterPayload } from "@react-three/rapier"
 import { useControls } from "leva"
 import { useCallback, useRef } from "react"
+import * as THREE from "three"
 import type { Mesh } from "three"
+import { usePlayfieldFrame } from "../physics/usePlayfieldFrame"
 import {
   BUMPER_IMPULSE_STRENGTH,
   BUMPER_RESTITUTION,
@@ -24,6 +26,11 @@ const Bumper = ({ position }: BumperProps) => {
   const meshRef = useRef<Mesh>(null)
   const isBouncing = useRef(false)
   const stuckBall = useRef<{ body: RapierRigidBody; frames: number } | null>(null)
+
+  const { localToWorldVector, worldToLocalVector } = usePlayfieldFrame()
+  const tmpDelta = useRef(new THREE.Vector3())
+  const tmpImpulse = useRef(new THREE.Vector3())
+  const tmpVel = useRef(new THREE.Vector3())
 
   const { restitution, impulseStrength, stuckFrames, stuckVelocity, unstickImpulse } = useControls(
     "Bumpers",
@@ -49,23 +56,33 @@ const Bumper = ({ position }: BumperProps) => {
       const bumperPos = bodyRef.current.translation()
       const ballPos = other.rigidBody.translation()
 
-      const dx = ballPos.x - bumperPos.x
-      const dz = ballPos.z - bumperPos.z
-      const dirLen = Math.sqrt(dx * dx + dz * dz)
+      const deltaLocal = worldToLocalVector(
+        {
+          x: ballPos.x - bumperPos.x,
+          y: ballPos.y - bumperPos.y,
+          z: ballPos.z - bumperPos.z,
+        },
+        tmpDelta.current,
+      )
+      const dirLen = Math.sqrt(deltaLocal.x * deltaLocal.x + deltaLocal.z * deltaLocal.z)
 
       if (dirLen < 0.001) return
 
-      const nx = dx / dirLen
-      const nz = dz / dirLen
+      const nx = deltaLocal.x / dirLen
+      const nz = deltaLocal.z / dirLen
 
       const ballMass = other.rigidBody.mass()
       const impulseMag = impulseStrength * ballMass
 
-      other.rigidBody.applyImpulse({ x: nx * impulseMag, y: 0, z: nz * impulseMag }, true)
+      const impulseWorld = localToWorldVector(
+        { x: nx * impulseMag, y: 0, z: nz * impulseMag },
+        tmpImpulse.current,
+      )
+      other.rigidBody.applyImpulse(impulseWorld, true)
 
       stuckBall.current = { body: other.rigidBody, frames: 0 }
     },
-    [impulseStrength],
+    [impulseStrength, localToWorldVector, worldToLocalVector],
   )
 
   useFrame(() => {
@@ -81,10 +98,12 @@ const Bumper = ({ position }: BumperProps) => {
     if (!stuckBall.current || !bodyRef.current) return
     const ball = stuckBall.current.body
 
-    const vel = ball.linvel()
-    const speed = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z)
+    const velLocal = worldToLocalVector(ball.linvel(), tmpVel.current)
+    const speedPlanar = Math.sqrt(
+      velLocal.x * velLocal.x + velLocal.y * velLocal.y + velLocal.z * velLocal.z,
+    )
 
-    if (speed > stuckVelocity) {
+    if (speedPlanar > stuckVelocity) {
       stuckBall.current = null
       return
     }
@@ -94,14 +113,15 @@ const Bumper = ({ position }: BumperProps) => {
     if (stuckBall.current.frames >= stuckFrames) {
       const angle = Math.random() * Math.PI * 2
       const ballMass = ball.mass()
-      ball.applyImpulse(
+      const impulseWorld = localToWorldVector(
         {
           x: Math.cos(angle) * unstickImpulse * ballMass,
           y: 0,
           z: Math.sin(angle) * unstickImpulse * ballMass,
         },
-        true,
+        tmpImpulse.current,
       )
+      ball.applyImpulse(impulseWorld, true)
       stuckBall.current = null
     }
   })

@@ -1,8 +1,11 @@
 import type { CameraProps } from "@react-three/fiber"
+import { Stats } from "@react-three/drei"
 import { Leva } from "leva"
 import BallsManager from "./components/balls/BallsManager"
+import DebugBridge from "./components/DebugBridge"
 import DebugCamera from "./components/DebugCamera"
 import PhysicsManager from "./components/physics/PhysicsManager"
+import { PlayfieldProvider } from "./components/physics/PlayfieldContext"
 import FlipperJoints from "./components/flipperJoints/FlipperJoints"
 import { LEFT_POSITION, RIGHT_POSITION } from "./components/flipperJoints/jointsConfig"
 import Gutters from "./components/Gutters"
@@ -28,16 +31,20 @@ export default function App() {
         <ambientLight intensity={0.5} />
         <directionalLight position={[5, 5, 5]} intensity={1} />
         <DebugCamera cameraPosition={cameraSettings.position} cameraFov={cameraSettings.fov} />
+        {isDebug && <Stats />}
 
         <PhysicsManager isDebug={isDebug}>
-          <BallsManager />
-          <Walls />
-          <RampsManager />
-          <Gutters />
-          <BumpersManager />
-          <FlipperJoints position={LEFT_POSITION} side="left" />
-          <FlipperJoints position={RIGHT_POSITION} side="right" />
-          <Plunger />
+          <DebugBridge />
+          <PlayfieldProvider>
+            <BallsManager />
+            <Walls />
+            <RampsManager />
+            <Gutters />
+            <BumpersManager />
+            <FlipperJoints position={LEFT_POSITION} side="left" />
+            <FlipperJoints position={RIGHT_POSITION} side="right" />
+            <Plunger />
+          </PlayfieldProvider>
         </PhysicsManager>
       </World>
     </>

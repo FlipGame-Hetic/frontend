@@ -82,7 +82,7 @@ const BallsManager = () => {
       },
     },
     "Spawn Ball": button(() => {
-      spawnBall([spawnConfig.x, 5, -8])
+      spawnBall([spawnConfig.x, 1.5, -8])
     }),
     "→ Left Ramp": button(() => {
       spawnBallWithVelocity(

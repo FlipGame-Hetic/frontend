@@ -17,7 +17,7 @@ export const BUMPER_SIZE_ARGS: [number | undefined, number | undefined, number |
   0.5, 0.5, 0.5,
 ]
 export const BUMPER_RESTITUTION = 0.3
-export const BUMPER_IMPULSE_STRENGTH = 15
+export const BUMPER_IMPULSE_STRENGTH = 12
 export const BUMPER_STUCK_FRAMES = 30
 export const BUMPER_STUCK_VELOCITY = 0.5
 export const BUMPER_UNSTICK_IMPULSE = 5

@@ -101,7 +101,6 @@ function computeWalls(t: TableParams): WallConfig[] {
     position: [floorCenterX, -0.5, 0],
     color: "#cfcfcf",
   }
-
   return [...straight, ...arc, floor]
 }
 
