@@ -4,8 +4,21 @@ import type { RapierRigidBody } from "@react-three/rapier"
 import { useFrame } from "@react-three/fiber"
 import * as THREE from "three"
 import useBallStore from "@/stores/useBallStore"
+import { hasBallId } from "@/utils/ballUserData"
 import { BALL_RADIUS } from "../balls/ballConfig"
-import { type RampSettings, RAMP_COLOR, RAMP_OPACITY, type RampPathPoints } from "./rampConfig"
+import {
+  type RampSettings,
+  type RampPathPoints,
+  RAMP_COLOR,
+  RAMP_OPACITY,
+  RAMP_FLOOR_ROUGHNESS,
+  RAMP_FLOOR_METALNESS,
+  RAMP_WALL_ROUGHNESS,
+  RAMP_WALL_METALNESS,
+  RAMP_CURVE_TENSION,
+  RAMP_SENSOR_HEIGHT_PADDING,
+  RAMP_SENSOR_MIN_HEIGHT_FACTOR,
+} from "./rampConfig"
 
 interface RampProps {
   points: RampPathPoints
@@ -25,22 +38,18 @@ interface RampSegment {
   wallScale: [number, number, number]
 }
 
-const WORLD_UP = new THREE.Vector3(0, 1, 0)
-const FALLBACK_SIDE = new THREE.Vector3(1, 0, 0)
-
 interface ActiveRampBall {
   body: RapierRigidBody
   overlapCount: number
   entrySpeedAlongRamp: number
 }
 
-function hasBallId(value: unknown): value is { ballId: string } {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    "ballId" in value &&
-    typeof value.ballId === "string"
-  )
+const WORLD_UP = new THREE.Vector3(0, 1, 0)
+const FALLBACK_SIDE = new THREE.Vector3(1, 0, 0)
+
+function getSpeedAlongTangent(body: RapierRigidBody, tangent: THREE.Vector3) {
+  const v = body.linvel()
+  return v.x * tangent.x + v.y * tangent.y + v.z * tangent.z
 }
 
 function buildSegments(curve: THREE.CatmullRomCurve3, settings: RampSettings): RampSegment[] {
@@ -110,7 +119,7 @@ function buildSegments(curve: THREE.CatmullRomCurve3, settings: RampSettings): R
 
 export default function Ramp({ points, settings }: RampProps) {
   const curve = useMemo(
-    () => new THREE.CatmullRomCurve3(points, false, "catmullrom", 0.5),
+    () => new THREE.CatmullRomCurve3(points, false, "catmullrom", RAMP_CURVE_TENSION),
     [points],
   )
   const segments = useMemo(() => buildSegments(curve, settings), [curve, settings])
@@ -144,11 +153,7 @@ export default function Ramp({ points, settings }: RampProps) {
       if (closestSegment.t > settings.assistMaxT) return
       if (closestSegment.tangent.y <= 0) return
 
-      const linearVelocity = body.linvel()
-      const speedAlongRamp =
-        linearVelocity.x * closestSegment.tangent.x +
-        linearVelocity.y * closestSegment.tangent.y +
-        linearVelocity.z * closestSegment.tangent.z
+      const speedAlongRamp = getSpeedAlongTangent(body, closestSegment.tangent)
 
       const assistFade = 1 - THREE.MathUtils.smoothstep(closestSegment.t, 0, settings.assistMaxT)
       const retainedEntrySpeed = Math.min(
@@ -169,13 +174,6 @@ export default function Ramp({ points, settings }: RampProps) {
       body.applyImpulse({ x: impulse.x, y: impulse.y, z: impulse.z }, true)
     })
   })
-
-  function getSpeedAlongTangent(body: RapierRigidBody, tangent: THREE.Vector3) {
-    const linearVelocity = body.linvel()
-    return (
-      linearVelocity.x * tangent.x + linearVelocity.y * tangent.y + linearVelocity.z * tangent.z
-    )
-  }
 
   function registerActiveBall(
     segment: RampSegment,
@@ -221,101 +219,98 @@ export default function Ramp({ points, settings }: RampProps) {
 
   return (
     <group>
-      {segments.map((segment) => (
-        <Fragment key={`ramp-visual-${String(segment.id)}`}>
-          <mesh
-            position={segment.floorCenter}
-            quaternion={segment.quaternion}
-            scale={segment.floorScale}
-          >
-            <boxGeometry args={[1, 1, 1]} />
-            <meshPhysicalMaterial
-              color={RAMP_COLOR}
-              transparent
-              opacity={RAMP_OPACITY}
-              roughness={0.15}
-              metalness={0.1}
-            />
-          </mesh>
-          <mesh
-            position={segment.leftWallCenter}
-            quaternion={segment.quaternion}
-            scale={segment.wallScale}
-          >
-            <boxGeometry args={[1, 1, 1]} />
-            <meshPhysicalMaterial
-              color={RAMP_COLOR}
-              transparent
-              opacity={RAMP_OPACITY}
-              roughness={0.2}
-              metalness={0.05}
-            />
-          </mesh>
-          <mesh
-            position={segment.rightWallCenter}
-            quaternion={segment.quaternion}
-            scale={segment.wallScale}
-          >
-            <boxGeometry args={[1, 1, 1]} />
-            <meshPhysicalMaterial
-              color={RAMP_COLOR}
-              transparent
-              opacity={RAMP_OPACITY}
-              roughness={0.2}
-              metalness={0.05}
-            />
-          </mesh>
-        </Fragment>
-      ))}
+      {segments.map((segment) => {
+        const meshes = [
+          {
+            key: "floor",
+            position: segment.floorCenter,
+            scale: segment.floorScale,
+            roughness: RAMP_FLOOR_ROUGHNESS,
+            metalness: RAMP_FLOOR_METALNESS,
+          },
+          {
+            key: "left",
+            position: segment.leftWallCenter,
+            scale: segment.wallScale,
+            roughness: RAMP_WALL_ROUGHNESS,
+            metalness: RAMP_WALL_METALNESS,
+          },
+          {
+            key: "right",
+            position: segment.rightWallCenter,
+            scale: segment.wallScale,
+            roughness: RAMP_WALL_ROUGHNESS,
+            metalness: RAMP_WALL_METALNESS,
+          },
+        ]
+
+        return (
+          <Fragment key={`ramp-visual-${String(segment.id)}`}>
+            {meshes.map((m) => (
+              <mesh
+                key={m.key}
+                position={m.position}
+                quaternion={segment.quaternion}
+                scale={m.scale}
+              >
+                <boxGeometry args={[1, 1, 1]} />
+                <meshPhysicalMaterial
+                  color={RAMP_COLOR}
+                  transparent
+                  opacity={RAMP_OPACITY}
+                  roughness={m.roughness}
+                  metalness={m.metalness}
+                />
+              </mesh>
+            ))}
+          </Fragment>
+        )
+      })}
 
       <RigidBody type="fixed" colliders={false}>
-        {segments.map((segment) => (
-          <Fragment key={`ramp-collider-${String(segment.id)}`}>
-            <CuboidCollider
-              args={[
-                segment.floorScale[0] / 2,
-                segment.floorScale[1] / 2,
-                segment.floorScale[2] / 2,
-              ]}
-              position={segment.floorCenter}
-              quaternion={segment.quaternion}
-              friction={settings.surfaceFriction}
-              restitution={settings.surfaceRestitution}
-            />
-            <CuboidCollider
-              args={[segment.wallScale[0] / 2, segment.wallScale[1] / 2, segment.wallScale[2] / 2]}
-              position={segment.leftWallCenter}
-              quaternion={segment.quaternion}
-              friction={settings.surfaceFriction}
-              restitution={settings.surfaceRestitution}
-            />
-            <CuboidCollider
-              args={[segment.wallScale[0] / 2, segment.wallScale[1] / 2, segment.wallScale[2] / 2]}
-              position={segment.rightWallCenter}
-              quaternion={segment.quaternion}
-              friction={settings.surfaceFriction}
-              restitution={settings.surfaceRestitution}
-            />
-            <CuboidCollider
-              sensor
-              args={[
-                segment.floorScale[0] / 2,
-                Math.max(settings.wallHeight / 2 + BALL_RADIUS * 0.5, BALL_RADIUS * 1.25),
-                settings.channelWidth / 2,
-              ]}
-              position={segment.centerPoint.toArray() as [number, number, number]}
-              quaternion={segment.quaternion}
-              onIntersectionEnter={({ other }) => {
-                if (other.rigidBodyObject?.name !== "ball") return
-                registerActiveBall(segment, other.rigidBodyObject, other.rigidBody)
-              }}
-              onIntersectionExit={({ other }) => {
-                if (other.rigidBodyObject?.name !== "ball") return
-                unregisterActiveBall(other.rigidBodyObject)
-              }}
-            />
-          </Fragment>
-        ))}
+        {segments.map((segment) => {
+          const solidColliders = [
+            { key: "floor", args: segment.floorScale, position: segment.floorCenter },
+            { key: "left", args: segment.wallScale, position: segment.leftWallCenter },
+            { key: "right", args: segment.wallScale, position: segment.rightWallCenter },
+          ]
+
+          return (
+            <Fragment key={`ramp-collider-${String(segment.id)}`}>
+              {solidColliders.map((c) => (
+                <CuboidCollider
+                  key={c.key}
+                  args={[c.args[0] / 2, c.args[1] / 2, c.args[2] / 2]}
+                  position={c.position}
+                  quaternion={segment.quaternion}
+                  friction={settings.surfaceFriction}
+                  restitution={settings.surfaceRestitution}
+                />
+              ))}
+              <CuboidCollider
+                sensor
+                args={[
+                  segment.floorScale[0] / 2,
+                  Math.max(
+                    settings.wallHeight / 2 + BALL_RADIUS * RAMP_SENSOR_HEIGHT_PADDING,
+                    BALL_RADIUS * RAMP_SENSOR_MIN_HEIGHT_FACTOR,
+                  ),
+                  settings.channelWidth / 2,
+                ]}
+                position={segment.centerPoint.toArray() as [number, number, number]}
+                quaternion={segment.quaternion}
+                onIntersectionEnter={({ other }) => {
+                  if (other.rigidBodyObject?.name !== "ball") return
+                  registerActiveBall(segment, other.rigidBodyObject, other.rigidBody)
+                }}
+                onIntersectionExit={({ other }) => {
+                  if (other.rigidBodyObject?.name !== "ball") return
+                  unregisterActiveBall(other.rigidBodyObject)
+                }}
+              />
+            </Fragment>
+          )
+        })}
       </RigidBody>
     </group>
   )

@@ -1,4 +1,5 @@
 import useBallStore from "@/stores/useBallStore"
+import { hasBallId } from "@/utils/ballUserData"
 import { CuboidCollider, RigidBody, type CuboidArgs } from "@react-three/rapier"
 import { useControls } from "leva"
 import { useMemo } from "react"
@@ -32,15 +33,6 @@ interface WallConfig {
   position: Vector3Tuple
   rotation?: Vector3Tuple
   color?: string
-}
-
-function hasBallId(value: unknown): value is { ballId: string } {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    "ballId" in value &&
-    typeof value.ballId === "string"
-  )
 }
 
 function computeWalls(t: TableParams): WallConfig[] {

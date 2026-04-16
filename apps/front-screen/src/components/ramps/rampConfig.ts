@@ -21,6 +21,16 @@ export interface RampSettings {
 export const RAMP_OPACITY = 0.35
 export const RAMP_COLOR = "#88ccff"
 
+export const RAMP_FLOOR_ROUGHNESS = 0.15
+export const RAMP_FLOOR_METALNESS = 0.1
+export const RAMP_WALL_ROUGHNESS = 0.2
+export const RAMP_WALL_METALNESS = 0.05
+
+export const RAMP_CURVE_TENSION = 0.5
+
+export const RAMP_SENSOR_HEIGHT_PADDING = 0.5
+export const RAMP_SENSOR_MIN_HEIGHT_FACTOR = 1.25
+
 export const RAMP_DEFAULTS: RampSettings = {
   segmentCount: 64,
   channelWidth: BALL_RADIUS * 3.0,
