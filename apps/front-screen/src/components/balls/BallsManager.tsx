@@ -10,10 +10,10 @@ const rampShotConfig = {
   burstSpacingMs: 140,
 }
 
-const LEFT_RAMP_TEST_VELOCITY: PositionType = [-4, 3, -12]
-const RIGHT_RAMP_TEST_VELOCITY: PositionType = [4, 3, -12]
-const LEFT_RAMP_TEST_SPAWN: PositionType = [-2.4, 0.5, 7.0]
-const RIGHT_RAMP_TEST_SPAWN: PositionType = [2.4, 0.5, 7.0]
+const RAMP_TEST_VELOCITY: PositionType = [2.8, 1.2, -10.6]
+const RAMP_TEST_SPAWN: PositionType = [2.05, 0.5, 8.45]
+const RAMP_TOP_SPAWN: PositionType = [-3.55, 2.45, -8.2]
+const TOP_SPAWN_VELOCITY: PositionType = [0, 0, 0]
 
 function scaleVelocity(velocity: PositionType, targetSpeed: number): PositionType {
   const magnitude = Math.hypot(velocity[0], velocity[1], velocity[2])
@@ -84,33 +84,20 @@ const BallsManager = () => {
     "Spawn Ball": button(() => {
       spawnBall([spawnConfig.x, 1.5, -8])
     }),
-    "→ Left Ramp": button(() => {
+    "→ Ramp (bottom)": button(() => {
       spawnBallWithVelocity(
-        LEFT_RAMP_TEST_SPAWN,
-        scaleVelocity(LEFT_RAMP_TEST_VELOCITY, rampShotConfig.speed),
+        RAMP_TEST_SPAWN,
+        scaleVelocity(RAMP_TEST_VELOCITY, rampShotConfig.speed),
       )
     }),
-    "→ Right Ramp": button(() => {
-      spawnBallWithVelocity(
-        RIGHT_RAMP_TEST_SPAWN,
-        scaleVelocity(RIGHT_RAMP_TEST_VELOCITY, rampShotConfig.speed),
-      )
+    "→ Ramp (top)": button(() => {
+      spawnBallWithVelocity(RAMP_TOP_SPAWN, TOP_SPAWN_VELOCITY)
     }),
-    "Burst Left Ramp": button(() => {
+    "Burst Ramp": button(() => {
       scheduleRampBurst(
         spawnBallWithVelocity,
-        LEFT_RAMP_TEST_SPAWN,
-        LEFT_RAMP_TEST_VELOCITY,
-        rampShotConfig.speed,
-        rampShotConfig.burstCount,
-        rampShotConfig.burstSpacingMs,
-      )
-    }),
-    "Burst Right Ramp": button(() => {
-      scheduleRampBurst(
-        spawnBallWithVelocity,
-        RIGHT_RAMP_TEST_SPAWN,
-        RIGHT_RAMP_TEST_VELOCITY,
+        RAMP_TEST_SPAWN,
+        RAMP_TEST_VELOCITY,
         rampShotConfig.speed,
         rampShotConfig.burstCount,
         rampShotConfig.burstSpacingMs,

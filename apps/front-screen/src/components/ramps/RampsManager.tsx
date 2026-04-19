@@ -1,6 +1,6 @@
 import { useControls } from "leva"
 import Ramp from "./Ramp"
-import { LEFT_RAMP_POINTS, RAMP_DEFAULTS, RIGHT_RAMP_POINTS, type RampSettings } from "./rampConfig"
+import { LEFT_RAMP_POINTS, RAMP_DEFAULTS, type RampSettings } from "./rampConfig"
 
 export default function RampsManager() {
   const settings = useControls("Ramp", {
@@ -8,7 +8,7 @@ export default function RampsManager() {
     channelWidth: { value: RAMP_DEFAULTS.channelWidth, min: 0.55, max: 1.4, step: 0.01 },
     floorThickness: { value: RAMP_DEFAULTS.floorThickness, min: 0.05, max: 0.4, step: 0.01 },
     wallThickness: { value: RAMP_DEFAULTS.wallThickness, min: 0.05, max: 0.4, step: 0.01 },
-    wallHeight: { value: RAMP_DEFAULTS.wallHeight, min: 0.2, max: 1.2, step: 0.01 },
+    wallHeight: { value: RAMP_DEFAULTS.wallHeight, min: 0.2, max: 2.0, step: 0.01 },
     segmentOverlap: { value: RAMP_DEFAULTS.segmentOverlap, min: 0, max: 0.4, step: 0.01 },
     surfaceFriction: { value: RAMP_DEFAULTS.surfaceFriction, min: 0, max: 1, step: 0.01 },
     surfaceRestitution: { value: RAMP_DEFAULTS.surfaceRestitution, min: 0, max: 0.4, step: 0.01 },
@@ -21,12 +21,17 @@ export default function RampsManager() {
       max: 1.2,
       step: 0.01,
     },
+    normalEscapeClamp: {
+      value: RAMP_DEFAULTS.normalEscapeClamp,
+      min: 0.5,
+      max: 10,
+      step: 0.1,
+    },
   }) as RampSettings
 
   return (
     <>
       <Ramp key="ramp-left" points={LEFT_RAMP_POINTS} settings={settings} />
-      <Ramp key="ramp-right" points={RIGHT_RAMP_POINTS} settings={settings} />
     </>
   )
 }

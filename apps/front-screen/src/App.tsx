@@ -33,7 +33,7 @@ export default function App() {
         <DebugCamera cameraPosition={cameraSettings.position} cameraFov={cameraSettings.fov} />
         {isDebug && <Stats />}
 
-        <PhysicsManager isDebug={isDebug}>
+        <PhysicsManager isDebug={false}>
           <DebugBridge />
           <PlayfieldProvider>
             <BallsManager />

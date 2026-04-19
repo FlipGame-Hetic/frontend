@@ -9,15 +9,16 @@ import { BALL_RADIUS } from "../balls/ballConfig"
 import {
   type RampSettings,
   type RampPathPoints,
-  RAMP_COLOR,
-  RAMP_OPACITY,
-  RAMP_FLOOR_ROUGHNESS,
-  RAMP_FLOOR_METALNESS,
-  RAMP_WALL_ROUGHNESS,
-  RAMP_WALL_METALNESS,
   RAMP_CURVE_TENSION,
   RAMP_SENSOR_HEIGHT_PADDING,
   RAMP_SENSOR_MIN_HEIGHT_FACTOR,
+  RAIL_RADIUS,
+  RAIL_COLOR,
+  RAIL_METALNESS,
+  RAIL_ROUGHNESS,
+  RAIL_TUBULAR_SEGMENTS,
+  RAIL_RADIAL_SEGMENTS,
+  RAIL_SAMPLE_POINTS,
 } from "./rampConfig"
 
 interface RampProps {
@@ -30,6 +31,7 @@ interface RampSegment {
   t: number
   centerPoint: THREE.Vector3
   tangent: THREE.Vector3
+  normal: THREE.Vector3
   floorCenter: [number, number, number]
   leftWallCenter: [number, number, number]
   rightWallCenter: [number, number, number]
@@ -101,6 +103,7 @@ function buildSegments(curve: THREE.CatmullRomCurve3, settings: RampSettings): R
       t: middleT,
       centerPoint: centerPoint.clone(),
       tangent: tangent.clone(),
+      normal: normal.clone(),
       floorCenter: floorCenter.toArray() as [number, number, number],
       leftWallCenter: leftWallCenter.toArray() as [number, number, number],
       rightWallCenter: rightWallCenter.toArray() as [number, number, number],
@@ -117,12 +120,56 @@ function buildSegments(curve: THREE.CatmullRomCurve3, settings: RampSettings): R
   return segments
 }
 
+interface RampRailCurves {
+  bottom: THREE.CatmullRomCurve3
+  left: THREE.CatmullRomCurve3
+  right: THREE.CatmullRomCurve3
+}
+
+function buildRailCurves(curve: THREE.CatmullRomCurve3): RampRailCurves {
+  const bottomPoints: THREE.Vector3[] = []
+  const leftPoints: THREE.Vector3[] = []
+  const rightPoints: THREE.Vector3[] = []
+  const previousSide = FALLBACK_SIDE.clone()
+  const railOffset = BALL_RADIUS + RAIL_RADIUS
+
+  for (let i = 0; i <= RAIL_SAMPLE_POINTS; i++) {
+    const t = i / RAIL_SAMPLE_POINTS
+    const point = curve.getPointAt(t)
+    const tangent = curve.getTangentAt(t).normalize()
+
+    const side = new THREE.Vector3().crossVectors(tangent, WORLD_UP)
+    if (side.lengthSq() < 1e-5) {
+      side.copy(previousSide)
+    } else {
+      side.normalize()
+      if (side.dot(previousSide) < 0) {
+        side.multiplyScalar(-1)
+      }
+      previousSide.copy(side)
+    }
+
+    const normal = new THREE.Vector3().crossVectors(side, tangent).normalize()
+
+    bottomPoints.push(point.clone().addScaledVector(normal, -railOffset))
+    leftPoints.push(point.clone().addScaledVector(side, railOffset))
+    rightPoints.push(point.clone().addScaledVector(side, -railOffset))
+  }
+
+  return {
+    bottom: new THREE.CatmullRomCurve3(bottomPoints, false, "catmullrom", RAMP_CURVE_TENSION),
+    left: new THREE.CatmullRomCurve3(leftPoints, false, "catmullrom", RAMP_CURVE_TENSION),
+    right: new THREE.CatmullRomCurve3(rightPoints, false, "catmullrom", RAMP_CURVE_TENSION),
+  }
+}
+
 export default function Ramp({ points, settings }: RampProps) {
   const curve = useMemo(
     () => new THREE.CatmullRomCurve3(points, false, "catmullrom", RAMP_CURVE_TENSION),
     [points],
   )
   const segments = useMemo(() => buildSegments(curve, settings), [curve, settings])
+  const railCurves = useMemo(() => buildRailCurves(curve), [curve])
   const activeBallsRef = useRef<Map<string, ActiveRampBall>>(new Map())
   const setBallRamping = useBallStore((state) => state.setBallRamping)
 
@@ -150,8 +197,19 @@ export default function Ramp({ points, settings }: RampProps) {
         }
       }
 
+      const v = body.linvel()
+      const n = closestSegment.normal
+      const normalVel = v.x * n.x + v.y * n.y + v.z * n.z
+      if (normalVel > settings.normalEscapeClamp) {
+        const excess = normalVel - settings.normalEscapeClamp
+        body.setLinvel(
+          { x: v.x - excess * n.x, y: v.y - excess * n.y, z: v.z - excess * n.z },
+          true,
+        )
+      }
+
       if (closestSegment.t > settings.assistMaxT) return
-      if (closestSegment.tangent.y <= 0) return
+      if (closestSegment.tangent.y <= 0 && closestSegment.t < 0.75) return
 
       const speedAlongRamp = getSpeedAlongTangent(body, closestSegment.tangent)
 
@@ -219,53 +277,24 @@ export default function Ramp({ points, settings }: RampProps) {
 
   return (
     <group>
-      {segments.map((segment) => {
-        const meshes = [
-          {
-            key: "floor",
-            position: segment.floorCenter,
-            scale: segment.floorScale,
-            roughness: RAMP_FLOOR_ROUGHNESS,
-            metalness: RAMP_FLOOR_METALNESS,
-          },
-          {
-            key: "left",
-            position: segment.leftWallCenter,
-            scale: segment.wallScale,
-            roughness: RAMP_WALL_ROUGHNESS,
-            metalness: RAMP_WALL_METALNESS,
-          },
-          {
-            key: "right",
-            position: segment.rightWallCenter,
-            scale: segment.wallScale,
-            roughness: RAMP_WALL_ROUGHNESS,
-            metalness: RAMP_WALL_METALNESS,
-          },
-        ]
-
-        return (
-          <Fragment key={`ramp-visual-${String(segment.id)}`}>
-            {meshes.map((m) => (
-              <mesh
-                key={m.key}
-                position={m.position}
-                quaternion={segment.quaternion}
-                scale={m.scale}
-              >
-                <boxGeometry args={[1, 1, 1]} />
-                <meshPhysicalMaterial
-                  color={RAMP_COLOR}
-                  transparent
-                  opacity={RAMP_OPACITY}
-                  roughness={m.roughness}
-                  metalness={m.metalness}
-                />
-              </mesh>
-            ))}
-          </Fragment>
-        )
-      })}
+      {(["bottom", "left", "right"] as const).map((key) => (
+        <mesh key={`ramp-rail-${key}`}>
+          <tubeGeometry
+            args={[
+              railCurves[key],
+              RAIL_TUBULAR_SEGMENTS,
+              RAIL_RADIUS,
+              RAIL_RADIAL_SEGMENTS,
+              false,
+            ]}
+          />
+          <meshStandardMaterial
+            color={RAIL_COLOR}
+            metalness={RAIL_METALNESS}
+            roughness={RAIL_ROUGHNESS}
+          />
+        </mesh>
+      ))}
 
       <RigidBody type="fixed" colliders={false}>
         {segments.map((segment) => {
