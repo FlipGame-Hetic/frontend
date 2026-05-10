@@ -1,11 +1,22 @@
 import useBallStore from "@/stores/useBallStore"
+import useGameStore from "@/stores/useGameStore"
 import { useControls, button } from "leva"
+import { useEffect } from "react"
+import { PLUNGER_BALL_SPAWN } from "../plunger/plungerConfig"
 import Ball from "./Ball"
 
 const spawnConfig = { x: 0 }
 
 const BallsManager = () => {
   const { balls, spawnBall } = useBallStore()
+  const phase = useGameStore((s) => s.phase)
+  const ballNumber = useGameStore((s) => s.ballNumber)
+
+  useControls("Game", {
+    "Start Game": button(() => {
+      useGameStore.getState().startGame()
+    }),
+  })
 
   useControls("Ball Spawner", {
     spawnX: {
@@ -22,6 +33,12 @@ const BallsManager = () => {
       spawnBall([spawnConfig.x, 5, -8])
     }),
   })
+
+  useEffect(() => {
+    if (phase !== "playing") return
+    if (useBallStore.getState().balls.length > 0) return
+    spawnBall(PLUNGER_BALL_SPAWN)
+  }, [phase, ballNumber, spawnBall])
 
   return (
     <>

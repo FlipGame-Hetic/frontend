@@ -158,8 +158,8 @@ const Walls = () => {
     const laneX = halfP + table.shooterLaneWidth / 2
     const laneExitZ = -(halfL - table.arcRadius)
     return {
-      args: [table.shooterLaneWidth / 2, table.wallHeight, 0.5] as CuboidArgs,
-      position: [laneX, table.wallHeight, laneExitZ] as Vector3Tuple,
+      args: [table.shooterLaneWidth / 2, table.wallHeight, 2] as CuboidArgs,
+      position: [laneX - 0.1, table.wallHeight, laneExitZ] as Vector3Tuple,
     }
   }, [table])
 

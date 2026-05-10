@@ -1,4 +1,5 @@
 import useBallStore from "@/stores/useBallStore"
+import useGameStore from "@/stores/useGameStore"
 import type { PositionType } from "@/types/worldTypes"
 import { useFrame } from "@react-three/fiber"
 import type { RapierRigidBody } from "@react-three/rapier"
@@ -15,6 +16,7 @@ interface BallProps {
 
 const Ball = ({ id, position, radius = BALL_RADIUS }: BallProps) => {
   const { deleteBall } = useBallStore()
+  const loseBall = useGameStore((s) => s.loseBall)
   const isPlaying = useBallStore((state) => state.playingBallIds.includes(id))
   const ballRef = useRef<RapierRigidBody>(null)
   const groundThreshold = radius + 0.1
@@ -27,6 +29,7 @@ const Ball = ({ id, position, radius = BALL_RADIUS }: BallProps) => {
 
     if (pos.y <= -2) {
       deleteBall(id)
+      loseBall()
       return
     }
 
