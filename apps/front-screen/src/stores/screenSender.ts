@@ -24,3 +24,14 @@ export function sendBumperHit(bumperId: number): void {
   }
   _send(envelope)
 }
+
+export function sendSlingshotHit(slingshotId: number): void {
+  if (!_send) return
+  const envelope: ScreenEnvelope = {
+    from: "front_screen",
+    to: { kind: "broadcast" },
+    event_type: "Slingshot",
+    payload: { slingshot_id: slingshotId },
+  }
+  _send(envelope)
+}

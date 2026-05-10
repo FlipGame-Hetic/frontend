@@ -9,6 +9,7 @@ import Gutters from "./components/Gutters"
 import Walls from "./components/Walls"
 import World from "./components/World"
 import BumpersManager from "./components/bumbers/BumpersManager"
+import SlingshotsManager from "./components/slingshots/SlingshotsManager"
 import Plunger from "./components/plunger/Plunger"
 import { useIoTInputs } from "./hooks/useIoTInputs"
 import { useScreenHub } from "./hooks/useScreenHub"
@@ -42,6 +43,7 @@ export default function App() {
           <Walls />
           <Gutters />
           <BumpersManager />
+          <SlingshotsManager />
           <FlipperJoints position={LEFT_POSITION} side="left" />
           <FlipperJoints position={RIGHT_POSITION} side="right" />
           <Plunger />
