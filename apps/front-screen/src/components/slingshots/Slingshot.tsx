@@ -12,8 +12,8 @@ import {
 } from "@react-three/rapier"
 import { usePhysicsDebugControls } from "@/debug/physicsDebugContext"
 import { useCallback, useMemo, useRef } from "react"
-import type { Group, Mesh } from "three"
-import { normalizedPlayfieldDirection } from "../physics/playfieldPlane"
+import * as THREE from "three"
+import type { Mesh } from "three"
 import {
   SLINGSHOT_ACTIVE_FACE_POINTS,
   SLINGSHOT_FACE_HEIGHT,
@@ -28,13 +28,12 @@ interface SlingshotProps {
   position: PositionType
   side: "left" | "right"
   slingshotId: number
-  moduleMesh: Mesh
-  rubberMesh?: Mesh
+  meshOverride?: Mesh
 }
 
-const Slingshot = ({ position, side, slingshotId, moduleMesh, rubberMesh }: SlingshotProps) => {
-  const bodyRef = useRef<RapierRigidBody>(null)
-  const rubberGroupRef = useRef<Group>(null)
+const Slingshot = ({ position, side, slingshotId, meshOverride }: SlingshotProps) => {
+  const rubberBodyRef = useRef<RapierRigidBody>(null)
+  const rubberRef = useRef<THREE.Mesh>(null)
   const hitAt = useRef(-Infinity)
   const stuckBall = useRef<{ body: RapierRigidBody; frames: number } | null>(null)
 
@@ -139,25 +138,57 @@ const Slingshot = ({ position, side, slingshotId, moduleMesh, rubberMesh }: Slin
     }
   })
 
-  return (
-    <RigidBody ref={bodyRef} type="fixed" colliders={false} position={position}>
-      <MeshCollider type="hull">
-        <primitive object={moduleMesh} />
-      </MeshCollider>
-      <CuboidCollider
-        args={activeFace.args}
-        position={activeFace.position}
-        rotation={activeFace.rotation}
-        restitution={restitution}
-        friction={0}
+  if (meshOverride) {
+    return (
+      <RigidBody
+        ref={rubberBodyRef}
+        type="fixed"
+        colliders="hull"
+        position={position}
+        restitution={SLINGSHOT_RESTITUTION}
         onCollisionEnter={handleCollision}
-      />
-      {rubberMesh && (
-        <group ref={rubberGroupRef}>
-          <primitive object={rubberMesh} />
-        </group>
-      )}
-    </RigidBody>
+      >
+        <primitive object={meshOverride} />
+      </RigidBody>
+    )
+  }
+
+  return (
+    <>
+      {/* Triangle body: 2 murs non-rubber, restitution 0 */}
+      <RigidBody type="fixed" colliders={false} position={position}>
+        <CuboidCollider
+          args={[SLINGSHOT_WIDTH / 2, SLINGSHOT_HEIGHT / 2, 0.003]}
+          position={[(xDir * SLINGSHOT_WIDTH) / 2, SLINGSHOT_HEIGHT / 2, 0]}
+        />
+        <CuboidCollider
+          args={[0.003, SLINGSHOT_HEIGHT / 2, SLINGSHOT_DEPTH / 2]}
+          position={[0, SLINGSHOT_HEIGHT / 2, -SLINGSHOT_DEPTH / 2]}
+        />
+        <mesh geometry={triangleGeometry}>
+          <meshStandardMaterial color="#cccccc" />
+        </mesh>
+      </RigidBody>
+
+      {/* Rubber: restitution élevée, collision handler, animation tremble */}
+      <RigidBody
+        ref={rubberBodyRef}
+        type="fixed"
+        colliders="hull"
+        position={position}
+        restitution={SLINGSHOT_RESTITUTION}
+        onCollisionEnter={handleCollision}
+      >
+        <mesh
+          ref={rubberRef}
+          position={rubberTransform.position}
+          rotation={[0, rubberTransform.rotationY, 0]}
+        >
+          <boxGeometry args={[0.005, SLINGSHOT_HEIGHT, rubberTransform.length]} />
+          <meshStandardMaterial color="#d33" />
+        </mesh>
+      </RigidBody>
+    </>
   )
 }
 

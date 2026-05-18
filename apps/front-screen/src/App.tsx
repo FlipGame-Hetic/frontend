@@ -9,23 +9,24 @@ import ProductionCamera from "./components/ProductionCamera"
 import Ceiling from "./components/physics/Ceiling"
 import PhysicsManager from "./components/physics/PhysicsManager"
 import PlayfieldScene from "./components/playfield/PlayfieldScene"
-import PlungerLaneGate from "./components/plunger/PlungerLaneGate"
-import PlungerLaneGateDebug from "./components/plunger/PlungerLaneGateDebug"
-import LaneBooster from "./components/laneBooster/LaneBooster"
-import { LANE_BOOSTER_CONFIGS } from "./components/laneBooster/laneBoostersConfig"
-import TestBench from "./components/playfield/TestBench"
+import Plunger from "./components/plunger/Plunger"
 import World from "./components/World"
-import { useDebugKeys } from "./hooks/useDebugKeys"
 import { useIoTInputs } from "./hooks/useIoTInputs"
 import { useScreenHub } from "./hooks/useScreenHub"
+import { useDebugKeys } from "./hooks/useDebugKeys"
 import { WebsocketTest } from "./websocket-test/WebsocketTest"
 
 const isProduction = import.meta.env.VITE_ENVIRONMENT === "production"
 const isWsTest = !isProduction && new URLSearchParams(window.location.search).has("wstest")
 
-function AppContent() {
-  const cameraSettings = { position: [0, 20, 25] as [number, number, number], fov: 35 }
-  const { testBench } = useMainDebugControls()
+export default function App() {
+  const cameraSettings = { position: [0, 1.33, 1.67] as [number, number, number], fov: 35 }
+
+  useIoTInputs()
+  useScreenHub()
+  useDebugKeys()
+
+  if (isWsTest) return <WebsocketTest />
 
   return (
     <>
@@ -36,43 +37,15 @@ function AppContent() {
       />
       <World cameraSettings={cameraSettings as CameraProps}>
         <ambientLight intensity={0.5} />
-        <directionalLight
-          position={[0, 13, 12]}
-          intensity={0.4}
-          castShadow
-          shadow-mapSize={[2048, 2048]}
-          shadow-camera-near={0.5}
-          shadow-camera-far={60}
-          shadow-camera-left={-20}
-          shadow-camera-right={20}
-          shadow-camera-top={20}
-          shadow-camera-bottom={-20}
-          shadow-bias={-0.001}
-          shadow-normalBias={0.1}
-        />
-        {isProduction ? (
-          <ProductionCamera />
-        ) : (
-          <DebugCamera cameraPosition={cameraSettings.position} cameraFov={cameraSettings.fov} />
-        )}
+        <directionalLight position={[0.33, 0.33, 0.33]} intensity={1} />
+        <DebugCamera cameraPosition={cameraSettings.position} cameraFov={cameraSettings.fov} />
 
         <PhysicsManager isDebug={true}>
           <BallsManager />
-          <Drain />
-          <Ceiling />
-          <PlungerLaneGate />
-          <PlungerLaneGateDebug />
-          {LANE_BOOSTER_CONFIGS.map((cfg) => (
-            <LaneBooster key={cfg.id} {...cfg} />
-          ))}
-          {testBench ? (
-            <TestBench />
-          ) : (
-            <Suspense fallback={null}>
-              <PlayfieldScene />
-            </Suspense>
-          )}
-          {/* <Plunger /> */}
+          <Suspense fallback={null}>
+            <PlayfieldScene />
+          </Suspense>
+          <Plunger />
         </PhysicsManager>
       </World>
     </>

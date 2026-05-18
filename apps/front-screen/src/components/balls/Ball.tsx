@@ -1,5 +1,6 @@
 import useBallStore from "@/stores/useBallStore"
-import { isPointInPlungerLaneSensor } from "@/components/plunger/plungerConfig"
+import useGameStore from "@/stores/useGameStore"
+import { broadcastEvent } from "@frontend/ws"
 import type { PositionType } from "@/types/worldTypes"
 import { useFrame } from "@react-three/fiber"
 import type { RapierRigidBody } from "@react-three/rapier"
@@ -40,6 +41,7 @@ const Ball = ({
 }: BallProps) => {
   const { deleteBall } = useBallStore()
   const ballRef = useRef<RapierRigidBody>(null)
+  const groundThreshold = radius + 0.007
 
   useFrame(() => {
     const body = ballRef.current
@@ -47,8 +49,14 @@ const Ball = ({
 
     const pos = body.translation()
 
-    if (pos.y <= DRAIN_SAFETY_FALLBACK_Y) {
+    if (pos.y <= -0.13) {
+      const { ballNumber, currentPlayer, nextBall } = useGameStore.getState()
+      broadcastEvent({
+        event_type: "ball_lost",
+        payload: { ball: ballNumber, player: currentPlayer },
+      })
       deleteBall(id)
+      nextBall()
       return
     }
 

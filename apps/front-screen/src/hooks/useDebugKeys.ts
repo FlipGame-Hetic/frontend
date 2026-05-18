@@ -1,7 +1,7 @@
 import { useEffect } from "react"
 import { broadcastEvent } from "@frontend/ws"
 import useGameStore from "@/stores/useGameStore"
-import { BUMPER_SCORE } from "@/config/scoreConfig"
+import { BUMPER_SCORE, SLINGSHOT_SCORE } from "@/config/scoreConfig"
 
 export function useDebugKeys(): void {
   useEffect(() => {
@@ -13,6 +13,10 @@ export function useDebugKeys(): void {
         case "b":
           broadcastEvent({ event_type: "bumper_hit", payload: { bumper_id: 0 } })
           addScore(BUMPER_SCORE)
+          break
+        case "s":
+          broadcastEvent({ event_type: "slingshot_hit", payload: { slingshot_id: 0 } })
+          addScore(SLINGSHOT_SCORE)
           break
         case "l":
           broadcastEvent({

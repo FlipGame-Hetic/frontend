@@ -18,10 +18,9 @@ interface BumperProps {
   position: PositionType
   bumperId: number
   meshOverride?: Mesh
-  rubberMesh?: Mesh
 }
 
-const Bumper = ({ position, bumperId, meshOverride, rubberMesh }: BumperProps) => {
+const Bumper = ({ position, bumperId, meshOverride }: BumperProps) => {
   const bodyRef = useRef<RapierRigidBody>(null)
   const meshRef = useRef<Mesh>(null)
   const rubberGroupRef = useRef<Group>(null)
@@ -142,14 +141,7 @@ const Bumper = ({ position, bumperId, meshOverride, rubberMesh }: BumperProps) =
       restitution={restitution}
     >
       {meshOverride ? (
-        <>
-          <primitive object={meshOverride} />
-          {rubberMesh && (
-            <group ref={rubberGroupRef}>
-              <primitive object={rubberMesh} />
-            </group>
-          )}
-        </>
+        <primitive object={meshOverride} />
       ) : (
         <mesh ref={meshRef}>
           <cylinderGeometry args={BUMPER_SIZE_ARGS} />

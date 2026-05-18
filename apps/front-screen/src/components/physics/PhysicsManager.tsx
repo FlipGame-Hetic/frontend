@@ -10,18 +10,10 @@ interface PhysicsManagerProps {
 }
 
 const PhysicsManager = ({ children, isDebug }: PhysicsManagerProps) => {
-  return (
-    <PhysicsDebugProvider>
-      <PhysicsWorld isDebug={isDebug}>{children}</PhysicsWorld>
-    </PhysicsDebugProvider>
-  )
-}
-
-const PhysicsWorld = ({ children, isDebug }: PhysicsManagerProps) => {
-  const {
-    motion: { slowMotion, slowMotionSpeed },
-    gravity: { gravityY, gravityZ },
-  } = usePhysicsDebugControls()
+  const { gravityY, gravityZ } = useControls("Gravity", {
+    gravityY: { value: GRAVITY_Y, min: -1, max: 1, step: 0.01 },
+    gravityZ: { value: GRAVITY_Z, min: 0, max: 7, step: 0.01 },
+  })
 
   return (
     <Physics

@@ -13,6 +13,11 @@ import {
   clampPlungerPosition,
   PLUNGER_KEY,
   PLUNGER_LANE_FRICTION,
+  PLUNGER_MAX_CHARGE_TIME,
+  PLUNGER_RELEASE_DELAY,
+  PLUNGER_MAX_COMPRESSION,
+  PLUNGER_MAX_IMPULSE,
+  PLUNGER_MIN_IMPULSE,
   PLUNGER_POSITION,
   PLUNGER_PULL_KEY,
   PLUNGER_RETURN_KEY,
@@ -51,9 +56,7 @@ const Plunger = ({ position = PLUNGER_POSITION, tipMesh, ringMeshes = [] }: Plun
   const releasingRef = useRef(false)
   const pendingReleaseRef = useRef(false)
   const releaseTimerRef = useRef(0)
-  const waitForBallClearRef = useRef(false)
-  const ballClearTimerRef = useRef(0)
-  const tipGroupRef = useRef<Group>(null)
+  const rodGroupRef = useRef<Group>(null)
   const rodBodyRef = useRef<RapierRigidBody>(null)
   const torusRefs = useRef<(Group | null)[]>([])
   const ringRefs = useRef<(Group | null)[]>([])
@@ -92,104 +95,33 @@ const Plunger = ({ position = PLUNGER_POSITION, tipMesh, ringMeshes = [] }: Plun
     (position: number) => {
       const charge = clampPlungerPosition(position)
 
-      if (charge >= plunger.minCharge) {
+    if (isPressed && !releasingRef.current && !pendingReleaseRef.current) {
+      chargeRef.current = Math.min(chargeRef.current + delta / PLUNGER_MAX_CHARGE_TIME, 1)
+    }
+
+    if (wasPressed.current && !isPressed && !releasingRef.current && !pendingReleaseRef.current) {
+      const charge = chargeRef.current
+
+      if (charge >= PLUNGER_MIN_CHARGE) {
         if (ballInLane) {
-          waitForBallClearRef.current = true
-          ballClearTimerRef.current = plunger.ballClearTimeout
-
-          const scaledCharge = Math.pow(charge, plunger.chargeFactor)
+          const scaledCharge = Math.pow(charge, PLUNGER_CHARGE_FACTOR)
           const impulse =
-            (plunger.minImpulse + (plunger.maxImpulse - plunger.minImpulse) * scaledCharge) *
-            plunger.impulseMultiplier
-          const dir = normalizedPlayfieldDirection({ x: 0, y: 0, z: -1 })
-
-          if (dir) {
-            ballInLane.applyImpulse(
-              {
-                x: dir.x * impulse * ballInLane.mass(),
-                y: dir.y * impulse * ballInLane.mass(),
-                z: dir.z * impulse * ballInLane.mass(),
-              },
-              true,
-            )
-          }
-        } else {
-          waitForBallClearRef.current = false
-          ballClearTimerRef.current = 0
+            PLUNGER_MIN_IMPULSE + (PLUNGER_MAX_IMPULSE - PLUNGER_MIN_IMPULSE) * scaledCharge
+          ballInLane.applyImpulse({ x: 0, y: 0, z: -impulse * ballInLane.mass() }, true)
         }
-
         pendingReleaseRef.current = true
-        releaseTimerRef.current = plunger.releaseDelay
+        releaseTimerRef.current = PLUNGER_RELEASE_DELAY
       } else {
-        plungerPositionRef.current = 0
-      }
-    },
-    [
-      plunger.chargeFactor,
-      plunger.ballClearTimeout,
-      plunger.impulseMultiplier,
-      plunger.maxImpulse,
-      plunger.minCharge,
-      plunger.minImpulse,
-      plunger.releaseDelay,
-    ],
-  )
-
-  useFrame((_, delta) => {
-    const plungerInput = getPlungerInputSnapshot()
-    const isSpacePressed = pressedKeys.current.has(PLUNGER_KEY)
-    const isPullPressed = pressedKeys.current.has(PLUNGER_PULL_KEY)
-    const isReturnPressed = pressedKeys.current.has(PLUNGER_RETURN_KEY)
-    const isArrowPressed = isPullPressed || isReturnPressed
-    const isExternallyHeld = !plungerInput.released
-
-    if (
-      plungerInput.releaseToken !== lastPlungerReleaseToken.current &&
-      plungerInput.released &&
-      !releasingRef.current &&
-      !pendingReleaseRef.current
-    ) {
-      lastPlungerReleaseToken.current = plungerInput.releaseToken
-      plungerPositionRef.current = clampPlungerPosition(plungerInput.position)
-      releaseFromPosition(plungerPositionRef.current)
-    } else if (isExternallyHeld && !releasingRef.current && !pendingReleaseRef.current) {
-      plungerPositionRef.current = clampPlungerPosition(plungerInput.position)
-    } else if (!releasingRef.current && !pendingReleaseRef.current) {
-      if (isSpacePressed) {
-        plungerPositionRef.current = clampPlungerPosition(
-          plungerPositionRef.current + delta / plunger.maxChargeTime,
-        )
-      }
-
-      if (isPullPressed) {
-        plungerPositionRef.current = clampPlungerPosition(
-          plungerPositionRef.current + delta * plunger.arrowPullSpeed,
-        )
-      }
-
-      if (isReturnPressed) {
-        plungerPositionRef.current = clampPlungerPosition(
-          plungerPositionRef.current - delta * plunger.arrowPullSpeed,
-        )
-      }
-
-      if (wasSpacePressed.current && !isSpacePressed) {
-        releaseFromPosition(plungerPositionRef.current)
-      }
-
-      if (wasArrowPressed.current && !isArrowPressed) {
-        releaseFromPosition(plungerPositionRef.current)
+        waitForBallClearRef.current = false
+        ballClearTimerRef.current = 0
+        pendingReleaseRef.current = false
+        releasingRef.current = true
       }
     }
 
     if (pendingReleaseRef.current) {
-      if (releaseTimerRef.current > 0) {
-        releaseTimerRef.current -= delta
-      } else if (waitForBallClearRef.current && ballInLane && ballClearTimerRef.current > 0) {
-        ballClearTimerRef.current -= delta
-      } else {
-        waitForBallClearRef.current = false
-        ballClearTimerRef.current = 0
+      releaseTimerRef.current -= delta
+      if (releaseTimerRef.current <= 0) {
         pendingReleaseRef.current = false
         releasingRef.current = true
       }
@@ -260,8 +192,8 @@ const Plunger = ({ position = PLUNGER_POSITION, tipMesh, ringMeshes = [] }: Plun
         <CuboidCollider
           sensor
           name="plunger-sensor"
-          args={[PLUNGER_SPRING_RADIUS + 0.1, 0.3, 0.8]}
-          position={[0, 0, -0.2]}
+          args={[PLUNGER_SPRING_RADIUS + 0.007, 0.02, 0.053]}
+          position={[0, 0, -0.033]}
           onIntersectionEnter={handleBallEnter}
           onIntersectionExit={handleBallExit}
         />

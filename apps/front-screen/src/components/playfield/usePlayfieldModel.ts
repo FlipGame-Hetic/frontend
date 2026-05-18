@@ -1,55 +1,30 @@
 import { useGLTF } from "@react-three/drei"
 import { useMemo } from "react"
-import type { Object3D } from "three"
-import { Mesh, Quaternion, Vector3 } from "three"
+import { Quaternion, Vector3, type Mesh } from "three"
 
-export const PLAYFIELD_OFFSET: [number, number, number] = [0, -12, 0]
+export const PLAYFIELD_OFFSET: [number, number, number] = [0, -0.8, 0]
 
 export interface PlayfieldNodes {
   cabinet: Mesh[]
   playfield: Mesh[]
   flippers: Mesh[]
   bumpers: Mesh[]
-  bumperRubbers: Mesh[]
-  slimBumpers: Mesh[]
   slingshots: Mesh[]
-  slingshotRubbers: Mesh[]
   targets: Mesh[]
-  plunger: Mesh[]
-  overhead: Mesh[]
   tunnels: Mesh[]
   lockedBall: Mesh[]
-  spinner: Mesh[]
 }
 
 function classifyMesh(name: string): keyof PlayfieldNodes | null {
-  if (name === "spinner") return "spinner"
-  if (name === "tip" || /^ring_\d+$/.test(name)) return "plunger"
-  if (name.includes("rail") || name.includes("tunnel")) return "overhead"
-  if (name === "l_flipper_arm" || name === "r_flipper_arm") return "cabinet"
-  if (name.startsWith("l_flipper") || name.startsWith("r_flipper")) return "flippers"
+  if (name === "spinner") return null
+  if (name === "l_flipper" || name === "r_flipper") return "flippers"
   if (name === "locked_ball") return "lockedBall"
-  if (name.includes("_bumper_slim")) return "slimBumpers"
-  if (name.includes("_bumper") && name.includes("_rubber")) return "bumperRubbers"
-  if (name.includes("_bumper") && name.includes("_base")) return "bumpers"
-  if (name.includes("_slingshot_rubber")) return "slingshotRubbers"
-  if (name.includes("_slingshot_module")) return "slingshots"
+  if (name === "l_tunnel" || name === "tunnel_box") return "tunnels"
+  if (name.includes("_bumper")) return "bumpers"
+  if (name.endsWith("_slingshot")) return "slingshots"
   if (name.includes("_target_")) return "targets"
   if (name.endsWith("_shape") || name.endsWith("_zone")) return "playfield"
   return "cabinet"
-}
-
-function isVisibleInHierarchy(mesh: Mesh): boolean {
-  let current: Object3D | null = mesh
-  while (current) {
-    if (!current.visible) return false
-    current = current.parent
-  }
-  return true
-}
-
-function isMesh(node: Object3D): node is Mesh {
-  return node instanceof Mesh
 }
 
 function applyWorldOffset(v: Vector3): [number, number, number] {
@@ -72,7 +47,7 @@ export function cloneAtWorldTransform(mesh: Mesh): Mesh {
   const [wx, wy, wz] = applyWorldOffset(pos)
   clone.position.set(wx, wy, wz)
   clone.quaternion.copy(quat)
-  clone.scale.set(meshScale.x, meshScale.y, meshScale.z)
+  clone.scale.copy(meshScale)
   return clone
 }
 
@@ -85,37 +60,28 @@ export function cloneWithWorldOrientation(mesh: Mesh): Mesh {
   mesh.matrixWorld.decompose(_pos, quat, meshScale)
   clone.position.set(0, 0, 0)
   clone.quaternion.copy(quat)
-  clone.scale.set(meshScale.x, meshScale.y, meshScale.z)
+  clone.scale.copy(meshScale)
   return clone
 }
 
 export function usePlayfieldModel(): PlayfieldNodes {
-  const { scene } = useGLTF("/models/playfield_x15.glb")
+  const { scene } = useGLTF("/models/playfield.glb")
   return useMemo(() => {
     const result: PlayfieldNodes = {
       cabinet: [],
       playfield: [],
       flippers: [],
       bumpers: [],
-      bumperRubbers: [],
-      slimBumpers: [],
       slingshots: [],
-      slingshotRubbers: [],
       targets: [],
-      plunger: [],
-      overhead: [],
       tunnels: [],
       lockedBall: [],
-      spinner: [],
     }
     scene.traverse((node) => {
-      if (!isMesh(node)) return
-      if (!isVisibleInHierarchy(node)) return
-      node.castShadow = true
-      node.receiveShadow = true
-      const bucket = classifyMesh(node.name)
+      const mesh = node as Mesh
+      const bucket = classifyMesh(mesh.name)
       if (!bucket) return
-      result[bucket].push(node)
+      result[bucket].push(mesh)
     })
     return result
   }, [scene])

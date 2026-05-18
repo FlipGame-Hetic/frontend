@@ -108,19 +108,14 @@ const FlipperJoints = ({ position, side, meshOverride }: FlipperJointsProps) => 
         restitution={restitution}
         friction={friction}
       >
-        <MeshCollider key={colliderKey} type="hull">
+        <MeshCollider type="hull">
           {meshOverride ? (
-            <mesh
-              geometry={meshOverride.geometry}
-              material={meshOverride.material}
-              quaternion={meshOrientation ?? meshOverride.quaternion}
-              scale={meshOverride.scale}
-            />
+            <primitive object={meshOverride} />
           ) : (
             <mesh
               geometry={flipperGeometry}
-              scale={isLeft ? [0.3, 0.3, 0.3] : [-0.3, 0.3, 0.3]}
-              rotation={[-Math.PI / 2 + activeTiltXRad, 0, activeTiltZRad]}
+              scale={isLeft ? [0.02, 0.02, 0.02] : [-0.02, 0.02, 0.02]}
+              rotation={[-Math.PI / 2, 0, 0]}
               position={[isLeft ? meshOffsetX : -meshOffsetX, 0, 0]}
             >
               <meshStandardMaterial color="#666" />
