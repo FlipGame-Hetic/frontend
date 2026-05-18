@@ -13,6 +13,7 @@ import {
   PLUNGER_MIN_CHARGE,
   PLUNGER_LANE_FRICTION,
   PLUNGER_MAX_CHARGE_TIME,
+  PLUNGER_RELEASE_DELAY,
   PLUNGER_MAX_COMPRESSION,
   PLUNGER_MAX_IMPULSE,
   PLUNGER_MIN_IMPULSE,
@@ -34,6 +35,8 @@ const Plunger = () => {
   const chargeRef = useRef(0)
   const wasPressed = useRef(false)
   const releasingRef = useRef(false)
+  const pendingReleaseRef = useRef(false)
+  const releaseTimerRef = useRef(0)
   const rodGroupRef = useRef<Group>(null)
   const rodBodyRef = useRef<RapierRigidBody>(null)
   const torusRefs = useRef<(Group | null)[]>([])
@@ -63,24 +66,32 @@ const Plunger = () => {
   useFrame((_, delta) => {
     const isPressed = pressedKeys.current.has(PLUNGER_KEY)
 
-    if (isPressed && !releasingRef.current) {
+    if (isPressed && !releasingRef.current && !pendingReleaseRef.current) {
       chargeRef.current = Math.min(chargeRef.current + delta / PLUNGER_MAX_CHARGE_TIME, 1)
     }
 
-    if (wasPressed.current && !isPressed && !releasingRef.current) {
+    if (wasPressed.current && !isPressed && !releasingRef.current && !pendingReleaseRef.current) {
       const charge = chargeRef.current
 
       if (charge >= PLUNGER_MIN_CHARGE) {
-        releasingRef.current = true
-
         if (ballInLane) {
           const scaledCharge = Math.pow(charge, PLUNGER_CHARGE_FACTOR)
           const impulse =
             PLUNGER_MIN_IMPULSE + (PLUNGER_MAX_IMPULSE - PLUNGER_MIN_IMPULSE) * scaledCharge
           ballInLane.applyImpulse({ x: 0, y: 0, z: -impulse * ballInLane.mass() }, true)
         }
+        pendingReleaseRef.current = true
+        releaseTimerRef.current = PLUNGER_RELEASE_DELAY
       } else {
         chargeRef.current = 0
+      }
+    }
+
+    if (pendingReleaseRef.current) {
+      releaseTimerRef.current -= delta
+      if (releaseTimerRef.current <= 0) {
+        pendingReleaseRef.current = false
+        releasingRef.current = true
       }
     }
 
@@ -122,8 +133,8 @@ const Plunger = () => {
         <CuboidCollider
           sensor
           name="plunger-sensor"
-          args={[PLUNGER_SPRING_RADIUS + 0.1, 0.3, 0.8]}
-          position={[0, 0, -0.5]}
+          args={[PLUNGER_SPRING_RADIUS + 0.007, 0.02, 0.053]}
+          position={[0, 0, -0.033]}
           onIntersectionEnter={handleBallEnter}
           onIntersectionExit={handleBallExit}
         />

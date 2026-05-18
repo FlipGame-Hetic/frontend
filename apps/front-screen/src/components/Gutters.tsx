@@ -14,12 +14,12 @@ const Gutters = () => {
   const { wallX, flipperX, startZ, endZ, height, thickness, friction, restitution } = useControls(
     "Gutters",
     {
-      wallX: { value: 4, min: 0, max: 8, step: 0.05, label: "Walls X" },
-      flipperX: { value: 1.85, min: 0, max: 8, step: 0.05, label: "Center X" },
-      startZ: { value: 8.05, min: 0, max: 14, step: 0.05, label: "Start Z" },
-      endZ: { value: 9.2, min: 0, max: 14, step: 0.05, label: "End Z" },
-      height: { value: 0.5, min: 0, max: 4, step: 0.05, label: "Height" },
-      thickness: { value: 0.1, min: 0, max: 3, step: 0.05, label: "Thickess" },
+      wallX: { value: 0.27, min: 0, max: 0.53, step: 0.003, label: "Walls X" },
+      flipperX: { value: 0.12, min: 0, max: 0.53, step: 0.003, label: "Center X" },
+      startZ: { value: 0.54, min: 0, max: 0.93, step: 0.003, label: "Start Z" },
+      endZ: { value: 0.61, min: 0, max: 0.93, step: 0.003, label: "End Z" },
+      height: { value: 0.033, min: 0, max: 0.27, step: 0.003, label: "Height" },
+      thickness: { value: 0.007, min: 0, max: 0.2, step: 0.003, label: "Thickess" },
       friction: { value: GUTTER_FRICTION, min: 0, max: 1, step: 0.01, label: "Friction" },
       restitution: {
         value: GUTTER_RESTITUTION,

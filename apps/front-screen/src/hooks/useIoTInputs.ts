@@ -40,14 +40,14 @@ export function useIoTInputs(): void {
 
         case "Gyro": {
           const { tilt } = message as GameMessage & GyroPayload
-          if (tilt) {
+          if (tilt && useGameStore.getState().phase === "playing") {
             setPhase("paused")
           }
           break
         }
 
         case "Status": {
-          setPhase("waiting")
+          setPhase("idle")
           break
         }
 

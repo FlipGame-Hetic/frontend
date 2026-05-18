@@ -4,15 +4,23 @@ import { useGameSocket } from "@frontend/ws"
 import { StatusBar } from "@/components/StatusBar"
 import { TerminalLog } from "@/components/TerminalLog"
 import type { LogEntry } from "@/components/TerminalLog"
+import SceneRouter from "@/scenes/SceneRouter"
+import { useScreenHubClient } from "@/hooks/useScreenHubClient"
+import { useKeyboardInput } from "@/hooks/useKeyboardInput"
 
 const MAX_LOGS = 500
+const isDebug = new URLSearchParams(window.location.search).has("debug")
 
 let nextId = 0
 
 function App() {
+  useScreenHubClient()
+  useKeyboardInput()
+
   const [logs, setLogs] = useState<LogEntry[]>([])
 
   const onMessage = useCallback((message: GameMessage) => {
+    if (!isDebug) return
     const entry: LogEntry = {
       id: nextId++,
       timestamp: new Date(),
@@ -30,10 +38,18 @@ function App() {
     setLogs([])
   }, [])
 
+  if (isDebug) {
+    return (
+      <div className="bg-surface-dark flex h-screen flex-col text-white">
+        <StatusBar status={status} messageCount={logs.length} onClear={handleClear} />
+        <TerminalLog logs={logs} />
+      </div>
+    )
+  }
+
   return (
-    <div className="bg-surface-dark flex h-screen flex-col text-white">
-      <StatusBar status={status} messageCount={logs.length} onClear={handleClear} />
-      <TerminalLog logs={logs} />
+    <div className="h-screen w-screen overflow-hidden">
+      <SceneRouter />
     </div>
   )
 }

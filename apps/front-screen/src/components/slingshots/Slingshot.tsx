@@ -1,6 +1,8 @@
 import type { PositionType } from "@/types/worldTypes"
-import { sendSlingshotHit } from "@/stores/screenSender"
+import { broadcastEvent } from "@frontend/ws"
 import { useFrame } from "@react-three/fiber"
+import useGameStore from "@/stores/useGameStore"
+import { SLINGSHOT_SCORE } from "@/config/scoreConfig"
 import {
   CuboidCollider,
   RigidBody,
@@ -9,6 +11,7 @@ import {
 } from "@react-three/rapier"
 import { useCallback, useMemo, useRef } from "react"
 import * as THREE from "three"
+import type { Mesh } from "three"
 import {
   SLINGSHOT_DEPTH,
   SLINGSHOT_HEIGHT,
@@ -26,9 +29,10 @@ interface SlingshotProps {
   position: PositionType
   side: "left" | "right"
   slingshotId: number
+  meshOverride?: Mesh
 }
 
-const Slingshot = ({ position, side, slingshotId }: SlingshotProps) => {
+const Slingshot = ({ position, side, slingshotId, meshOverride }: SlingshotProps) => {
   const rubberBodyRef = useRef<RapierRigidBody>(null)
   const rubberRef = useRef<THREE.Mesh>(null)
   const hitAt = useRef(-Infinity)
@@ -64,7 +68,8 @@ const Slingshot = ({ position, side, slingshotId }: SlingshotProps) => {
     ({ other }: CollisionEnterPayload) => {
       if (!rubberBodyRef.current || !other.rigidBody) return
       if (other.rigidBodyObject?.name !== "ball") return
-      sendSlingshotHit(slingshotId)
+      broadcastEvent({ event_type: "slingshot_hit", payload: { slingshot_id: slingshotId } })
+      useGameStore.getState().addScore(SLINGSHOT_SCORE)
       hitAt.current = performance.now() / 1000
       stuckBall.current = { body: other.rigidBody, frames: 0 }
     },
@@ -107,16 +112,31 @@ const Slingshot = ({ position, side, slingshotId }: SlingshotProps) => {
     }
   })
 
+  if (meshOverride) {
+    return (
+      <RigidBody
+        ref={rubberBodyRef}
+        type="fixed"
+        colliders="hull"
+        position={position}
+        restitution={SLINGSHOT_RESTITUTION}
+        onCollisionEnter={handleCollision}
+      >
+        <primitive object={meshOverride} />
+      </RigidBody>
+    )
+  }
+
   return (
     <>
       {/* Triangle body: 2 murs non-rubber, restitution 0 */}
       <RigidBody type="fixed" colliders={false} position={position}>
         <CuboidCollider
-          args={[SLINGSHOT_WIDTH / 2, SLINGSHOT_HEIGHT / 2, 0.05]}
+          args={[SLINGSHOT_WIDTH / 2, SLINGSHOT_HEIGHT / 2, 0.003]}
           position={[(xDir * SLINGSHOT_WIDTH) / 2, SLINGSHOT_HEIGHT / 2, 0]}
         />
         <CuboidCollider
-          args={[0.05, SLINGSHOT_HEIGHT / 2, SLINGSHOT_DEPTH / 2]}
+          args={[0.003, SLINGSHOT_HEIGHT / 2, SLINGSHOT_DEPTH / 2]}
           position={[0, SLINGSHOT_HEIGHT / 2, -SLINGSHOT_DEPTH / 2]}
         />
         <mesh geometry={triangleGeometry}>
@@ -138,7 +158,7 @@ const Slingshot = ({ position, side, slingshotId }: SlingshotProps) => {
           position={rubberTransform.position}
           rotation={[0, rubberTransform.rotationY, 0]}
         >
-          <boxGeometry args={[0.08, SLINGSHOT_HEIGHT, rubberTransform.length]} />
+          <boxGeometry args={[0.005, SLINGSHOT_HEIGHT, rubberTransform.length]} />
           <meshStandardMaterial color="#d33" />
         </mesh>
       </RigidBody>

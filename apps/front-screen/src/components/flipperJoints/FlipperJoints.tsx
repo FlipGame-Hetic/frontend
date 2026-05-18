@@ -36,9 +36,10 @@ import {
 interface FlipperJointsProps {
   position: PositionType
   side: "left" | "right"
+  meshOverride?: Mesh
 }
 
-const FlipperJoints = ({ position, side }: FlipperJointsProps) => {
+const FlipperJoints = ({ position, side, meshOverride }: FlipperJointsProps) => {
   const anchorRef = useRef<RapierRigidBody>(null)
   const flipperRef = useRef<RapierRigidBody>(null)
   const pressedKeys = useKeyboard()
@@ -208,14 +209,18 @@ const FlipperJoints = ({ position, side }: FlipperJointsProps) => {
         friction={friction}
       >
         <MeshCollider type="hull">
-          <mesh
-            geometry={flipperGeometry}
-            scale={isLeft ? [0.3, 0.3, 0.3] : [-0.3, 0.3, 0.3]}
-            rotation={[-Math.PI / 2, 0, 0]}
-            position={[isLeft ? meshOffsetX : -meshOffsetX, 0, 0]}
-          >
-            <meshStandardMaterial color="#666" />
-          </mesh>
+          {meshOverride ? (
+            <primitive object={meshOverride} />
+          ) : (
+            <mesh
+              geometry={flipperGeometry}
+              scale={isLeft ? [0.02, 0.02, 0.02] : [-0.02, 0.02, 0.02]}
+              rotation={[-Math.PI / 2, 0, 0]}
+              position={[isLeft ? meshOffsetX : -meshOffsetX, 0, 0]}
+            >
+              <meshStandardMaterial color="#666" />
+            </mesh>
+          )}
         </MeshCollider>
       </RigidBody>
     </>

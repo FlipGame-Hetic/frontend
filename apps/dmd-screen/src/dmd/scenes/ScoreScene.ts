@@ -17,7 +17,7 @@ export class ScoreScene implements Scene {
     player: 1,
     totalPlayers: 1,
     ballNumber: 1,
-    phase: "waiting",
+    phase: "idle",
   }
 
   update(data: Partial<ScoreData>): void {
@@ -25,8 +25,8 @@ export class ScoreScene implements Scene {
   }
 
   render(ctx: RenderContext): void {
-    const { buffer, cols, rows, elapsedMs } = ctx
-    const { score, player, ballNumber, phase } = this.data
+    const { buffer, cols, rows } = ctx
+    const { score, player, ballNumber } = this.data
 
     // Large score centered
     const scoreText = String(score).padStart(6, "0")
@@ -46,20 +46,6 @@ export class ScoreScene implements Scene {
     const infoY = scoreY + 18
     drawString(buffer, cols, playerText, playerX, infoY)
     drawString(buffer, cols, ballText, ballX, infoY)
-
-    // Phase indicator at bottom
-    if (phase === "waiting") {
-      const blink = Math.floor(elapsedMs / 500) % 2 === 0
-      if (blink) {
-        const text = "INSERT COIN"
-        const w = measureString(text)
-        drawString(buffer, cols, text, Math.floor((cols - w) / 2), rows - 10)
-      }
-    } else if (phase === "paused") {
-      const text = "PAUSED"
-      const w = measureString(text)
-      drawString(buffer, cols, text, Math.floor((cols - w) / 2), rows - 10)
-    }
 
     // Corner decorations
     for (let i = 0; i < 3; i++) {

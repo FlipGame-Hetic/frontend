@@ -1,6 +1,8 @@
 import type { PositionType } from "@/types/worldTypes"
-import { sendBumperHit } from "@/stores/screenSender"
+import { broadcastEvent } from "@frontend/ws"
 import { useFrame } from "@react-three/fiber"
+import useGameStore from "@/stores/useGameStore"
+import { BUMPER_SCORE } from "@/config/scoreConfig"
 import type { RapierRigidBody } from "@react-three/rapier"
 import { RigidBody, type CollisionEnterPayload } from "@react-three/rapier"
 import { useControls } from "leva"
@@ -19,9 +21,10 @@ import {
 interface BumperProps {
   position: PositionType
   bumperId: number
+  meshOverride?: Mesh
 }
 
-const Bumper = ({ position, bumperId }: BumperProps) => {
+const Bumper = ({ position, bumperId, meshOverride }: BumperProps) => {
   const bodyRef = useRef<RapierRigidBody>(null)
   const meshRef = useRef<Mesh>(null)
   const isBouncing = useRef(false)
@@ -48,7 +51,8 @@ const Bumper = ({ position, bumperId }: BumperProps) => {
       if (!bodyRef.current || !other.rigidBody) return
       if (other.rigidBodyObject?.name !== "ball") return
 
-      sendBumperHit(bumperId)
+      broadcastEvent({ event_type: "bumper_hit", payload: { bumper_id: bumperId } })
+      useGameStore.getState().addScore(BUMPER_SCORE)
 
       const bumperPos = bodyRef.current.translation()
       const ballPos = other.rigidBody.translation()
@@ -119,10 +123,14 @@ const Bumper = ({ position, bumperId }: BumperProps) => {
       onCollisionEnter={handleCollision}
       restitution={restitution}
     >
-      <mesh ref={meshRef}>
-        <cylinderGeometry args={BUMPER_SIZE_ARGS} />
-        <meshStandardMaterial />
-      </mesh>
+      {meshOverride ? (
+        <primitive object={meshOverride} />
+      ) : (
+        <mesh ref={meshRef}>
+          <cylinderGeometry args={BUMPER_SIZE_ARGS} />
+          <meshStandardMaterial />
+        </mesh>
+      )}
     </RigidBody>
   )
 }
