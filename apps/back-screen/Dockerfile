@@ -6,9 +6,10 @@ RUN corepack enable && corepack prepare pnpm@10.30.1 --activate
 USER node
 WORKDIR /home/node/app
 
-ARG VITE_APP_NAME
-ARG VITE_API_URL
 ARG NODE_ENV=production
+# Vite bakes VITE_* vars into the bundle at build time, pass them via --build-arg
+ARG VITE_SCREEN_HUB_URL
+ARG VITE_SCREEN_TOKEN
 
 COPY --chown=node:node pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY --chown=node:node apps/back-screen/package.json ./apps/back-screen/
@@ -19,7 +20,9 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
 
 COPY --chown=node:node apps/back-screen/ ./apps/back-screen/
 
-RUN pnpm --filter @frontend/back-screen build
+RUN VITE_SCREEN_HUB_URL=$VITE_SCREEN_HUB_URL \
+    VITE_SCREEN_TOKEN=$VITE_SCREEN_TOKEN \
+    pnpm --filter @frontend/back-screen build
 
 EXPOSE 80
 
