@@ -1,7 +1,7 @@
 import type { PositionType } from "@/types/worldTypes"
 
 export const PLUNGER_POSITION: PositionType = [4.5, 0.25, 9.5]
-export const PLUNGER_BALL_SPAWN: PositionType = [4.5, 0.5, 8]
+export const PLUNGER_BALL_SPAWN: PositionType = [0.5, 0.5, 2]
 
 export const PLUNGER_KEY = "Space"
 

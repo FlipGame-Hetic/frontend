@@ -1,5 +1,6 @@
 import { useGLTF } from "@react-three/drei"
 import { useMemo } from "react"
+import type { Object3D } from "three"
 import { Mesh, Quaternion, Vector3 } from "three"
 
 export const PLAYFIELD_OFFSET: [number, number, number] = [0, -12, 0]
@@ -25,6 +26,19 @@ function classifyMesh(name: string): keyof PlayfieldNodes | null {
   if (name.includes("_target_")) return "targets"
   if (name.endsWith("_shape") || name.endsWith("_zone")) return "playfield"
   return "cabinet"
+}
+
+function isVisibleInHierarchy(mesh: Mesh): boolean {
+  let current: Object3D | null = mesh
+  while (current) {
+    if (!current.visible) return false
+    current = current.parent
+  }
+  return true
+}
+
+function isMesh(node: Object3D): node is Mesh {
+  return node instanceof Mesh
 }
 
 function applyWorldOffset(v: Vector3): [number, number, number] {
@@ -78,10 +92,11 @@ export function usePlayfieldModel(): PlayfieldNodes {
       lockedBall: [],
     }
     scene.traverse((node) => {
-      if (!(node instanceof Mesh)) return
+      if (!isMesh(node)) return
+      if (!isVisibleInHierarchy(node)) return
       const bucket = classifyMesh(node.name)
       if (!bucket) return
-      result[bucket].push(node as Mesh)
+      result[bucket].push(node)
     })
     return result
   }, [scene])

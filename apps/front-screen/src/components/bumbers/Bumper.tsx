@@ -8,6 +8,7 @@ import { RigidBody, type CollisionEnterPayload } from "@react-three/rapier"
 import { useControls } from "leva"
 import { useCallback, useRef } from "react"
 import type { Mesh } from "three"
+import { normalizedPlayfieldDirection } from "../physics/playfieldPlane"
 import {
   BUMPER_IMPULSE_STRENGTH,
   BUMPER_RESTITUTION,
@@ -57,19 +58,21 @@ const Bumper = ({ position, bumperId, meshOverride }: BumperProps) => {
       const bumperPos = bodyRef.current.translation()
       const ballPos = other.rigidBody.translation()
 
-      const dx = ballPos.x - bumperPos.x
-      const dz = ballPos.z - bumperPos.z
-      const dirLen = Math.sqrt(dx * dx + dz * dz)
+      const dir = normalizedPlayfieldDirection({
+        x: ballPos.x - bumperPos.x,
+        y: ballPos.y - bumperPos.y,
+        z: ballPos.z - bumperPos.z,
+      })
 
-      if (dirLen < 0.001) return
-
-      const nx = dx / dirLen
-      const nz = dz / dirLen
+      if (!dir) return
 
       const ballMass = other.rigidBody.mass()
       const impulseMag = impulseStrength * ballMass
 
-      other.rigidBody.applyImpulse({ x: nx * impulseMag, y: 0, z: nz * impulseMag }, true)
+      other.rigidBody.applyImpulse(
+        { x: dir.x * impulseMag, y: dir.y * impulseMag, z: dir.z * impulseMag },
+        true,
+      )
 
       stuckBall.current = { body: other.rigidBody, frames: 0 }
     },
@@ -102,11 +105,15 @@ const Bumper = ({ position, bumperId, meshOverride }: BumperProps) => {
     if (stuckBall.current.frames >= stuckFrames) {
       const angle = Math.random() * Math.PI * 2
       const ballMass = ball.mass()
+      const dir = normalizedPlayfieldDirection({ x: Math.cos(angle), y: 0, z: Math.sin(angle) })
+
+      if (!dir) return
+
       ball.applyImpulse(
         {
-          x: Math.cos(angle) * unstickImpulse * ballMass,
-          y: 0,
-          z: Math.sin(angle) * unstickImpulse * ballMass,
+          x: dir.x * unstickImpulse * ballMass,
+          y: dir.y * unstickImpulse * ballMass,
+          z: dir.z * unstickImpulse * ballMass,
         },
         true,
       )

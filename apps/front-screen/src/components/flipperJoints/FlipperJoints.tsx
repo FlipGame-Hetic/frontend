@@ -1,4 +1,5 @@
 import useKeyboard from "@/hooks/useKeyboard"
+import { getPressedKeys } from "@/stores/inputStore"
 import type { PositionType } from "@/types/worldTypes"
 import { useGLTF } from "@react-three/drei"
 import { useFrame } from "@react-three/fiber"
@@ -11,9 +12,12 @@ import {
   type CollisionPayload,
 } from "@react-three/rapier"
 import { useControls } from "leva"
-import { useCallback, useRef, type RefObject } from "react"
-import type { Mesh } from "three"
+import { useCallback, useMemo, useRef, type RefObject } from "react"
+import { Euler, Quaternion, type Mesh } from "three"
+import { normalizedPlayfieldDirection } from "../physics/playfieldPlane"
 import {
+  FLIPPER_ACTIVE_TILT_X_DEG,
+  FLIPPER_ACTIVE_TILT_Z_DEG,
   FLIPPER_ANGVEL_THRESHOLD,
   FLIPPER_BALL_SPEED_CONTRIBUTION,
   FLIPPER_FRICTION,
@@ -45,6 +49,7 @@ const FlipperJoints = ({ position, side, meshOverride }: FlipperJointsProps) => 
   const pressedKeys = useKeyboard()
   const ballContactCount = useRef(0)
   const isActivelyFlippingRef = useRef(false)
+  const appliedLimitsRef = useRef({ min: NaN, max: NaN })
 
   const { nodes } = useGLTF(`${import.meta.env.BASE_URL}models/flipperJoints/scene.gltf`)
   const flipperGeometry = (nodes.Cube000_0 as Mesh).geometry
@@ -72,9 +77,11 @@ const FlipperJoints = ({ position, side, meshOverride }: FlipperJointsProps) => 
     minImpulse,
     maxImpulse,
     pivotToTip,
+    activeTiltXDeg,
+    activeTiltZDeg,
   } = useControls("Flippers", {
     restAngle: { value: REST_ANGLE, min: -1.2, max: 0, step: 0.05 },
-    maxAngle: { value: MAX_ANGLE, min: 0, max: 1.2, step: 0.05 },
+    maxAngle: { value: MAX_ANGLE, min: 0, max: 4, step: 0.05 },
     stiffness: { value: MOTOR_STIFFNESS, min: 100, max: 5000, step: 50 },
     damping: { value: MOTOR_DAMPING, min: 5, max: 500, step: 5 },
     meshOffsetX: { value: FLIPPER_MESH_OFFSET_X, min: 0, max: 1.5, step: 0.05 },
@@ -98,7 +105,29 @@ const FlipperJoints = ({ position, side, meshOverride }: FlipperJointsProps) => 
     minImpulse: { value: FLIPPER_MIN_IMPULSE, min: 0, max: 100, step: 0.5 },
     maxImpulse: { value: FLIPPER_MAX_IMPULSE, min: 1, max: 200, step: 1 },
     pivotToTip: { value: FLIPPER_PIVOT_TO_TIP, min: 0.3, max: 2.0, step: 0.05 },
+    activeTiltXDeg: {
+      value: FLIPPER_ACTIVE_TILT_X_DEG,
+      min: -90,
+      max: 90,
+      step: 0.5,
+      label: "Active tilt X (deg)",
+    },
+    activeTiltZDeg: {
+      value: FLIPPER_ACTIVE_TILT_Z_DEG,
+      min: -90,
+      max: 90,
+      step: 0.5,
+      label: "Active tilt Z (deg)",
+    },
   })
+
+  const keyPressed = activationKeys.some((key) => getPressedKeys().has(key))
+  const activeTiltXRad = keyPressed ? (activeTiltXDeg * Math.PI) / 180 : 0
+  const activeTiltZSignedDeg = isLeft ? activeTiltZDeg : -activeTiltZDeg
+  const activeTiltZRad = keyPressed ? (activeTiltZSignedDeg * Math.PI) / 180 : 0
+  const colliderKey = keyPressed
+    ? `tilted-${String(activeTiltXDeg)}-${String(activeTiltZSignedDeg)}`
+    : "rest"
 
   const minLimit = isLeft ? restAngle : -maxAngle
   const maxLimit = isLeft ? maxAngle : -restAngle
@@ -117,13 +146,25 @@ const FlipperJoints = ({ position, side, meshOverride }: FlipperJointsProps) => 
   useFrame(() => {
     if (!jointRef.current || !flipperRef.current) return
 
-    const keyPressed = activationKeys.some((key) => pressedKeys.current.has(key))
-    const isPressed = keyPressed || (autoMode && ballContactCount.current > 0)
+    if (appliedLimitsRef.current.min !== minLimit || appliedLimitsRef.current.max !== maxLimit) {
+      jointRef.current.setLimits(minLimit, maxLimit)
+      appliedLimitsRef.current = { min: minLimit, max: maxLimit }
+    }
+
+    const keyPressedFrame = activationKeys.some((key) => pressedKeys.current.has(key))
+    const isPressed = keyPressedFrame || (autoMode && ballContactCount.current > 0)
     isActivelyFlippingRef.current = isPressed
     const target = isLeft ? (isPressed ? maxAngle : restAngle) : isPressed ? -maxAngle : -restAngle
 
     jointRef.current.configureMotorPosition(target, stiffness, damping)
   })
+
+  const meshOrientation = useMemo(() => {
+    if (!meshOverride) return undefined
+    if (!keyPressed) return meshOverride.quaternion
+    const tilt = new Quaternion().setFromEuler(new Euler(activeTiltXRad, 0, activeTiltZRad))
+    return meshOverride.quaternion.clone().multiply(tilt)
+  }, [activeTiltXRad, activeTiltZRad, keyPressed, meshOverride])
 
   const handleCollisionEnter = useCallback(
     ({ other }: CollisionEnterPayload) => {
@@ -157,11 +198,15 @@ const FlipperJoints = ({ position, side, meshOverride }: FlipperJointsProps) => 
 
       if (dirLen < 0.001) return
 
-      const nx = dirX / dirLen
-      const nz = dirZ / dirLen
+      const dir = normalizedPlayfieldDirection({ x: dirX / dirLen, y: 0, z: dirZ / dirLen })
+
+      if (!dir) return
 
       const ballVelocity = other.rigidBody.linvel()
-      const ballSpeedAlongFlipper = Math.max(0, ballVelocity.x * nx + ballVelocity.z * nz)
+      const ballSpeedAlongFlipper = Math.max(
+        0,
+        ballVelocity.x * dir.x + ballVelocity.y * dir.y + ballVelocity.z * dir.z,
+      )
 
       const ballMass = other.rigidBody.mass()
       const combinedImpactSpeed = tangentialSpeed + ballSpeedAlongFlipper * ballSpeedContribution
@@ -171,7 +216,10 @@ const FlipperJoints = ({ position, side, meshOverride }: FlipperJointsProps) => 
       const rawImpulse = combinedImpactSpeed * ballMass * impulseMultiplier
       const impulseMag = Math.min(maxImpulse, Math.max(minImpulse, rawImpulse))
 
-      other.rigidBody.applyImpulse({ x: nx * impulseMag, y: 0, z: nz * impulseMag }, true)
+      other.rigidBody.applyImpulse(
+        { x: dir.x * impulseMag, y: dir.y * impulseMag, z: dir.z * impulseMag },
+        true,
+      )
     },
     [
       angvelThreshold,
@@ -208,14 +256,19 @@ const FlipperJoints = ({ position, side, meshOverride }: FlipperJointsProps) => 
         onCollisionExit={handleCollisionExit}
         friction={friction}
       >
-        <MeshCollider type="hull">
+        <MeshCollider key={colliderKey} type="hull">
           {meshOverride ? (
-            <primitive object={meshOverride} />
+            <mesh
+              geometry={meshOverride.geometry}
+              material={meshOverride.material}
+              quaternion={meshOrientation ?? meshOverride.quaternion}
+              scale={meshOverride.scale}
+            />
           ) : (
             <mesh
               geometry={flipperGeometry}
               scale={isLeft ? [0.3, 0.3, 0.3] : [-0.3, 0.3, 0.3]}
-              rotation={[-Math.PI / 2, 0, 0]}
+              rotation={[-Math.PI / 2 + activeTiltXRad, 0, activeTiltZRad]}
               position={[isLeft ? meshOffsetX : -meshOffsetX, 0, 0]}
             >
               <meshStandardMaterial color="#666" />

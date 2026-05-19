@@ -2,6 +2,7 @@ import type { CameraProps } from "@react-three/fiber"
 import { Leva } from "leva"
 import { Suspense } from "react"
 import BallsManager from "./components/balls/BallsManager"
+import Drain from "./components/drain/Drain"
 import DebugCamera from "./components/DebugCamera"
 import ProductionCamera from "./components/ProductionCamera"
 import PhysicsManager from "./components/physics/PhysicsManager"
@@ -42,6 +43,7 @@ export default function App() {
 
         <PhysicsManager isDebug={true}>
           <BallsManager />
+          <Drain />
           <Suspense fallback={null}>
             <PlayfieldScene />
           </Suspense>

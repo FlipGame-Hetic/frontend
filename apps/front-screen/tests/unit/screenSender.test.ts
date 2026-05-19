@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import type { ScreenEnvelope } from "@frontend/types"
+import type { ScreenEnvelope, ScreenEvent, ScreenId } from "@frontend/types"
 
 describe("screenSender", () => {
-  let registerScreenSender: (id: string, fn: (e: ScreenEnvelope) => void) => void
-  let broadcastEvent: (event: { event_type: string; payload: unknown }) => void
+  let registerScreenSender: (id: ScreenId, fn: (e: ScreenEnvelope) => void) => void
+  let broadcastEvent: (event: ScreenEvent) => void
 
   beforeEach(async () => {
     vi.resetModules()

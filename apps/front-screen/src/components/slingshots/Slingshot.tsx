@@ -5,12 +5,24 @@ import useGameStore from "@/stores/useGameStore"
 import { SLINGSHOT_SCORE } from "@/config/scoreConfig"
 import {
   CuboidCollider,
+  MeshCollider,
   RigidBody,
   type CollisionEnterPayload,
   type RapierRigidBody,
 } from "@react-three/rapier"
+import { useControls } from "leva"
 import { useCallback, useMemo, useRef } from "react"
 import * as THREE from "three"
+import {
+  clampVelocityToPlayfield,
+  normalizedPlayfieldDirection,
+  projectOnPlayfield,
+} from "../physics/playfieldPlane"
+import {
+  BALL_MAX_NORMAL_SPEED,
+  BALL_MAX_TANGENT_SPEED,
+  BALL_MIN_NORMAL_SPEED,
+} from "../balls/ballConfig"
 import {
   SLINGSHOT_DEPTH,
   SLINGSHOT_HEIGHT,
@@ -38,6 +50,13 @@ const Slingshot = ({ position, side, slingshotId, meshOverride }: SlingshotProps
   const stuckBall = useRef<{ body: RapierRigidBody; frames: number } | null>(null)
 
   const xDir = side === "left" ? 1 : -1
+
+  const { restitution, stuckFrames, stuckVelocity, unstickImpulse } = useControls("Slingshots", {
+    restitution: { value: SLINGSHOT_RESTITUTION, min: 0, max: 100, step: 0.5 },
+    stuckFrames: { value: SLINGSHOT_STUCK_FRAMES, min: 5, max: 120, step: 5 },
+    stuckVelocity: { value: SLINGSHOT_STUCK_VELOCITY, min: 0.1, max: 5, step: 0.1 },
+    unstickImpulse: { value: SLINGSHOT_UNSTICK_IMPULSE, min: 0, max: 40, step: 0.5 },
+  })
 
   const triangleGeometry = useMemo(() => {
     const shape = new THREE.Shape()
@@ -70,9 +89,37 @@ const Slingshot = ({ position, side, slingshotId, meshOverride }: SlingshotProps
       broadcastEvent({ event_type: "slingshot_hit", payload: { slingshot_id: slingshotId } })
       useGameStore.getState().addScore(SLINGSHOT_SCORE)
       hitAt.current = performance.now() / 1000
+
+      const rubberPos = rubberBodyRef.current.translation()
+      const ballPos = other.rigidBody.translation()
+      const exitDir = normalizedPlayfieldDirection({
+        x: ballPos.x - rubberPos.x,
+        y: ballPos.y - rubberPos.y,
+        z: ballPos.z - rubberPos.z,
+      })
+
+      if (exitDir) {
+        const velocity = other.rigidBody.linvel()
+        const tangentVelocity = projectOnPlayfield(velocity)
+        const tangentSpeed = Math.hypot(tangentVelocity.x, tangentVelocity.y, tangentVelocity.z)
+        const exitSpeed = Math.max(tangentSpeed, restitution)
+        const nextVelocity = clampVelocityToPlayfield(
+          {
+            x: exitDir.x * exitSpeed,
+            y: exitDir.y * exitSpeed,
+            z: exitDir.z * exitSpeed,
+          },
+          BALL_MAX_TANGENT_SPEED,
+          BALL_MIN_NORMAL_SPEED,
+          BALL_MAX_NORMAL_SPEED,
+        )
+
+        other.rigidBody.setLinvel(nextVelocity, true)
+      }
+
       stuckBall.current = { body: other.rigidBody, frames: 0 }
     },
-    [slingshotId],
+    [restitution, slingshotId],
   )
 
   useFrame(() => {
@@ -91,19 +138,23 @@ const Slingshot = ({ position, side, slingshotId, meshOverride }: SlingshotProps
     if (!stuckBall.current || !rubberBodyRef.current) return
     const ball = stuckBall.current.body
     const v = ball.linvel()
-    if (Math.hypot(v.x, v.y, v.z) > SLINGSHOT_STUCK_VELOCITY) {
+    if (Math.hypot(v.x, v.y, v.z) > stuckVelocity) {
       stuckBall.current = null
       return
     }
     stuckBall.current.frames++
-    if (stuckBall.current.frames >= SLINGSHOT_STUCK_FRAMES) {
+    if (stuckBall.current.frames >= stuckFrames) {
       const a = Math.random() * Math.PI * 2
       const m = ball.mass()
+      const dir = normalizedPlayfieldDirection({ x: Math.cos(a), y: 0, z: Math.sin(a) })
+
+      if (!dir) return
+
       ball.applyImpulse(
         {
-          x: Math.cos(a) * SLINGSHOT_UNSTICK_IMPULSE * m,
-          y: 0,
-          z: Math.sin(a) * SLINGSHOT_UNSTICK_IMPULSE * m,
+          x: dir.x * unstickImpulse * m,
+          y: dir.y * unstickImpulse * m,
+          z: dir.z * unstickImpulse * m,
         },
         true,
       )
@@ -116,12 +167,14 @@ const Slingshot = ({ position, side, slingshotId, meshOverride }: SlingshotProps
       <RigidBody
         ref={rubberBodyRef}
         type="fixed"
-        colliders="hull"
+        colliders={false}
         position={position}
-        restitution={SLINGSHOT_RESTITUTION}
         onCollisionEnter={handleCollision}
+        restitution={restitution}
       >
-        <primitive object={meshOverride} />
+        <MeshCollider type="hull">
+          <primitive object={meshOverride} />
+        </MeshCollider>
       </RigidBody>
     )
   }
@@ -147,19 +200,21 @@ const Slingshot = ({ position, side, slingshotId, meshOverride }: SlingshotProps
       <RigidBody
         ref={rubberBodyRef}
         type="fixed"
-        colliders="hull"
+        colliders={false}
         position={position}
-        restitution={SLINGSHOT_RESTITUTION}
         onCollisionEnter={handleCollision}
+        restitution={restitution}
       >
-        <mesh
-          ref={rubberRef}
-          position={rubberTransform.position}
-          rotation={[0, rubberTransform.rotationY, 0]}
-        >
-          <boxGeometry args={[0.08, SLINGSHOT_HEIGHT, rubberTransform.length]} />
-          <meshStandardMaterial color="#d33" />
-        </mesh>
+        <MeshCollider type="hull">
+          <mesh
+            ref={rubberRef}
+            position={rubberTransform.position}
+            rotation={[0, rubberTransform.rotationY, 0]}
+          >
+            <boxGeometry args={[0.08, SLINGSHOT_HEIGHT, rubberTransform.length]} />
+            <meshStandardMaterial color="#d33" />
+          </mesh>
+        </MeshCollider>
       </RigidBody>
     </>
   )

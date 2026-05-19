@@ -1,13 +1,20 @@
 import useBallStore from "@/stores/useBallStore"
-import useGameStore from "@/stores/useGameStore"
-import { broadcastEvent } from "@frontend/ws"
 import type { PositionType } from "@/types/worldTypes"
 import { useFrame } from "@react-three/fiber"
 import type { RapierRigidBody } from "@react-three/rapier"
 import { RigidBody } from "@react-three/rapier"
 import { useRef } from "react"
+import { DRAIN_SAFETY_FALLBACK_Y } from "../drain/drainConfig"
 import { REAL_GRAVITY_Y } from "../physics/physicsConfig"
-import { BALL_MASS, BALL_MAX_SPEED, BALL_RADIUS, BALL_RESTITUTION } from "./ballConfig"
+import { clampVelocityToPlayfield } from "../physics/playfieldPlane"
+import {
+  BALL_MASS,
+  BALL_MAX_NORMAL_SPEED,
+  BALL_MAX_TANGENT_SPEED,
+  BALL_RADIUS,
+  BALL_RESTITUTION,
+  BALL_MIN_NORMAL_SPEED,
+} from "./ballConfig"
 
 interface BallProps {
   id: string
@@ -27,14 +34,8 @@ const Ball = ({ id, position, radius = BALL_RADIUS }: BallProps) => {
 
     const pos = body.translation()
 
-    if (pos.y <= -2) {
-      const { ballNumber, currentPlayer, nextBall } = useGameStore.getState()
-      broadcastEvent({
-        event_type: "ball_lost",
-        payload: { ball: ballNumber, player: currentPlayer },
-      })
+    if (pos.y <= DRAIN_SAFETY_FALLBACK_Y) {
       deleteBall(id)
-      nextBall()
       return
     }
 
@@ -51,11 +52,13 @@ const Ball = ({ id, position, radius = BALL_RADIUS }: BallProps) => {
     if (!isPlaying) return
 
     const vel = body.linvel()
-    const speed = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z)
-    if (speed > BALL_MAX_SPEED) {
-      const ratio = BALL_MAX_SPEED / speed
-      body.setLinvel({ x: vel.x * ratio, y: vel.y * ratio, z: vel.z * ratio }, true)
-    }
+    const clampedVelocity = clampVelocityToPlayfield(
+      vel,
+      BALL_MAX_TANGENT_SPEED,
+      BALL_MIN_NORMAL_SPEED,
+      BALL_MAX_NORMAL_SPEED,
+    )
+    body.setLinvel(clampedVelocity, true)
   })
 
   return (
