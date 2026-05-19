@@ -11,7 +11,6 @@ import {
 } from "@react-three/rapier"
 import { useCallback, useMemo, useRef } from "react"
 import * as THREE from "three"
-import type { Mesh } from "three"
 import {
   SLINGSHOT_DEPTH,
   SLINGSHOT_HEIGHT,
@@ -29,7 +28,7 @@ interface SlingshotProps {
   position: PositionType
   side: "left" | "right"
   slingshotId: number
-  meshOverride?: Mesh
+  meshOverride?: THREE.Mesh
 }
 
 const Slingshot = ({ position, side, slingshotId, meshOverride }: SlingshotProps) => {
@@ -132,11 +131,11 @@ const Slingshot = ({ position, side, slingshotId, meshOverride }: SlingshotProps
       {/* Triangle body: 2 murs non-rubber, restitution 0 */}
       <RigidBody type="fixed" colliders={false} position={position}>
         <CuboidCollider
-          args={[SLINGSHOT_WIDTH / 2, SLINGSHOT_HEIGHT / 2, 0.003]}
+          args={[SLINGSHOT_WIDTH / 2, SLINGSHOT_HEIGHT / 2, 0.05]}
           position={[(xDir * SLINGSHOT_WIDTH) / 2, SLINGSHOT_HEIGHT / 2, 0]}
         />
         <CuboidCollider
-          args={[0.003, SLINGSHOT_HEIGHT / 2, SLINGSHOT_DEPTH / 2]}
+          args={[0.05, SLINGSHOT_HEIGHT / 2, SLINGSHOT_DEPTH / 2]}
           position={[0, SLINGSHOT_HEIGHT / 2, -SLINGSHOT_DEPTH / 2]}
         />
         <mesh geometry={triangleGeometry}>
@@ -158,7 +157,7 @@ const Slingshot = ({ position, side, slingshotId, meshOverride }: SlingshotProps
           position={rubberTransform.position}
           rotation={[0, rubberTransform.rotationY, 0]}
         >
-          <boxGeometry args={[0.005, SLINGSHOT_HEIGHT, rubberTransform.length]} />
+          <boxGeometry args={[0.08, SLINGSHOT_HEIGHT, rubberTransform.length]} />
           <meshStandardMaterial color="#d33" />
         </mesh>
       </RigidBody>

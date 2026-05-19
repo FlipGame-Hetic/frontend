@@ -19,7 +19,7 @@ const Ball = ({ id, position, radius = BALL_RADIUS }: BallProps) => {
   const { deleteBall } = useBallStore()
   const isPlaying = useBallStore((state) => state.playingBallIds.includes(id))
   const ballRef = useRef<RapierRigidBody>(null)
-  const groundThreshold = radius + 0.007
+  const groundThreshold = radius + 0.1
 
   useFrame(() => {
     const body = ballRef.current
@@ -27,7 +27,7 @@ const Ball = ({ id, position, radius = BALL_RADIUS }: BallProps) => {
 
     const pos = body.translation()
 
-    if (pos.y <= -0.13) {
+    if (pos.y <= -2) {
       const { ballNumber, currentPlayer, nextBall } = useGameStore.getState()
       broadcastEvent({
         event_type: "ball_lost",

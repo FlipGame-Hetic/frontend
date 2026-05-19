@@ -10,8 +10,8 @@ interface PhysicsManagerProps {
 
 const PhysicsManager = ({ children, isDebug }: PhysicsManagerProps) => {
   const { gravityY, gravityZ } = useControls("Gravity", {
-    gravityY: { value: GRAVITY_Y, min: -1, max: 1, step: 0.01 },
-    gravityZ: { value: GRAVITY_Z, min: 0, max: 7, step: 0.01 },
+    gravityY: { value: GRAVITY_Y, min: -10, max: 10, step: 0.1 },
+    gravityZ: { value: GRAVITY_Z, min: 0, max: 100, step: 0.1 },
   })
 
   return (

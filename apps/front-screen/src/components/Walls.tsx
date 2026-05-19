@@ -17,13 +17,13 @@ interface TableParams {
 }
 
 const TABLE_DEFAULTS: TableParams = {
-  playfieldWidth: 0.53,
-  length: 1.33,
-  shooterLaneWidth: 0.067,
-  drainWidth: 0.17,
-  wallThickness: 0.007,
-  wallHeight: 0.033,
-  arcRadius: 0.13,
+  playfieldWidth: 8,
+  length: 20,
+  shooterLaneWidth: 1,
+  drainWidth: 2.5,
+  wallThickness: 0.1,
+  wallHeight: 0.5,
+  arcRadius: 2,
   arcSegments: 6,
 }
 
@@ -97,8 +97,8 @@ function computeWalls(t: TableParams): WallConfig[] {
   const totalWidth = (t.playfieldWidth + t.shooterLaneWidth) / 2
   const floorCenterX = t.shooterLaneWidth / 2
   const floor: WallConfig = {
-    args: [totalWidth, 0.033, halfL],
-    position: [floorCenterX, -0.033, 0],
+    args: [totalWidth, 0.5, halfL],
+    position: [floorCenterX, -0.5, 0],
     color: "#cfcfcf",
   }
 
@@ -109,26 +109,26 @@ const Walls = () => {
   const table = useControls("Table", {
     playfieldWidth: {
       value: TABLE_DEFAULTS.playfieldWidth,
-      min: 0.27,
-      max: 1.07,
+      min: 4,
+      max: 16,
       label: "Field width",
     },
-    length: { value: TABLE_DEFAULTS.length, min: 0.67, max: 2, label: "Field length" },
+    length: { value: TABLE_DEFAULTS.length, min: 10, max: 30, label: "Field length" },
     shooterLaneWidth: {
       value: TABLE_DEFAULTS.shooterLaneWidth,
-      min: 0.03,
-      max: 0.2,
+      min: 0.5,
+      max: 3,
       label: "Shooter lane width",
     },
-    drainWidth: { value: TABLE_DEFAULTS.drainWidth, min: 0.07, max: 0.33, label: "Drain width" },
+    drainWidth: { value: TABLE_DEFAULTS.drainWidth, min: 1, max: 5, label: "Drain width" },
     wallThickness: {
       value: TABLE_DEFAULTS.wallThickness,
-      min: 0.003,
-      max: 0.033,
+      min: 0.05,
+      max: 0.5,
       label: "Wall thickness",
     },
-    wallHeight: { value: TABLE_DEFAULTS.wallHeight, min: 0.013, max: 0.13, label: "Wall height" },
-    arcRadius: { value: TABLE_DEFAULTS.arcRadius, min: 0.033, max: 0.33, label: "Arc radius" },
+    wallHeight: { value: TABLE_DEFAULTS.wallHeight, min: 0.2, max: 2, label: "Wall height" },
+    arcRadius: { value: TABLE_DEFAULTS.arcRadius, min: 0.5, max: 5, label: "Arc radius" },
     arcSegments: {
       value: TABLE_DEFAULTS.arcSegments,
       min: 3,
@@ -158,7 +158,7 @@ const Walls = () => {
     const laneX = halfP + table.shooterLaneWidth / 2
     const laneExitZ = -(halfL - table.arcRadius)
     return {
-      args: [table.shooterLaneWidth / 2, table.wallHeight, 0.033] as CuboidArgs,
+      args: [table.shooterLaneWidth / 2, table.wallHeight, 0.5] as CuboidArgs,
       position: [laneX, table.wallHeight, laneExitZ] as Vector3Tuple,
     }
   }, [table])

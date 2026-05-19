@@ -12,7 +12,7 @@ interface TargetProps {
 
 const STANDUP_ANGLE = Math.PI / 4
 const STANDUP_DURATION = 500
-const DROP_OFFSET = 0.053
+const DROP_OFFSET = 0.8
 
 const Target = ({ mesh, worldPosition }: TargetProps) => {
   const bodyRef = useRef<RapierRigidBody>(null)

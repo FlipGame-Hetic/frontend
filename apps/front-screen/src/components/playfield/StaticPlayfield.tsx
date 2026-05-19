@@ -11,6 +11,8 @@ export default function StaticPlayfield({ nodes }: { nodes: PlayfieldNodes }) {
     [nodes],
   )
 
+  // console.log(clones)
+
   return (
     <>
       <RigidBody type="fixed" colliders="trimesh">
