@@ -7,7 +7,8 @@ import type { RapierRigidBody } from "@react-three/rapier"
 import { RigidBody, type CollisionEnterPayload } from "@react-three/rapier"
 import { usePhysicsDebugControls } from "@/debug/physicsDebugContext"
 import { useCallback, useRef } from "react"
-import type { Group, Mesh } from "three"
+import type { Mesh } from "three"
+import { normalizedPlayfieldDirection } from "../physics/playfieldPlane"
 import {
   clampBallVelocityToPlayfield,
   normalizedPlanarBounceDirection,
@@ -48,7 +49,7 @@ const Bumper = ({ position, bumperId, meshOverride }: BumperProps) => {
       const bumperPos = bodyRef.current.translation()
       const ballPos = other.rigidBody.translation()
 
-      const dir = normalizedPlanarBounceDirection({
+      const dir = normalizedPlayfieldDirection({
         x: ballPos.x - bumperPos.x,
         y: ballPos.y - bumperPos.y,
         z: ballPos.z - bumperPos.z,
@@ -61,15 +62,6 @@ const Bumper = ({ position, bumperId, meshOverride }: BumperProps) => {
 
       other.rigidBody.applyImpulse(
         { x: dir.x * impulseMag, y: dir.y * impulseMag, z: dir.z * impulseMag },
-        true,
-      )
-      other.rigidBody.setLinvel(
-        clampBallVelocityToPlayfield(
-          other.rigidBody.linvel(),
-          maxTangentSpeed,
-          minNormalSpeed,
-          maxNormalSpeed,
-        ),
         true,
       )
 
@@ -106,7 +98,7 @@ const Bumper = ({ position, bumperId, meshOverride }: BumperProps) => {
     if (stuckBall.current.frames >= stuckFrames) {
       const angle = Math.random() * Math.PI * 2
       const ballMass = ball.mass()
-      const dir = normalizedPlanarBounceDirection({ x: Math.cos(angle), y: 0, z: Math.sin(angle) })
+      const dir = normalizedPlayfieldDirection({ x: Math.cos(angle), y: 0, z: Math.sin(angle) })
 
       if (!dir) return
 

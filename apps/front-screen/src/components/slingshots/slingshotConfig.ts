@@ -13,7 +13,7 @@ export const SLINGSHOT_CONFIGS: SlingshotConfig[] = [
 export const SLINGSHOT_WIDTH = 1.4
 export const SLINGSHOT_DEPTH = 1.4
 export const SLINGSHOT_HEIGHT = 0.5
-export const SLINGSHOT_RESTITUTION = 7
+export const SLINGSHOT_RESTITUTION = 50
 
 export const SLINGSHOT_TREMBLE_DURATION = 0.3
 export const SLINGSHOT_TREMBLE_AMP = 0.05

@@ -17,7 +17,9 @@ export interface CharacterOption {
   locked?: boolean
 }
 
-export const MODE_OPTIONS: ModeOption[] = [
+type NonEmptyArray<T> = [T, ...T[]]
+
+export const MODE_OPTIONS: NonEmptyArray<ModeOption> = [
   {
     id: "solo",
     label: "SOLO",
@@ -37,7 +39,7 @@ export const MODE_OPTIONS: ModeOption[] = [
   },
 ]
 
-export const CHARACTER_OPTIONS: CharacterOption[] = [
+export const CHARACTER_OPTIONS: NonEmptyArray<CharacterOption> = [
   {
     id: "striker",
     label: "ATTAQUANT",

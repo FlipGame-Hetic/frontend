@@ -47,26 +47,6 @@ export function normalizedPlayfieldDirection(vector: VectorLike): VectorLike | n
   }
 }
 
-export function normalizedPlanarBounceDirection(vector: VectorLike): VectorLike | null {
-  const length = Math.hypot(vector.x, vector.z)
-
-  if (length < 0.001) return null
-
-  return {
-    x: vector.x / length,
-    y: 0,
-    z: vector.z / length,
-  }
-}
-
-export function removePositiveVerticalVelocity(velocity: VectorLike): VectorLike {
-  return {
-    x: velocity.x,
-    y: Math.min(0, velocity.y),
-    z: velocity.z,
-  }
-}
-
 export function clampVelocityToPlayfield(
   velocity: VectorLike,
   maxTangentSpeed: number,
@@ -87,18 +67,4 @@ export function clampVelocityToPlayfield(
     y: tangentVelocity.y * tangentRatio + PLAYFIELD_UNIT_NORMAL.y * normalSpeed,
     z: tangentVelocity.z * tangentRatio + PLAYFIELD_UNIT_NORMAL.z * normalSpeed,
   }
-}
-
-export function clampBallVelocityToPlayfield(
-  velocity: VectorLike,
-  maxTangentSpeed: number,
-  minNormalSpeed: number,
-  maxNormalSpeed: number,
-): VectorLike {
-  return clampVelocityToPlayfield(
-    velocity,
-    maxTangentSpeed,
-    minNormalSpeed,
-    Math.min(0, maxNormalSpeed),
-  )
 }

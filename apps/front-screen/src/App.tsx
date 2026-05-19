@@ -44,6 +44,7 @@ export default function App() {
 
         <PhysicsManager isDebug={true}>
           <BallsManager />
+          <Drain />
           <Suspense fallback={null}>
             <PlayfieldScene />
           </Suspense>

@@ -1,14 +1,20 @@
 import useBallStore from "@/stores/useBallStore"
-import useGameStore from "@/stores/useGameStore"
-import { broadcastEvent } from "@frontend/ws"
 import type { PositionType } from "@/types/worldTypes"
 import { useFrame } from "@react-three/fiber"
 import type { RapierRigidBody } from "@react-three/rapier"
 import { RigidBody } from "@react-three/rapier"
 import { useRef } from "react"
 import { DRAIN_SAFETY_FALLBACK_Y } from "../drain/drainConfig"
+import { REAL_GRAVITY_Y } from "../physics/physicsConfig"
 import { clampVelocityToPlayfield } from "../physics/playfieldPlane"
-import { BALL_RADIUS } from "./ballConfig"
+import {
+  BALL_MASS,
+  BALL_MAX_NORMAL_SPEED,
+  BALL_MAX_TANGENT_SPEED,
+  BALL_RADIUS,
+  BALL_RESTITUTION,
+  BALL_MIN_NORMAL_SPEED,
+} from "./ballConfig"
 
 interface BallProps {
   id: string
@@ -49,14 +55,8 @@ const Ball = ({
 
     const pos = body.translation()
 
-    if (pos.y <= -2) {
-      const { ballNumber, currentPlayer, nextBall } = useGameStore.getState()
-      broadcastEvent({
-        event_type: "ball_lost",
-        payload: { ball: ballNumber, player: currentPlayer },
-      })
+    if (pos.y <= DRAIN_SAFETY_FALLBACK_Y) {
       deleteBall(id)
-      nextBall()
       return
     }
 
@@ -64,9 +64,9 @@ const Ball = ({
     const vel = body.linvel()
     const clampedVelocity = clampVelocityToPlayfield(
       vel,
-      inLane ? laneMaxTangentSpeed : maxTangentSpeed,
-      minNormalSpeed,
-      maxNormalSpeed,
+      BALL_MAX_TANGENT_SPEED,
+      BALL_MIN_NORMAL_SPEED,
+      BALL_MAX_NORMAL_SPEED,
     )
     body.setLinvel(clampedVelocity, true)
   })

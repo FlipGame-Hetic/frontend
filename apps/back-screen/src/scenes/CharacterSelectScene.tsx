@@ -3,7 +3,7 @@ import { CHARACTER_OPTIONS } from "./scene.types"
 
 export default function CharacterSelectScene() {
   const menuIndex = useBackScreenStore((s) => s.menuIndex)
-  const active = CHARACTER_OPTIONS[menuIndex]
+  const active = CHARACTER_OPTIONS[menuIndex] ?? CHARACTER_OPTIONS[0]
 
   return (
     <div className="bg-arcade-black relative flex h-full w-full overflow-hidden">
@@ -29,14 +29,14 @@ export default function CharacterSelectScene() {
                 "0 0 8px #00D9E8, 0 0 24px rgba(0,217,232,0.45), 0 0 60px rgba(0,217,232,0.15)",
             }}
           >
-            {active?.label ?? "—"}
+            {active.label}
           </div>
 
           <div
             className="max-w-xs font-mono text-[clamp(0.65rem,1.3vw,0.9rem)] leading-relaxed"
             style={{ color: "#E8F4FF", opacity: 0.7 }}
           >
-            {active?.locked ? "Non disponible pour l'instant." : active?.description}
+            {active.locked ? "Non disponible pour l'instant." : active.description}
           </div>
 
           <div
@@ -49,7 +49,7 @@ export default function CharacterSelectScene() {
 
         <div className="flex items-center justify-center pr-16">
           <div className="flex flex-col items-center gap-6">
-            <BigBall option={active ?? CHARACTER_OPTIONS[0]} />
+            <BigBall option={active} />
 
             <div className="flex gap-4">
               {CHARACTER_OPTIONS.map((opt, i) => (

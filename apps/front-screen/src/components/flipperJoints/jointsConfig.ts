@@ -1,7 +1,10 @@
 import type { PositionType } from "@/types/worldTypes"
 
-export const REST_ANGLE = -0.5
-export const MAX_ANGLE = 0.75
+export const REST_ANGLE = 0
+export const MAX_ANGLE = 1.2
+
+export const FLIPPER_ACTIVE_TILT_X_DEG = -7.5
+export const FLIPPER_ACTIVE_TILT_Z_DEG = 7.5
 export const MOTOR_STIFFNESS = 4000
 export const MOTOR_DAMPING = 50
 

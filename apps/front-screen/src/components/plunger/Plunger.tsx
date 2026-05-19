@@ -5,9 +5,9 @@ import type { PositionType } from "@/types/worldTypes"
 import { useFrame } from "@react-three/fiber"
 import type { CollisionPayload, RapierRigidBody } from "@react-three/rapier"
 import { CuboidCollider, RigidBody } from "@react-three/rapier"
-import { useCallback, useMemo, useRef } from "react"
-import type { Group, Mesh } from "three"
-import { Vector3 } from "three"
+import { useControls, button } from "leva"
+import { useCallback, useRef } from "react"
+import type { Group } from "three"
 import { normalizedPlayfieldDirection } from "../physics/playfieldPlane"
 import {
   clampPlungerPosition,
@@ -107,7 +107,18 @@ const Plunger = ({ position = PLUNGER_POSITION, tipMesh, ringMeshes = [] }: Plun
           const scaledCharge = Math.pow(charge, PLUNGER_CHARGE_FACTOR)
           const impulse =
             PLUNGER_MIN_IMPULSE + (PLUNGER_MAX_IMPULSE - PLUNGER_MIN_IMPULSE) * scaledCharge
-          ballInLane.applyImpulse({ x: 0, y: 0, z: -impulse * ballInLane.mass() }, true)
+          const dir = normalizedPlayfieldDirection({ x: 0, y: 0, z: -1 })
+
+          if (dir) {
+            ballInLane.applyImpulse(
+              {
+                x: dir.x * impulse * ballInLane.mass(),
+                y: dir.y * impulse * ballInLane.mass(),
+                z: dir.z * impulse * ballInLane.mass(),
+              },
+              true,
+            )
+          }
         }
         pendingReleaseRef.current = true
         releaseTimerRef.current = PLUNGER_RELEASE_DELAY
