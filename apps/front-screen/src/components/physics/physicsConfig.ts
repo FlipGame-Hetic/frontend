@@ -1,7 +1,7 @@
-export const REAL_GRAVITY_Y = -0.65
+export const REAL_GRAVITY_Y = -9.81
 
-export const GRAVITY_Y = -0.2
-export const GRAVITY_Z = 1.33
+export const GRAVITY_Y = -3.0
+export const GRAVITY_Z = 20
 
 export const BENCH_FLOOR_FRICTION = 0.4
 export const BENCH_HALF_WIDTH = 7

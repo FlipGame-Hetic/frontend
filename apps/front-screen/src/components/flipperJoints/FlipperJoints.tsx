@@ -114,7 +114,7 @@ const FlipperJoints = ({ position, side, meshOverride }: FlipperJointsProps) => 
           ) : (
             <mesh
               geometry={flipperGeometry}
-              scale={isLeft ? [0.02, 0.02, 0.02] : [-0.02, 0.02, 0.02]}
+              scale={isLeft ? [0.3, 0.3, 0.3] : [-0.3, 0.3, 0.3]}
               rotation={[-Math.PI / 2, 0, 0]}
               position={[isLeft ? meshOffsetX : -meshOffsetX, 0, 0]}
             >

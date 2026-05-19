@@ -192,8 +192,8 @@ const Plunger = ({ position = PLUNGER_POSITION, tipMesh, ringMeshes = [] }: Plun
         <CuboidCollider
           sensor
           name="plunger-sensor"
-          args={[PLUNGER_SPRING_RADIUS + 0.007, 0.02, 0.053]}
-          position={[0, 0, -0.033]}
+          args={[PLUNGER_SPRING_RADIUS + 0.1, 0.3, 0.8]}
+          position={[0, 0, -0.5]}
           onIntersectionEnter={handleBallEnter}
           onIntersectionExit={handleBallExit}
         />

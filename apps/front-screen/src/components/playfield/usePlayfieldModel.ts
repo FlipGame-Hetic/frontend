@@ -1,8 +1,8 @@
 import { useGLTF } from "@react-three/drei"
 import { useMemo } from "react"
-import { Quaternion, Vector3, type Mesh } from "three"
+import { Mesh, Quaternion, Vector3 } from "three"
 
-export const PLAYFIELD_OFFSET: [number, number, number] = [0, -0.8, 0]
+export const PLAYFIELD_OFFSET: [number, number, number] = [0, -12, 0]
 
 export interface PlayfieldNodes {
   cabinet: Mesh[]
@@ -47,7 +47,7 @@ export function cloneAtWorldTransform(mesh: Mesh): Mesh {
   const [wx, wy, wz] = applyWorldOffset(pos)
   clone.position.set(wx, wy, wz)
   clone.quaternion.copy(quat)
-  clone.scale.copy(meshScale)
+  clone.scale.set(meshScale.x, meshScale.y, meshScale.z)
   return clone
 }
 
@@ -60,12 +60,12 @@ export function cloneWithWorldOrientation(mesh: Mesh): Mesh {
   mesh.matrixWorld.decompose(_pos, quat, meshScale)
   clone.position.set(0, 0, 0)
   clone.quaternion.copy(quat)
-  clone.scale.copy(meshScale)
+  clone.scale.set(meshScale.x, meshScale.y, meshScale.z)
   return clone
 }
 
 export function usePlayfieldModel(): PlayfieldNodes {
-  const { scene } = useGLTF("/models/playfield.glb")
+  const { scene } = useGLTF("/models/playfield_x15.glb")
   return useMemo(() => {
     const result: PlayfieldNodes = {
       cabinet: [],
@@ -78,10 +78,10 @@ export function usePlayfieldModel(): PlayfieldNodes {
       lockedBall: [],
     }
     scene.traverse((node) => {
-      const mesh = node as Mesh
-      const bucket = classifyMesh(mesh.name)
+      if (!(node instanceof Mesh)) return
+      const bucket = classifyMesh(node.name)
       if (!bucket) return
-      result[bucket].push(mesh)
+      result[bucket].push(node as Mesh)
     })
     return result
   }, [scene])
