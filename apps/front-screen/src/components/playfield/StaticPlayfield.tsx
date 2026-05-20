@@ -6,7 +6,7 @@ export default function StaticPlayfield({ nodes }: { nodes: PlayfieldNodes }) {
   const clones = useMemo(
     () => ({
       solid: [...nodes.cabinet, ...nodes.playfield].map(cloneAtWorldTransform),
-      sensors: [...nodes.tunnels, ...nodes.lockedBall].map(cloneAtWorldTransform),
+      sensors: nodes.lockedBall.map(cloneAtWorldTransform),
     }),
     [nodes],
   )

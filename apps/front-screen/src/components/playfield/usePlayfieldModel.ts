@@ -24,7 +24,6 @@ function classifyMesh(name: string): keyof PlayfieldNodes | null {
   if (name === "l_flipper_arm" || name === "r_flipper_arm") return "cabinet"
   if (name.startsWith("l_flipper") || name.startsWith("r_flipper")) return "flippers"
   if (name === "locked_ball") return "lockedBall"
-  if (name === "l_tunnel" || name === "tunnel_box") return "tunnels"
   if (name.includes("_bumper_slim")) return "slimBumpers"
   if (name.includes("_bumper_rubber")) return "bumperRubbers"
   if (name.includes("_bumper_base")) return "bumpers"
