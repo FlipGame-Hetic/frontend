@@ -5,18 +5,20 @@ import useGameStore from "@/stores/useGameStore"
 import { BUMPER_SCORE } from "@/config/scoreConfig"
 import type { RapierRigidBody } from "@react-three/rapier"
 import { RigidBody, type CollisionEnterPayload } from "@react-three/rapier"
-import { usePhysicsDebugControls } from "@/debug/physicsDebugContext"
+import { useControls } from "leva"
 import { useCallback, useEffect, useRef } from "react"
 import type { Mesh } from "three"
 import { Vector3 } from "three"
-import {
-  clampBallVelocityToPlayfield,
-  normalizedPlanarBounceDirection,
-} from "../physics/playfieldPlane"
+import { normalizedPlayfieldDirection } from "../physics/playfieldPlane"
 import {
   SLIM_BUMPER_BOUNCE_AMP,
   SLIM_BUMPER_BOUNCE_DURATION,
   SLIM_BUMPER_BOUNCE_FREQ,
+  SLIM_BUMPER_IMPULSE_STRENGTH,
+  SLIM_BUMPER_RESTITUTION,
+  SLIM_BUMPER_STUCK_FRAMES,
+  SLIM_BUMPER_STUCK_VELOCITY,
+  SLIM_BUMPER_UNSTICK_IMPULSE,
 } from "./slimBumperConfig"
 
 interface SlimBumperProps {
@@ -35,10 +37,16 @@ const SlimBumper = ({ position, bumperId, meshOverride }: SlimBumperProps) => {
     baseScale.current.copy(meshOverride.scale)
   }, [meshOverride])
 
-  const {
-    ball: { maxTangentSpeed, minNormalSpeed, maxNormalSpeed },
-    slimBumpers: { restitution, impulseStrength, stuckFrames, stuckVelocity, unstickImpulse },
-  } = usePhysicsDebugControls()
+  const { restitution, impulseStrength, stuckFrames, stuckVelocity, unstickImpulse } = useControls(
+    "SlimBumpers",
+    {
+      restitution: { value: SLIM_BUMPER_RESTITUTION, min: 0, max: 1.0, step: 0.05 },
+      impulseStrength: { value: SLIM_BUMPER_IMPULSE_STRENGTH, min: 1, max: 30, step: 1 },
+      stuckFrames: { value: SLIM_BUMPER_STUCK_FRAMES, min: 10, max: 120, step: 5 },
+      stuckVelocity: { value: SLIM_BUMPER_STUCK_VELOCITY, min: 0.1, max: 2.0, step: 0.1 },
+      unstickImpulse: { value: SLIM_BUMPER_UNSTICK_IMPULSE, min: 1, max: 20, step: 1 },
+    },
+  )
 
   const handleCollision = useCallback(
     ({ other }: CollisionEnterPayload) => {
@@ -51,7 +59,7 @@ const SlimBumper = ({ position, bumperId, meshOverride }: SlimBumperProps) => {
 
       const bumperPos = bodyRef.current.translation()
       const ballPos = other.rigidBody.translation()
-      const dir = normalizedPlanarBounceDirection({
+      const dir = normalizedPlayfieldDirection({
         x: ballPos.x - bumperPos.x,
         y: ballPos.y - bumperPos.y,
         z: ballPos.z - bumperPos.z,
@@ -68,19 +76,10 @@ const SlimBumper = ({ position, bumperId, meshOverride }: SlimBumperProps) => {
         },
         true,
       )
-      other.rigidBody.setLinvel(
-        clampBallVelocityToPlayfield(
-          other.rigidBody.linvel(),
-          maxTangentSpeed,
-          minNormalSpeed,
-          maxNormalSpeed,
-        ),
-        true,
-      )
 
       stuckBall.current = { body: other.rigidBody, frames: 0 }
     },
-    [impulseStrength, bumperId, maxTangentSpeed, minNormalSpeed, maxNormalSpeed],
+    [impulseStrength, bumperId],
   )
 
   useFrame(() => {
@@ -108,7 +107,7 @@ const SlimBumper = ({ position, bumperId, meshOverride }: SlimBumperProps) => {
     if (stuckBall.current.frames >= stuckFrames) {
       const angle = Math.random() * Math.PI * 2
       const ballMass = ball.mass()
-      const dir = normalizedPlanarBounceDirection({ x: Math.cos(angle), y: 0, z: Math.sin(angle) })
+      const dir = normalizedPlayfieldDirection({ x: Math.cos(angle), y: 0, z: Math.sin(angle) })
       if (!dir) return
       ball.applyImpulse(
         {
@@ -116,15 +115,6 @@ const SlimBumper = ({ position, bumperId, meshOverride }: SlimBumperProps) => {
           y: dir.y * unstickImpulse * ballMass,
           z: dir.z * unstickImpulse * ballMass,
         },
-        true,
-      )
-      ball.setLinvel(
-        clampBallVelocityToPlayfield(
-          ball.linvel(),
-          maxTangentSpeed,
-          minNormalSpeed,
-          maxNormalSpeed,
-        ),
         true,
       )
       stuckBall.current = null

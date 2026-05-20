@@ -1,18 +1,3 @@
-import type { PositionType } from "@/types/worldTypes"
-
-interface SlingshotConfig {
-  position: PositionType
-  side: "left" | "right"
-}
-
-export const SLINGSHOT_CONFIGS: SlingshotConfig[] = [
-  { position: [-2.8, 0.3, 7.5], side: "left" },
-  { position: [2.8, 0.3, 7.5], side: "right" },
-]
-
-export const SLINGSHOT_WIDTH = 1.4
-export const SLINGSHOT_DEPTH = 1.4
-export const SLINGSHOT_HEIGHT = 0.5
 export const SLINGSHOT_RESTITUTION = 50
 
 export const SLINGSHOT_TREMBLE_DURATION = 0.3

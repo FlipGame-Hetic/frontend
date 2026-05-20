@@ -7,7 +7,7 @@ import type { RapierRigidBody } from "@react-three/rapier"
 import { RigidBody, type CollisionEnterPayload } from "@react-three/rapier"
 import { usePhysicsDebugControls } from "@/debug/physicsDebugContext"
 import { useCallback, useRef } from "react"
-import type { Mesh } from "three"
+import type { Group, Mesh } from "three"
 import { normalizedPlayfieldDirection } from "../physics/playfieldPlane"
 import {
   clampBallVelocityToPlayfield,
@@ -19,9 +19,10 @@ interface BumperProps {
   position: PositionType
   bumperId: number
   meshOverride?: Mesh
+  rubberMesh?: Mesh
 }
 
-const Bumper = ({ position, bumperId, meshOverride }: BumperProps) => {
+const Bumper = ({ position, bumperId, meshOverride, rubberMesh }: BumperProps) => {
   const bodyRef = useRef<RapierRigidBody>(null)
   const meshRef = useRef<Mesh>(null)
   const rubberGroupRef = useRef<Group>(null)
@@ -133,7 +134,14 @@ const Bumper = ({ position, bumperId, meshOverride }: BumperProps) => {
       restitution={restitution}
     >
       {meshOverride ? (
-        <primitive object={meshOverride} />
+        <>
+          <primitive object={meshOverride} />
+          {rubberMesh && (
+            <group ref={rubberGroupRef}>
+              <primitive object={rubberMesh} />
+            </group>
+          )}
+        </>
       ) : (
         <mesh ref={meshRef}>
           <cylinderGeometry args={BUMPER_SIZE_ARGS} />

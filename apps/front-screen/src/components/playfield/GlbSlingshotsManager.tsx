@@ -6,31 +6,33 @@ import {
   type PlayfieldNodes,
 } from "./usePlayfieldModel"
 
-function detectSide(name: string): "left" | "right" {
-  return name.startsWith("l_") ? "left" : "right"
-}
-
 export default function GlbSlingshotsManager({ nodes }: { nodes: PlayfieldNodes }) {
   const slingshots = useMemo(
     () =>
-      nodes.slingshots.map((mesh, i) => ({
-        id: i,
-        side: detectSide(mesh.name),
-        position: getWorldPosition(mesh),
-        clone: cloneWithWorldOrientation(mesh),
-      })),
+      nodes.slingshots.map((mod, i) => {
+        const rubberName = mod.name.replace("_module", "_rubber")
+        const rubber = nodes.slingshotRubbers.find((m) => m.name === rubberName)
+        return {
+          id: i,
+          side: (mod.name.startsWith("l_") ? "left" : "right"),
+          position: getWorldPosition(mod),
+          moduleClone: cloneWithWorldOrientation(mod),
+          rubberClone: rubber ? cloneWithWorldOrientation(rubber) : undefined,
+        }
+      }),
     [nodes],
   )
 
   return (
     <>
-      {slingshots.map(({ id, side, position, clone }) => (
+      {slingshots.map(({ id, side, position, moduleClone, rubberClone }) => (
         <Slingshot
-          key={clone.uuid}
+          key={moduleClone.uuid}
           position={position}
           side={side}
           slingshotId={id}
-          meshOverride={clone}
+          moduleMesh={moduleClone}
+          rubberMesh={rubberClone}
         />
       ))}
     </>
