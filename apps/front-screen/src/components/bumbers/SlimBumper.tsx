@@ -6,60 +6,59 @@ import { BUMPER_SCORE } from "@/config/scoreConfig"
 import type { RapierRigidBody } from "@react-three/rapier"
 import { RigidBody, type CollisionEnterPayload } from "@react-three/rapier"
 import { useControls } from "leva"
-import { useCallback, useRef } from "react"
-import type { Group, Mesh } from "three"
+import { useCallback, useEffect, useRef } from "react"
+import type { Mesh } from "three"
+import { Vector3 } from "three"
 import { normalizedPlayfieldDirection } from "../physics/playfieldPlane"
 import {
-  BUMPER_IMPULSE_STRENGTH,
-  BUMPER_RESTITUTION,
-  BUMPER_SCALE_FACTOR,
-  BUMPER_SIZE_ARGS,
-  BUMPER_STUCK_FRAMES,
-  BUMPER_STUCK_VELOCITY,
-  BUMPER_UNSTICK_IMPULSE,
-} from "./bumperConfig"
+  SLIM_BUMPER_BOUNCE_AMP,
+  SLIM_BUMPER_BOUNCE_DURATION,
+  SLIM_BUMPER_BOUNCE_FREQ,
+  SLIM_BUMPER_IMPULSE_STRENGTH,
+  SLIM_BUMPER_RESTITUTION,
+  SLIM_BUMPER_STUCK_FRAMES,
+  SLIM_BUMPER_STUCK_VELOCITY,
+  SLIM_BUMPER_UNSTICK_IMPULSE,
+} from "./slimBumperConfig"
 
-interface BumperProps {
+interface SlimBumperProps {
   position: PositionType
   bumperId: number
-  meshOverride?: Mesh
-  rubberMesh?: Mesh
+  meshOverride: Mesh
 }
 
-const Bumper = ({ position, bumperId, meshOverride, rubberMesh }: BumperProps) => {
+const SlimBumper = ({ position, bumperId, meshOverride }: SlimBumperProps) => {
   const bodyRef = useRef<RapierRigidBody>(null)
-  const meshRef = useRef<Mesh>(null)
-  const rubberGroupRef = useRef<Group>(null)
-  const isBouncing = useRef(false)
+  const hitAt = useRef(-Infinity)
+  const baseScale = useRef(new Vector3())
   const stuckBall = useRef<{ body: RapierRigidBody; frames: number } | null>(null)
 
+  useEffect(() => {
+    baseScale.current.copy(meshOverride.scale)
+  }, [meshOverride])
+
   const { restitution, impulseStrength, stuckFrames, stuckVelocity, unstickImpulse } = useControls(
-    "Bumpers",
+    "SlimBumpers",
     {
-      restitution: { value: BUMPER_RESTITUTION, min: 0, max: 1.0, step: 0.05 },
-      impulseStrength: { value: BUMPER_IMPULSE_STRENGTH, min: 1, max: 50, step: 1 },
-      stuckFrames: { value: BUMPER_STUCK_FRAMES, min: 10, max: 120, step: 5 },
-      stuckVelocity: { value: BUMPER_STUCK_VELOCITY, min: 0.1, max: 2.0, step: 0.1 },
-      unstickImpulse: { value: BUMPER_UNSTICK_IMPULSE, min: 1, max: 20, step: 1 },
+      restitution: { value: SLIM_BUMPER_RESTITUTION, min: 0, max: 1.0, step: 0.05 },
+      impulseStrength: { value: SLIM_BUMPER_IMPULSE_STRENGTH, min: 1, max: 30, step: 1 },
+      stuckFrames: { value: SLIM_BUMPER_STUCK_FRAMES, min: 10, max: 120, step: 5 },
+      stuckVelocity: { value: SLIM_BUMPER_STUCK_VELOCITY, min: 0.1, max: 2.0, step: 0.1 },
+      unstickImpulse: { value: SLIM_BUMPER_UNSTICK_IMPULSE, min: 1, max: 20, step: 1 },
     },
   )
 
   const handleCollision = useCallback(
     ({ other }: CollisionEnterPayload) => {
-      isBouncing.current = true
-      setTimeout(() => {
-        isBouncing.current = false
-      }, 150)
-
       if (!bodyRef.current || !other.rigidBody) return
       if (other.rigidBodyObject?.name !== "ball") return
 
       broadcastEvent({ event_type: "bumper_hit", payload: { bumper_id: bumperId } })
       useGameStore.getState().addScore(BUMPER_SCORE)
+      hitAt.current = performance.now() / 1000
 
       const bumperPos = bodyRef.current.translation()
       const ballPos = other.rigidBody.translation()
-
       const dir = normalizedPlayfieldDirection({
         x: ballPos.x - bumperPos.x,
         y: ballPos.y - bumperPos.y,
@@ -69,10 +68,12 @@ const Bumper = ({ position, bumperId, meshOverride, rubberMesh }: BumperProps) =
       if (!dir) return
 
       const ballMass = other.rigidBody.mass()
-      const impulseMag = impulseStrength * ballMass
-
       other.rigidBody.applyImpulse(
-        { x: dir.x * impulseMag, y: dir.y * impulseMag, z: dir.z * impulseMag },
+        {
+          x: dir.x * impulseStrength * ballMass,
+          y: dir.y * impulseStrength * ballMass,
+          z: dir.z * impulseStrength * ballMass,
+        },
         true,
       )
 
@@ -82,37 +83,32 @@ const Bumper = ({ position, bumperId, meshOverride, rubberMesh }: BumperProps) =
   )
 
   useFrame(() => {
-    const animTarget = rubberGroupRef.current ?? meshRef.current
-    if (animTarget) {
-      if (isBouncing.current && animTarget.scale.x < BUMPER_SCALE_FACTOR) {
-        animTarget.scale.x += 0.05
-        animTarget.scale.z += 0.05
-      } else if (animTarget.scale.x > 1) {
-        animTarget.scale.x -= 0.05
-        animTarget.scale.z -= 0.05
-      }
+    const t = performance.now() / 1000 - hitAt.current
+    if (t < SLIM_BUMPER_BOUNCE_DURATION) {
+      const decay = 1 - t / SLIM_BUMPER_BOUNCE_DURATION
+      const s = 1 + Math.sin(t * SLIM_BUMPER_BOUNCE_FREQ) * SLIM_BUMPER_BOUNCE_AMP * decay
+      meshOverride.scale.set(
+        baseScale.current.x * s,
+        baseScale.current.y * s,
+        baseScale.current.z * s,
+      )
+    } else if (t < SLIM_BUMPER_BOUNCE_DURATION + 0.1) {
+      meshOverride.scale.copy(baseScale.current)
     }
 
     if (!stuckBall.current || !bodyRef.current) return
     const ball = stuckBall.current.body
-
     const vel = ball.linvel()
-    const speed = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z)
-
-    if (speed > stuckVelocity) {
+    if (Math.hypot(vel.x, vel.y, vel.z) > stuckVelocity) {
       stuckBall.current = null
       return
     }
-
     stuckBall.current.frames++
-
     if (stuckBall.current.frames >= stuckFrames) {
       const angle = Math.random() * Math.PI * 2
       const ballMass = ball.mass()
       const dir = normalizedPlayfieldDirection({ x: Math.cos(angle), y: 0, z: Math.sin(angle) })
-
       if (!dir) return
-
       ball.applyImpulse(
         {
           x: dir.x * unstickImpulse * ballMass,
@@ -134,23 +130,9 @@ const Bumper = ({ position, bumperId, meshOverride, rubberMesh }: BumperProps) =
       onCollisionEnter={handleCollision}
       restitution={restitution}
     >
-      {meshOverride ? (
-        <>
-          <primitive object={meshOverride} />
-          {rubberMesh && (
-            <group ref={rubberGroupRef}>
-              <primitive object={rubberMesh} />
-            </group>
-          )}
-        </>
-      ) : (
-        <mesh ref={meshRef}>
-          <cylinderGeometry args={BUMPER_SIZE_ARGS} />
-          <meshStandardMaterial />
-        </mesh>
-      )}
+      <primitive object={meshOverride} />
     </RigidBody>
   )
 }
 
-export default Bumper
+export default SlimBumper

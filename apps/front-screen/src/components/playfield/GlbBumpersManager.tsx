@@ -9,18 +9,29 @@ import {
 export default function GlbBumpersManager({ nodes }: { nodes: PlayfieldNodes }) {
   const bumpers = useMemo(
     () =>
-      nodes.bumpers.map((mesh, i) => ({
-        id: i,
-        position: getWorldPosition(mesh),
-        clone: cloneWithWorldOrientation(mesh),
-      })),
+      nodes.bumpers.map((base, i) => {
+        const rubberName = base.name.replace("_base", "_rubber")
+        const rubber = nodes.bumperRubbers.find((m) => m.name === rubberName)
+        return {
+          id: i,
+          position: getWorldPosition(base),
+          baseClone: cloneWithWorldOrientation(base),
+          rubberClone: rubber ? cloneWithWorldOrientation(rubber) : undefined,
+        }
+      }),
     [nodes],
   )
 
   return (
     <>
-      {bumpers.map(({ id, position, clone }) => (
-        <Bumper key={clone.uuid} position={position} bumperId={id} meshOverride={clone} />
+      {bumpers.map(({ id, position, baseClone, rubberClone }) => (
+        <Bumper
+          key={baseClone.uuid}
+          position={position}
+          bumperId={id}
+          meshOverride={baseClone}
+          rubberMesh={rubberClone}
+        />
       ))}
     </>
   )
