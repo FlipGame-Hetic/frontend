@@ -9,8 +9,8 @@ import { usePhysicsDebugControls } from "@/debug/physicsDebugContext"
 import { useCallback, useRef } from "react"
 import type { Group, Mesh } from "three"
 import {
+  clampBallVelocityToPlayfield,
   normalizedPlanarBounceDirection,
-  removePositiveVerticalVelocity,
 } from "../physics/playfieldPlane"
 import { BUMPER_SCALE_FACTOR, BUMPER_SIZE_ARGS } from "./bumperConfig"
 
@@ -28,8 +28,10 @@ const Bumper = ({ position, bumperId, meshOverride, rubberMesh }: BumperProps) =
   const isBouncing = useRef(false)
   const stuckBall = useRef<{ body: RapierRigidBody; frames: number } | null>(null)
 
-  const { restitution, impulseStrength, stuckFrames, stuckVelocity, unstickImpulse } =
-    usePhysicsDebugControls().bumpers
+  const {
+    ball: { maxTangentSpeed, minNormalSpeed, maxNormalSpeed },
+    bumpers: { restitution, impulseStrength, stuckFrames, stuckVelocity, unstickImpulse },
+  } = usePhysicsDebugControls()
 
   const handleCollision = useCallback(
     ({ other }: CollisionEnterPayload) => {
@@ -62,7 +64,15 @@ const Bumper = ({ position, bumperId, meshOverride, rubberMesh }: BumperProps) =
         { x: dir.x * impulseMag, y: dir.y * impulseMag, z: dir.z * impulseMag },
         true,
       )
-      other.rigidBody.setLinvel(removePositiveVerticalVelocity(other.rigidBody.linvel()), true)
+      other.rigidBody.setLinvel(
+        clampBallVelocityToPlayfield(
+          other.rigidBody.linvel(),
+          maxTangentSpeed,
+          minNormalSpeed,
+          maxNormalSpeed,
+        ),
+        true,
+      )
 
       stuckBall.current = { body: other.rigidBody, frames: 0 }
     },
@@ -109,7 +119,15 @@ const Bumper = ({ position, bumperId, meshOverride, rubberMesh }: BumperProps) =
         },
         true,
       )
-      ball.setLinvel(removePositiveVerticalVelocity(ball.linvel()), true)
+      ball.setLinvel(
+        clampBallVelocityToPlayfield(
+          ball.linvel(),
+          maxTangentSpeed,
+          minNormalSpeed,
+          maxNormalSpeed,
+        ),
+        true,
+      )
       stuckBall.current = null
     }
   })

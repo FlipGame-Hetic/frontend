@@ -29,6 +29,12 @@ vi.mock("@react-three/fiber", () => ({
 
 vi.mock("@/debug/physicsDebugContext", () => ({
   usePhysicsDebugControls: () => ({
+    ball: {
+      maxTangentSpeed: 5,
+      laneMaxTangentSpeed: 100,
+      minNormalSpeed: -4,
+      maxNormalSpeed: 0,
+    },
     bumpers: {
       restitution: 0.3,
       impulseStrength: 15,
@@ -128,6 +134,23 @@ describe("Bumper — handleCollision", () => {
       expect(mockBroadcastEvent).toHaveBeenLastCalledWith(
         expect.objectContaining({ payload: { bumper_id: 8 } }),
       )
+    })
+
+    it("clamps the ball velocity immediately after applying the bumper impulse", () => {
+      const ballBody = {
+        translation: () => ({ x: 1, y: 0, z: 1 }),
+        mass: () => 1,
+        applyImpulse: vi.fn(),
+        linvel: () => ({ x: 30, y: 3, z: 40 }),
+        setLinvel: vi.fn(),
+      }
+
+      render(<Bumper position={[0, 0, 0]} bumperId={3} />)
+      callHandler(makeBallPayload({ rigidBody: ballBody }))
+
+      expect(ballBody.applyImpulse).toHaveBeenCalledOnce()
+      expect(ballBody.setLinvel).toHaveBeenCalledWith({ x: 3, y: 0, z: 4 }, true)
+      expect(ballBody.applyImpulse).toHaveBeenCalledBefore(ballBody.setLinvel)
     })
   })
 

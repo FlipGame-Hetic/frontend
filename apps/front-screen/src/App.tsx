@@ -36,7 +36,20 @@ function AppContent() {
       />
       <World cameraSettings={cameraSettings as CameraProps}>
         <ambientLight intensity={0.5} />
-        <directionalLight position={[0, 13, 12]} intensity={0.4} />
+        <directionalLight
+          position={[0, 13, 12]}
+          intensity={0.4}
+          castShadow
+          shadow-mapSize={[2048, 2048]}
+          shadow-camera-near={0.5}
+          shadow-camera-far={60}
+          shadow-camera-left={-20}
+          shadow-camera-right={20}
+          shadow-camera-top={20}
+          shadow-camera-bottom={-20}
+          shadow-bias={-0.001}
+          shadow-normalBias={0.1}
+        />
         {isProduction ? (
           <ProductionCamera />
         ) : (
