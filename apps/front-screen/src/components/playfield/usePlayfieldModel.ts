@@ -19,10 +19,11 @@ export interface PlayfieldNodes {
   overhead: Mesh[]
   tunnels: Mesh[]
   lockedBall: Mesh[]
+  spinner: Mesh[]
 }
 
 function classifyMesh(name: string): keyof PlayfieldNodes | null {
-  if (name === "spinner") return null
+  if (name === "spinner") return "spinner"
   if (name === "tip" || /^ring_\d+$/.test(name)) return "plunger"
   if (name.includes("rail") || name.includes("tunnel")) return "overhead"
   if (name === "l_flipper_arm" || name === "r_flipper_arm") return "cabinet"
@@ -105,10 +106,13 @@ export function usePlayfieldModel(): PlayfieldNodes {
       overhead: [],
       tunnels: [],
       lockedBall: [],
+      spinner: [],
     }
     scene.traverse((node) => {
       if (!isMesh(node)) return
       if (!isVisibleInHierarchy(node)) return
+      node.castShadow = true
+      node.receiveShadow = true
       const bucket = classifyMesh(node.name)
       if (!bucket) return
       result[bucket].push(node)

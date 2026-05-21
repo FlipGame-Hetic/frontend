@@ -9,7 +9,9 @@ interface WorldProps {
 const World = ({ cameraSettings, children }: WorldProps) => {
   return (
     <div className="h-dvh w-full">
-      <Canvas camera={cameraSettings}>{children}</Canvas>
+      <Canvas shadows camera={cameraSettings}>
+        {children}
+      </Canvas>
     </div>
   )
 }

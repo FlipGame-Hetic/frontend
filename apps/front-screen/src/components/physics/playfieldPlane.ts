@@ -88,3 +88,17 @@ export function clampVelocityToPlayfield(
     z: tangentVelocity.z * tangentRatio + PLAYFIELD_UNIT_NORMAL.z * normalSpeed,
   }
 }
+
+export function clampBallVelocityToPlayfield(
+  velocity: VectorLike,
+  maxTangentSpeed: number,
+  minNormalSpeed: number,
+  maxNormalSpeed: number,
+): VectorLike {
+  return clampVelocityToPlayfield(
+    velocity,
+    maxTangentSpeed,
+    minNormalSpeed,
+    Math.min(0, maxNormalSpeed),
+  )
+}

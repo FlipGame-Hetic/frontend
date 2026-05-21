@@ -37,23 +37,19 @@ const BallsManager = () => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null
 
-      if (
-        e.repeat ||
-        e.code !== "KeyS" ||
-        target?.isContentEditable ||
-        target?.closest("input, textarea, select")
-      ) {
+      if (e.repeat || target?.isContentEditable || target?.closest("input, textarea, select")) {
         return
       }
 
-      handleSpawn()
+      if (e.code === "KeyS") handleSpawn()
+      else if (e.code === "KeyP") handleSpawnInPlunger()
     }
 
     window.addEventListener("keydown", handleKeyDown)
     return () => {
       window.removeEventListener("keydown", handleKeyDown)
     }
-  }, [handleSpawn])
+  }, [handleSpawn, handleSpawnInPlunger])
 
   const {
     mass,

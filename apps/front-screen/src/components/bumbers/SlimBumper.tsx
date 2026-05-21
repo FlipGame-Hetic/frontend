@@ -10,8 +10,8 @@ import { useCallback, useEffect, useRef } from "react"
 import type { Mesh } from "three"
 import { Vector3 } from "three"
 import {
+  clampBallVelocityToPlayfield,
   normalizedPlanarBounceDirection,
-  removePositiveVerticalVelocity,
 } from "../physics/playfieldPlane"
 import {
   SLIM_BUMPER_BOUNCE_AMP,
@@ -35,8 +35,10 @@ const SlimBumper = ({ position, bumperId, meshOverride }: SlimBumperProps) => {
     baseScale.current.copy(meshOverride.scale)
   }, [meshOverride])
 
-  const { restitution, impulseStrength, stuckFrames, stuckVelocity, unstickImpulse } =
-    usePhysicsDebugControls().slimBumpers
+  const {
+    ball: { maxTangentSpeed, minNormalSpeed, maxNormalSpeed },
+    slimBumpers: { restitution, impulseStrength, stuckFrames, stuckVelocity, unstickImpulse },
+  } = usePhysicsDebugControls()
 
   const handleCollision = useCallback(
     ({ other }: CollisionEnterPayload) => {
@@ -66,11 +68,19 @@ const SlimBumper = ({ position, bumperId, meshOverride }: SlimBumperProps) => {
         },
         true,
       )
-      other.rigidBody.setLinvel(removePositiveVerticalVelocity(other.rigidBody.linvel()), true)
+      other.rigidBody.setLinvel(
+        clampBallVelocityToPlayfield(
+          other.rigidBody.linvel(),
+          maxTangentSpeed,
+          minNormalSpeed,
+          maxNormalSpeed,
+        ),
+        true,
+      )
 
       stuckBall.current = { body: other.rigidBody, frames: 0 }
     },
-    [impulseStrength, bumperId],
+    [impulseStrength, bumperId, maxTangentSpeed, minNormalSpeed, maxNormalSpeed],
   )
 
   useFrame(() => {
@@ -108,7 +118,15 @@ const SlimBumper = ({ position, bumperId, meshOverride }: SlimBumperProps) => {
         },
         true,
       )
-      ball.setLinvel(removePositiveVerticalVelocity(ball.linvel()), true)
+      ball.setLinvel(
+        clampBallVelocityToPlayfield(
+          ball.linvel(),
+          maxTangentSpeed,
+          minNormalSpeed,
+          maxNormalSpeed,
+        ),
+        true,
+      )
       stuckBall.current = null
     }
   })

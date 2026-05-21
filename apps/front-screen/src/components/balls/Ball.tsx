@@ -78,7 +78,7 @@ const Ball = ({
       linearDamping={linearDamping}
       angularDamping={angularDamping}
     >
-      <mesh>
+      <mesh castShadow>
         <sphereGeometry args={[radius, 32, 32]} />
         <meshStandardMaterial color="white" />
       </mesh>
