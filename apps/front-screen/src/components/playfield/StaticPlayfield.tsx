@@ -5,7 +5,7 @@ import { cloneAtWorldTransform, type PlayfieldNodes } from "./usePlayfieldModel"
 export default function StaticPlayfield({ nodes }: { nodes: PlayfieldNodes }) {
   const clones = useMemo(
     () => ({
-      solid: [...nodes.cabinet, ...nodes.playfield].map(cloneAtWorldTransform),
+      solid: [...nodes.cabinet, ...nodes.playfield, ...nodes.overhead].map(cloneAtWorldTransform),
       sensors: nodes.lockedBall.map(cloneAtWorldTransform),
     }),
     [nodes],

@@ -8,10 +8,9 @@ import { RigidBody, type CollisionEnterPayload } from "@react-three/rapier"
 import { usePhysicsDebugControls } from "@/debug/physicsDebugContext"
 import { useCallback, useRef } from "react"
 import type { Group, Mesh } from "three"
-import { normalizedPlayfieldDirection } from "../physics/playfieldPlane"
 import {
-  clampBallVelocityToPlayfield,
   normalizedPlanarBounceDirection,
+  removePositiveVerticalVelocity,
 } from "../physics/playfieldPlane"
 import { BUMPER_SCALE_FACTOR, BUMPER_SIZE_ARGS } from "./bumperConfig"
 
@@ -29,10 +28,8 @@ const Bumper = ({ position, bumperId, meshOverride, rubberMesh }: BumperProps) =
   const isBouncing = useRef(false)
   const stuckBall = useRef<{ body: RapierRigidBody; frames: number } | null>(null)
 
-  const {
-    ball: { maxTangentSpeed, minNormalSpeed, maxNormalSpeed },
-    bumpers: { restitution, impulseStrength, stuckFrames, stuckVelocity, unstickImpulse },
-  } = usePhysicsDebugControls()
+  const { restitution, impulseStrength, stuckFrames, stuckVelocity, unstickImpulse } =
+    usePhysicsDebugControls().bumpers
 
   const handleCollision = useCallback(
     ({ other }: CollisionEnterPayload) => {
@@ -50,7 +47,7 @@ const Bumper = ({ position, bumperId, meshOverride, rubberMesh }: BumperProps) =
       const bumperPos = bodyRef.current.translation()
       const ballPos = other.rigidBody.translation()
 
-      const dir = normalizedPlayfieldDirection({
+      const dir = normalizedPlanarBounceDirection({
         x: ballPos.x - bumperPos.x,
         y: ballPos.y - bumperPos.y,
         z: ballPos.z - bumperPos.z,
@@ -65,6 +62,7 @@ const Bumper = ({ position, bumperId, meshOverride, rubberMesh }: BumperProps) =
         { x: dir.x * impulseMag, y: dir.y * impulseMag, z: dir.z * impulseMag },
         true,
       )
+      other.rigidBody.setLinvel(removePositiveVerticalVelocity(other.rigidBody.linvel()), true)
 
       stuckBall.current = { body: other.rigidBody, frames: 0 }
     },
@@ -99,7 +97,7 @@ const Bumper = ({ position, bumperId, meshOverride, rubberMesh }: BumperProps) =
     if (stuckBall.current.frames >= stuckFrames) {
       const angle = Math.random() * Math.PI * 2
       const ballMass = ball.mass()
-      const dir = normalizedPlayfieldDirection({ x: Math.cos(angle), y: 0, z: Math.sin(angle) })
+      const dir = normalizedPlanarBounceDirection({ x: Math.cos(angle), y: 0, z: Math.sin(angle) })
 
       if (!dir) return
 
@@ -111,15 +109,7 @@ const Bumper = ({ position, bumperId, meshOverride, rubberMesh }: BumperProps) =
         },
         true,
       )
-      ball.setLinvel(
-        clampBallVelocityToPlayfield(
-          ball.linvel(),
-          maxTangentSpeed,
-          minNormalSpeed,
-          maxNormalSpeed,
-        ),
-        true,
-      )
+      ball.setLinvel(removePositiveVerticalVelocity(ball.linvel()), true)
       stuckBall.current = null
     }
   })

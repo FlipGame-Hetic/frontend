@@ -5,6 +5,7 @@ import GlbSlimBumpersManager from "./GlbSlimBumpersManager"
 import GlbSlingshotsManager from "./GlbSlingshotsManager"
 import GlbFlippers from "./GlbFlippers"
 import GlbTargetsManager from "./GlbTargetsManager"
+import GlbPlunger from "./GlbPlunger"
 
 export default function PlayfieldScene() {
   const nodes = usePlayfieldModel()
@@ -16,6 +17,7 @@ export default function PlayfieldScene() {
       <GlbSlingshotsManager nodes={nodes} />
       <GlbFlippers nodes={nodes} />
       <GlbTargetsManager nodes={nodes} />
+      <GlbPlunger nodes={nodes} />
     </>
   )
 }

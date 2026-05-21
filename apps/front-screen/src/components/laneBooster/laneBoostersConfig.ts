@@ -7,9 +7,8 @@ export interface LaneBoosterConfig {
   halfExtents: Vector3Tuple
   entryAxis: "x" | "z"
   entrySign: -1 | 1
-  defaultBoostDirX: number
-  defaultBoostDirZ: number
-  defaultBoostSpeed: number
+  defaultBoostX: number
+  defaultBoostZ: number
   defaultMinSpeed: number
   defaultCooldownMs: number
   lateralCenterX?: number
@@ -22,10 +21,9 @@ export const LANE_BOOSTER_CONFIGS: LaneBoosterConfig[] = [
     halfExtents: [3.587, 0.35, 0.05],
     entryAxis: "z",
     entrySign: -1,
-    defaultBoostDirX: 1,
-    defaultBoostDirZ: 1,
-    defaultBoostSpeed: 35,
-    defaultMinSpeed: 5,
+    defaultBoostX: 10,
+    defaultBoostZ: 15,
+    defaultMinSpeed: 3,
     defaultCooldownMs: 400,
     lateralCenterX: -0.053,
   },
@@ -35,10 +33,9 @@ export const LANE_BOOSTER_CONFIGS: LaneBoosterConfig[] = [
     halfExtents: [2.224, 0.35, 0.05],
     entryAxis: "z",
     entrySign: -1,
-    defaultBoostDirX: 0,
-    defaultBoostDirZ: 1,
-    defaultBoostSpeed: 25,
-    defaultMinSpeed: 5,
+    defaultBoostX: 0,
+    defaultBoostZ: 12,
+    defaultMinSpeed: 3,
     defaultCooldownMs: 400,
   },
   {
@@ -47,10 +44,31 @@ export const LANE_BOOSTER_CONFIGS: LaneBoosterConfig[] = [
     halfExtents: [2.219, 0.35, 0.05],
     entryAxis: "z",
     entrySign: -1,
-    defaultBoostDirX: 0,
-    defaultBoostDirZ: 1,
-    defaultBoostSpeed: 25,
-    defaultMinSpeed: 5,
+    defaultBoostX: 0,
+    defaultBoostZ: 12,
+    defaultMinSpeed: 3,
+    defaultCooldownMs: 400,
+  },
+  {
+    id: "top-rail-left",
+    position: [-2.571, 2.0, -5.464],
+    halfExtents: [0.05, 0.717, 1.641],
+    entryAxis: "x",
+    entrySign: 1,
+    defaultBoostX: 12,
+    defaultBoostZ: 0,
+    defaultMinSpeed: 3,
+    defaultCooldownMs: 400,
+  },
+  {
+    id: "top-rail-right",
+    position: [3.537, 2.0, -5.464],
+    halfExtents: [0.05, 0.717, 1.641],
+    entryAxis: "x",
+    entrySign: -1,
+    defaultBoostX: -12,
+    defaultBoostZ: 0,
+    defaultMinSpeed: 3,
     defaultCooldownMs: 400,
   },
 ]

@@ -1,20 +1,13 @@
 import useBallStore from "@/stores/useBallStore"
+import { isPointInPlungerLaneSensor } from "@/components/plunger/plungerConfig"
 import type { PositionType } from "@/types/worldTypes"
 import { useFrame } from "@react-three/fiber"
 import type { RapierRigidBody } from "@react-three/rapier"
 import { RigidBody } from "@react-three/rapier"
 import { useRef } from "react"
 import { DRAIN_SAFETY_FALLBACK_Y } from "../drain/drainConfig"
-import { REAL_GRAVITY_Y } from "../physics/physicsConfig"
 import { clampVelocityToPlayfield } from "../physics/playfieldPlane"
-import {
-  BALL_MASS,
-  BALL_MAX_NORMAL_SPEED,
-  BALL_MAX_TANGENT_SPEED,
-  BALL_RADIUS,
-  BALL_RESTITUTION,
-  BALL_MIN_NORMAL_SPEED,
-} from "./ballConfig"
+import { BALL_RADIUS } from "./ballConfig"
 
 interface BallProps {
   id: string
@@ -47,7 +40,6 @@ const Ball = ({
 }: BallProps) => {
   const { deleteBall } = useBallStore()
   const ballRef = useRef<RapierRigidBody>(null)
-  const groundThreshold = radius + 0.1
 
   useFrame(() => {
     const body = ballRef.current
@@ -64,9 +56,9 @@ const Ball = ({
     const vel = body.linvel()
     const clampedVelocity = clampVelocityToPlayfield(
       vel,
-      BALL_MAX_TANGENT_SPEED,
-      BALL_MIN_NORMAL_SPEED,
-      BALL_MAX_NORMAL_SPEED,
+      inLane ? laneMaxTangentSpeed : maxTangentSpeed,
+      minNormalSpeed,
+      maxNormalSpeed,
     )
     body.setLinvel(clampedVelocity, true)
   })

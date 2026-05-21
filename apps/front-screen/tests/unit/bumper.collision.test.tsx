@@ -29,12 +29,6 @@ vi.mock("@react-three/fiber", () => ({
 
 vi.mock("@/debug/physicsDebugContext", () => ({
   usePhysicsDebugControls: () => ({
-    ball: {
-      maxTangentSpeed: 5,
-      laneMaxTangentSpeed: 100,
-      minNormalSpeed: -4,
-      maxNormalSpeed: 0,
-    },
     bumpers: {
       restitution: 0.3,
       impulseStrength: 15,

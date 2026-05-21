@@ -19,31 +19,23 @@ const LaneBooster = ({
   halfExtents,
   entryAxis,
   entrySign,
-  defaultBoostDirX,
-  defaultBoostDirZ,
-  defaultBoostSpeed,
+  defaultBoostX,
+  defaultBoostZ,
   defaultMinSpeed,
   defaultCooldownMs,
   lateralCenterX,
 }: LaneBoosterConfig) => {
-  const { boostDirX, boostDirZ, boostSpeed, minSpeed, cooldownMs } = useControls("Lane Boosters", {
+  const { boostX, boostZ, minSpeed, cooldownMs } = useControls("Lane Boosters", {
     [id]: folder(
       {
-        boostDirX: { value: defaultBoostDirX, min: -2, max: 2, step: 0.1, label: "Dir X" },
-        boostDirZ: { value: defaultBoostDirZ, min: -2, max: 2, step: 0.1, label: "Dir Z" },
-        boostSpeed: { value: defaultBoostSpeed, min: 0, max: 50, step: 0.5 },
+        boostX: { value: defaultBoostX, min: -50, max: 50, step: 0.5 },
+        boostZ: { value: defaultBoostZ, min: -50, max: 50, step: 0.5 },
         minSpeed: { value: defaultMinSpeed, min: 0, max: 20, step: 0.5 },
         cooldownMs: { value: defaultCooldownMs, min: 0, max: 2000, step: 50 },
       },
       { collapsed: true },
     ),
-  }) as {
-    boostDirX: number
-    boostDirZ: number
-    boostSpeed: number
-    minSpeed: number
-    cooldownMs: number
-  }
+  }) as { boostX: number; boostZ: number; minSpeed: number; cooldownMs: number }
 
   const cooldownRef = useRef(new Map<string, number>())
 
@@ -67,25 +59,16 @@ const LaneBooster = ({
       const entryVel = entryAxis === "x" ? vel.x : vel.z
       if (Math.sign(entryVel) !== entrySign) return
 
-      let dx = boostDirX
+      let finalX = boostX
       if (lateralCenterX !== undefined) {
-        dx = body.translation().x < lateralCenterX ? Math.abs(boostDirX) : -Math.abs(boostDirX)
+        const magnitude = Math.abs(boostX)
+        finalX = body.translation().x < lateralCenterX ? magnitude : -magnitude
       }
 
-      const len = Math.hypot(dx, boostDirZ)
-      if (len === 0) return
-
-      body.setLinvel(
-        {
-          x: (dx / len) * boostSpeed,
-          y: vel.y,
-          z: (boostDirZ / len) * boostSpeed,
-        },
-        true,
-      )
+      body.setLinvel({ x: finalX, y: vel.y, z: boostZ }, true)
       cooldownRef.current.set(ballId, now)
     },
-    [boostDirX, boostDirZ, boostSpeed, minSpeed, cooldownMs, entryAxis, entrySign, lateralCenterX],
+    [boostX, boostZ, minSpeed, cooldownMs, entryAxis, entrySign, lateralCenterX],
   )
 
   return (

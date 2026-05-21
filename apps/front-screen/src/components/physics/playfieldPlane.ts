@@ -47,6 +47,26 @@ export function normalizedPlayfieldDirection(vector: VectorLike): VectorLike | n
   }
 }
 
+export function normalizedPlanarBounceDirection(vector: VectorLike): VectorLike | null {
+  const length = Math.hypot(vector.x, vector.z)
+
+  if (length < 0.001) return null
+
+  return {
+    x: vector.x / length,
+    y: 0,
+    z: vector.z / length,
+  }
+}
+
+export function removePositiveVerticalVelocity(velocity: VectorLike): VectorLike {
+  return {
+    x: velocity.x,
+    y: Math.min(0, velocity.y),
+    z: velocity.z,
+  }
+}
+
 export function clampVelocityToPlayfield(
   velocity: VectorLike,
   maxTangentSpeed: number,

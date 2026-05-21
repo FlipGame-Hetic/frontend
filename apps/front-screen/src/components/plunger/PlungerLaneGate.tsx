@@ -2,7 +2,7 @@ import useBallStore from "@/stores/useBallStore"
 import { usePhysicsDebugControls } from "@/debug/physicsDebugContext"
 import type { CollisionPayload } from "@react-three/rapier"
 import { CuboidCollider, RigidBody } from "@react-three/rapier"
-import { useCallback } from "react"
+import { useCallback, useState } from "react"
 import { isPastPlungerLaneGate } from "./plungerConfig"
 
 function getBallId(payload: CollisionPayload): string | null {
@@ -16,7 +16,8 @@ const PlungerLaneGate = () => {
   const setBallPlaying = useBallStore((state) => state.setBallPlaying)
   const playingCount = useBallStore((state) => state.playingBallIds.length)
   const { plungerGate } = usePhysicsDebugControls()
-  const isGateActive = playingCount > 0
+  const [gateClosed, setGateClosed] = useState(false)
+  const isGateActive = gateClosed && playingCount > 0
 
   const handleSensorExit = useCallback(
     (payload: CollisionPayload) => {
@@ -28,6 +29,7 @@ const PlungerLaneGate = () => {
 
       if (isPastPlungerLaneGate(ballPosition, plungerGate.position, plungerGate.normal)) {
         setBallPlaying(ballId, true)
+        setGateClosed(true)
       }
     },
     [setBallPlaying, plungerGate.position, plungerGate.normal],
