@@ -9,12 +9,15 @@ import {
 export default function GlbFlippers({ nodes }: { nodes: PlayfieldNodes }) {
   const flippers = useMemo(
     () =>
-      nodes.flippers.map((mesh) => ({
-        name: mesh.name,
-        side: (mesh.scale.x < 0 ? "left" : "right"),
-        position: getWorldPosition(mesh),
-        clone: cloneWithWorldOrientation(mesh),
-      })),
+      nodes.flippers.map((mesh) => {
+        const side: "left" | "right" = mesh.scale.x < 0 ? "left" : "right"
+        return {
+          name: mesh.name,
+          side,
+          position: getWorldPosition(mesh),
+          clone: cloneWithWorldOrientation(mesh),
+        }
+      }),
     [nodes],
   )
 
