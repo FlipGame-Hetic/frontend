@@ -1,7 +1,7 @@
 import { useCallback } from "react"
 import { useGameSocket } from "@frontend/ws"
 import type { ButtonPayload, GameMessage, GyroPayload, PlungerPayload } from "@frontend/types"
-import { pressKey, releaseKey } from "@/stores/inputStore"
+import { pressKey, releaseKey, setPlungerPosition, setPlungerReleased } from "@/stores/inputStore"
 import { LEFT_KEYS, RIGHT_KEYS } from "@/components/flipperJoints/jointsConfig"
 import { PLUNGER_KEY } from "@/components/plunger/plungerConfig"
 import useGameStore from "@/stores/useGameStore"
@@ -29,25 +29,27 @@ export function useIoTInputs(): void {
         }
 
         case "Plunger": {
-          const { released } = message as GameMessage & PlungerPayload
-          if (released) {
-            releaseKey(PLUNGER_KEY)
-          } else {
+          const { position, released } = message as GameMessage & PlungerPayload
+          setPlungerPosition(position)
+          setPlungerReleased(released)
+          if (!released) {
             pressKey(PLUNGER_KEY)
+          } else {
+            releaseKey(PLUNGER_KEY)
           }
           break
         }
 
         case "Gyro": {
           const { tilt } = message as GameMessage & GyroPayload
-          if (tilt) {
+          if (tilt && useGameStore.getState().phase === "playing") {
             setPhase("paused")
           }
           break
         }
 
         case "Status": {
-          setPhase("waiting")
+          setPhase("idle")
           break
         }
 

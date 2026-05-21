@@ -1,8 +1,8 @@
-import { useEffect, useRef } from "react"
-import { useScreenSocket } from "@frontend/ws"
+import { useEffect } from "react"
+import { useScreenHub as useScreenHubBase, registerScreenSender } from "@frontend/ws"
+import { isScreenEvent } from "@frontend/types"
 import type { ScreenEnvelope } from "@frontend/types"
 import useGameStore from "@/stores/useGameStore"
-import { registerScreenSend } from "@/stores/screenSender"
 
 const SCREEN_ID = "front_screen" as const
 
@@ -10,48 +10,56 @@ const TOKEN =
   (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_SCREEN_TOKEN ?? ""
 
 export function useScreenHub(): void {
-  const { send } = useScreenSocket({
+  const { send } = useScreenHubBase({
     screenId: SCREEN_ID,
     token: TOKEN,
-    // TODO: traiter les enveloppes reçues (sync score, mises à jour depuis les autres écrans)
-    onMessage: undefined,
+    onEvent: (envelope: ScreenEnvelope) => {
+      const { selectMode, selectCharacter, startGame, setPhase, restartGame } =
+        useGameStore.getState()
+
+      if (isScreenEvent(envelope, "menu_confirm")) {
+        if (envelope.payload.context === "idle") setPhase("mode_select")
+        if (envelope.payload.context === "game_over") restartGame()
+        return
+      }
+      if (isScreenEvent(envelope, "mode_selected")) {
+        selectMode(envelope.payload.mode)
+        return
+      }
+      if (isScreenEvent(envelope, "character_selected")) {
+        selectCharacter(envelope.payload.player, envelope.payload.character)
+        return
+      }
+      if (isScreenEvent(envelope, "start_game")) {
+        startGame()
+        return
+      }
+    },
   })
 
   useEffect(() => {
-    registerScreenSend(send)
+    registerScreenSender(SCREEN_ID, send)
   }, [send])
 
-  const score = useGameStore((s) => s.score)
-  const phase = useGameStore((s) => s.phase)
-  const ballNumber = useGameStore((s) => s.ballNumber)
-  const currentPlayer = useGameStore((s) => s.currentPlayer)
-
-  const prevScore = useRef(score)
-  const prevPhase = useRef(phase)
-
   useEffect(() => {
-    if (score === prevScore.current) return
-    prevScore.current = score
-
-    const envelope: ScreenEnvelope = {
-      from: SCREEN_ID,
-      to: { kind: "broadcast" },
-      event_type: "score_update",
-      payload: { score, player: currentPlayer, ball: ballNumber },
-    }
-    send(envelope)
-  }, [score, ballNumber, currentPlayer, send])
-
-  useEffect(() => {
-    if (phase === prevPhase.current) return
-    prevPhase.current = phase
-
-    const envelope: ScreenEnvelope = {
-      from: SCREEN_ID,
-      to: { kind: "broadcast" },
-      event_type: "phase_change",
-      payload: { phase, ball: ballNumber, player: currentPlayer },
-    }
-    send(envelope)
-  }, [phase, ballNumber, currentPlayer, send])
+    const unsub = useGameStore.subscribe((state, prev) => {
+      if (state.phase !== prev.phase) {
+        send({
+          from: SCREEN_ID,
+          to: { kind: "broadcast" },
+          event_type: "phase_change",
+          payload: { phase: state.phase, ball: state.ballNumber, player: state.currentPlayer },
+        })
+      }
+      if (state.score !== prev.score) {
+        send({
+          from: SCREEN_ID,
+          to: { kind: "broadcast" },
+          event_type: "score_update",
+          payload: { score: state.score, player: state.currentPlayer, ball: state.ballNumber },
+        })
+      }
+    })
+    return unsub
+  }, [send])
 }

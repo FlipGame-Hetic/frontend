@@ -4,15 +4,72 @@
  * Components read via useKeyboard() which returns a ref to this set.
  */
 const pressedKeys = new Set<string>()
+const listeners = new Set<() => void>()
+const plungerInput = {
+  position: 0,
+  released: true,
+  releaseToken: 0,
+}
+
+function notify(): void {
+  listeners.forEach((listener) => {
+    listener()
+  })
+}
 
 export function pressKey(code: string): void {
+  if (pressedKeys.has(code)) return
   pressedKeys.add(code)
+  notify()
 }
 
 export function releaseKey(code: string): void {
-  pressedKeys.delete(code)
+  if (!pressedKeys.delete(code)) return
+  notify()
 }
 
 export function getPressedKeys(): Set<string> {
   return pressedKeys
+}
+
+/** Stable string snapshot for useSyncExternalStore. */
+export function getPressedKeysSnapshot(): string {
+  return [...pressedKeys].sort().join(",")
+}
+
+export function subscribePressedKeys(listener: () => void): () => void {
+  listeners.add(listener)
+  return () => listeners.delete(listener)
+}
+
+export interface PlungerInputSnapshot {
+  position: number
+  released: boolean
+  releaseToken: number
+}
+
+function clampPlungerPosition(position: number): number {
+  if (!Number.isFinite(position)) return 0
+  return Math.min(Math.max(position, 0), 1)
+}
+
+export function setPlungerPosition(position: number): void {
+  const nextPosition = clampPlungerPosition(position)
+  if (plungerInput.position === nextPosition && !plungerInput.released) return
+  plungerInput.position = nextPosition
+  plungerInput.released = false
+  notify()
+}
+
+export function setPlungerReleased(released: boolean): void {
+  if (released) {
+    plungerInput.releaseToken += 1
+  }
+  if (plungerInput.released === released && !released) return
+  plungerInput.released = released
+  notify()
+}
+
+export function getPlungerInputSnapshot(): PlungerInputSnapshot {
+  return { ...plungerInput }
 }

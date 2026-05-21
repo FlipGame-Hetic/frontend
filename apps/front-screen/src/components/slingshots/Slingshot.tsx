@@ -1,105 +1,137 @@
 import type { PositionType } from "@/types/worldTypes"
-import { sendSlingshotHit } from "@/stores/screenSender"
+import { broadcastEvent } from "@frontend/ws"
 import { useFrame } from "@react-three/fiber"
+import useGameStore from "@/stores/useGameStore"
+import { SLINGSHOT_SCORE } from "@/config/scoreConfig"
 import {
   CuboidCollider,
+  MeshCollider,
   RigidBody,
   type CollisionEnterPayload,
   type RapierRigidBody,
 } from "@react-three/rapier"
+import { usePhysicsDebugControls } from "@/debug/physicsDebugContext"
 import { useCallback, useMemo, useRef } from "react"
-import * as THREE from "three"
+import type { Group, Mesh } from "three"
+import { normalizedPlayfieldDirection } from "../physics/playfieldPlane"
 import {
-  SLINGSHOT_DEPTH,
-  SLINGSHOT_HEIGHT,
-  SLINGSHOT_RESTITUTION,
-  SLINGSHOT_STUCK_FRAMES,
-  SLINGSHOT_STUCK_VELOCITY,
+  SLINGSHOT_ACTIVE_FACE_POINTS,
+  SLINGSHOT_FACE_HEIGHT,
+  SLINGSHOT_FACE_OUTSET,
+  SLINGSHOT_FACE_THICKNESS,
   SLINGSHOT_TREMBLE_AMP,
   SLINGSHOT_TREMBLE_DURATION,
   SLINGSHOT_TREMBLE_FREQ,
-  SLINGSHOT_UNSTICK_IMPULSE,
-  SLINGSHOT_WIDTH,
 } from "./slingshotConfig"
 
 interface SlingshotProps {
   position: PositionType
   side: "left" | "right"
   slingshotId: number
+  moduleMesh: Mesh
+  rubberMesh?: Mesh
 }
 
-const Slingshot = ({ position, side, slingshotId }: SlingshotProps) => {
-  const rubberBodyRef = useRef<RapierRigidBody>(null)
-  const rubberRef = useRef<THREE.Mesh>(null)
+const Slingshot = ({ position, side, slingshotId, moduleMesh, rubberMesh }: SlingshotProps) => {
+  const bodyRef = useRef<RapierRigidBody>(null)
+  const rubberGroupRef = useRef<Group>(null)
   const hitAt = useRef(-Infinity)
   const stuckBall = useRef<{ body: RapierRigidBody; frames: number } | null>(null)
 
-  const xDir = side === "left" ? 1 : -1
+  const { restitution, impulseStrength, stuckFrames, stuckVelocity, unstickImpulse } =
+    usePhysicsDebugControls().slingshots
 
-  const triangleGeometry = useMemo(() => {
-    const shape = new THREE.Shape()
-    shape.moveTo(0, 0)
-    shape.lineTo(xDir * SLINGSHOT_WIDTH, 0)
-    shape.lineTo(0, SLINGSHOT_DEPTH)
-    shape.closePath()
-    const geom = new THREE.ExtrudeGeometry(shape, { depth: SLINGSHOT_HEIGHT, bevelEnabled: false })
-    geom.rotateX(-Math.PI / 2)
-    return geom
-  }, [xDir])
+  const activeFace = useMemo(() => {
+    const face = SLINGSHOT_ACTIVE_FACE_POINTS[side]
+    const [startX, startZ] = face.start
+    const [endX, endZ] = face.end
+    const [normalX, normalZ] = face.normal
+    const dx = endX - startX
+    const dz = endZ - startZ
+    const length = Math.hypot(dx, dz)
+    const angle = Math.atan2(dz, dx)
 
-  const rubberTransform = useMemo(() => {
-    const len = Math.hypot(SLINGSHOT_WIDTH, SLINGSHOT_DEPTH)
     return {
-      position: [(xDir * SLINGSHOT_WIDTH) / 2, SLINGSHOT_HEIGHT / 2, -SLINGSHOT_DEPTH / 2] as [
+      args: [length / 2, SLINGSHOT_FACE_HEIGHT / 2, SLINGSHOT_FACE_THICKNESS / 2] as [
         number,
         number,
         number,
       ],
-      rotationY: xDir * Math.atan2(SLINGSHOT_WIDTH, SLINGSHOT_DEPTH),
-      length: len,
+      normal: { x: normalX, z: normalZ },
+      position: [
+        (startX + endX) / 2 + normalX * SLINGSHOT_FACE_OUTSET,
+        0,
+        (startZ + endZ) / 2 + normalZ * SLINGSHOT_FACE_OUTSET,
+      ] as [number, number, number],
+      rotation: [0, -angle, 0] as [number, number, number],
     }
-  }, [xDir])
+  }, [side])
 
   const handleCollision = useCallback(
     ({ other }: CollisionEnterPayload) => {
-      if (!rubberBodyRef.current || !other.rigidBody) return
+      if (!bodyRef.current || !other.rigidBody) return
       if (other.rigidBodyObject?.name !== "ball") return
-      sendSlingshotHit(slingshotId)
+      broadcastEvent({ event_type: "slingshot_hit", payload: { slingshot_id: slingshotId } })
+      useGameStore.getState().addScore(SLINGSHOT_SCORE)
       hitAt.current = performance.now() / 1000
+
+      const slingshotPos = bodyRef.current.translation()
+      const ballPos = other.rigidBody.translation()
+      const exitDir = normalizedPlayfieldDirection({
+        x: ballPos.x - slingshotPos.x,
+        y: ballPos.y - slingshotPos.y,
+        z: ballPos.z - slingshotPos.z,
+      })
+
+      if (exitDir) {
+        const mass = other.rigidBody.mass()
+        other.rigidBody.applyImpulse(
+          {
+            x: exitDir.x * impulseStrength * mass,
+            y: exitDir.y * impulseStrength * mass,
+            z: exitDir.z * impulseStrength * mass,
+          },
+          true,
+        )
+      }
+
       stuckBall.current = { body: other.rigidBody, frames: 0 }
     },
-    [slingshotId],
+    [impulseStrength, slingshotId],
   )
 
   useFrame(() => {
-    if (rubberRef.current) {
+    if (rubberGroupRef.current) {
       const t = performance.now() / 1000 - hitAt.current
       if (t < SLINGSHOT_TREMBLE_DURATION) {
         const decay = 1 - t / SLINGSHOT_TREMBLE_DURATION
-        rubberRef.current.position.x =
-          rubberTransform.position[0] +
-          Math.sin(t * SLINGSHOT_TREMBLE_FREQ) * SLINGSHOT_TREMBLE_AMP * decay
+        const offset = Math.sin(t * SLINGSHOT_TREMBLE_FREQ) * SLINGSHOT_TREMBLE_AMP * decay
+        rubberGroupRef.current.position.x = activeFace.normal.x * offset
+        rubberGroupRef.current.position.z = activeFace.normal.z * offset
       } else {
-        rubberRef.current.position.x = rubberTransform.position[0]
+        rubberGroupRef.current.position.x = 0
+        rubberGroupRef.current.position.z = 0
       }
     }
 
-    if (!stuckBall.current || !rubberBodyRef.current) return
+    if (!stuckBall.current || !bodyRef.current) return
     const ball = stuckBall.current.body
     const v = ball.linvel()
-    if (Math.hypot(v.x, v.y, v.z) > SLINGSHOT_STUCK_VELOCITY) {
+    if (Math.hypot(v.x, v.y, v.z) > stuckVelocity) {
       stuckBall.current = null
       return
     }
     stuckBall.current.frames++
-    if (stuckBall.current.frames >= SLINGSHOT_STUCK_FRAMES) {
+    if (stuckBall.current.frames >= stuckFrames) {
       const a = Math.random() * Math.PI * 2
       const m = ball.mass()
+      const dir = normalizedPlayfieldDirection({ x: Math.cos(a), y: 0, z: Math.sin(a) })
+      if (!dir) return
       ball.applyImpulse(
         {
-          x: Math.cos(a) * SLINGSHOT_UNSTICK_IMPULSE * m,
-          y: 0,
-          z: Math.sin(a) * SLINGSHOT_UNSTICK_IMPULSE * m,
+          x: dir.x * unstickImpulse * m,
+          y: dir.y * unstickImpulse * m,
+          z: dir.z * unstickImpulse * m,
         },
         true,
       )
@@ -108,41 +140,24 @@ const Slingshot = ({ position, side, slingshotId }: SlingshotProps) => {
   })
 
   return (
-    <>
-      {/* Triangle body: 2 murs non-rubber, restitution 0 */}
-      <RigidBody type="fixed" colliders={false} position={position}>
-        <CuboidCollider
-          args={[SLINGSHOT_WIDTH / 2, SLINGSHOT_HEIGHT / 2, 0.05]}
-          position={[(xDir * SLINGSHOT_WIDTH) / 2, SLINGSHOT_HEIGHT / 2, 0]}
-        />
-        <CuboidCollider
-          args={[0.05, SLINGSHOT_HEIGHT / 2, SLINGSHOT_DEPTH / 2]}
-          position={[0, SLINGSHOT_HEIGHT / 2, -SLINGSHOT_DEPTH / 2]}
-        />
-        <mesh geometry={triangleGeometry}>
-          <meshStandardMaterial color="#cccccc" />
-        </mesh>
-      </RigidBody>
-
-      {/* Rubber: restitution élevée, collision handler, animation tremble */}
-      <RigidBody
-        ref={rubberBodyRef}
-        type="fixed"
-        colliders="hull"
-        position={position}
-        restitution={SLINGSHOT_RESTITUTION}
+    <RigidBody ref={bodyRef} type="fixed" colliders={false} position={position}>
+      <MeshCollider type="hull">
+        <primitive object={moduleMesh} />
+      </MeshCollider>
+      <CuboidCollider
+        args={activeFace.args}
+        position={activeFace.position}
+        rotation={activeFace.rotation}
+        restitution={restitution}
+        friction={0}
         onCollisionEnter={handleCollision}
-      >
-        <mesh
-          ref={rubberRef}
-          position={rubberTransform.position}
-          rotation={[0, rubberTransform.rotationY, 0]}
-        >
-          <boxGeometry args={[0.08, SLINGSHOT_HEIGHT, rubberTransform.length]} />
-          <meshStandardMaterial color="#d33" />
-        </mesh>
-      </RigidBody>
-    </>
+      />
+      {rubberMesh && (
+        <group ref={rubberGroupRef}>
+          <primitive object={rubberMesh} />
+        </group>
+      )}
+    </RigidBody>
   )
 }
 

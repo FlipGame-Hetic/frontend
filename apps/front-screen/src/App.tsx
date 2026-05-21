@@ -1,54 +1,94 @@
 import type { CameraProps } from "@react-three/fiber"
+import { MainDebugProvider, useMainDebugControls } from "@/debug/mainDebugContext"
 import { Leva } from "leva"
+import { Suspense } from "react"
 import BallsManager from "./components/balls/BallsManager"
+import Drain from "./components/drain/Drain"
 import DebugCamera from "./components/DebugCamera"
+import ProductionCamera from "./components/ProductionCamera"
+import Ceiling from "./components/physics/Ceiling"
 import PhysicsManager from "./components/physics/PhysicsManager"
-import FlipperJoints from "./components/flipperJoints/FlipperJoints"
-import { LEFT_POSITION, RIGHT_POSITION } from "./components/flipperJoints/jointsConfig"
-import Gutters from "./components/Gutters"
-import Walls from "./components/Walls"
+import PlayfieldScene from "./components/playfield/PlayfieldScene"
+import PlungerLaneGate from "./components/plunger/PlungerLaneGate"
+import PlungerLaneGateDebug from "./components/plunger/PlungerLaneGateDebug"
+import LaneBooster from "./components/laneBooster/LaneBooster"
+import { LANE_BOOSTER_CONFIGS } from "./components/laneBooster/laneBoostersConfig"
+import TestBench from "./components/playfield/TestBench"
 import World from "./components/World"
-import BumpersManager from "./components/bumbers/BumpersManager"
-import SlingshotsManager from "./components/slingshots/SlingshotsManager"
-import Plunger from "./components/plunger/Plunger"
+import { useDebugKeys } from "./hooks/useDebugKeys"
 import { useIoTInputs } from "./hooks/useIoTInputs"
 import { useScreenHub } from "./hooks/useScreenHub"
 import { WebsocketTest } from "./websocket-test/WebsocketTest"
 
-const isDebug = import.meta.env.MODE === "development"
-const isWsTest = isDebug && new URLSearchParams(window.location.search).has("wstest")
+const isProduction = import.meta.env.VITE_ENVIRONMENT === "production"
+const isWsTest = !isProduction && new URLSearchParams(window.location.search).has("wstest")
 
-export default function App() {
+function AppContent() {
   const cameraSettings = { position: [0, 20, 25] as [number, number, number], fov: 35 }
-
-  useIoTInputs()
-  useScreenHub()
-
-  if (isWsTest) return <WebsocketTest />
+  const { testBench } = useMainDebugControls()
 
   return (
     <>
       <Leva
-        hidden={!isDebug}
+        hidden={false}
         titleBar={{ title: "Tweaks GUI" }}
         theme={{ sizes: { rootWidth: "350px" } }}
       />
       <World cameraSettings={cameraSettings as CameraProps}>
         <ambientLight intensity={0.5} />
-        <directionalLight position={[5, 5, 5]} intensity={1} />
-        <DebugCamera cameraPosition={cameraSettings.position} cameraFov={cameraSettings.fov} />
+        <directionalLight
+          position={[0, 13, 12]}
+          intensity={0.4}
+          castShadow
+          shadow-mapSize={[2048, 2048]}
+          shadow-camera-near={0.5}
+          shadow-camera-far={60}
+          shadow-camera-left={-20}
+          shadow-camera-right={20}
+          shadow-camera-top={20}
+          shadow-camera-bottom={-20}
+          shadow-bias={-0.001}
+          shadow-normalBias={0.1}
+        />
+        {isProduction ? (
+          <ProductionCamera />
+        ) : (
+          <DebugCamera cameraPosition={cameraSettings.position} cameraFov={cameraSettings.fov} />
+        )}
 
-        <PhysicsManager isDebug={isDebug}>
+        <PhysicsManager isDebug={true}>
           <BallsManager />
-          <Walls />
-          <Gutters />
-          <BumpersManager />
-          <SlingshotsManager />
-          <FlipperJoints position={LEFT_POSITION} side="left" />
-          <FlipperJoints position={RIGHT_POSITION} side="right" />
-          <Plunger />
+          <Drain />
+          <Ceiling />
+          <PlungerLaneGate />
+          <PlungerLaneGateDebug />
+          {LANE_BOOSTER_CONFIGS.map((cfg) => (
+            <LaneBooster key={cfg.id} {...cfg} />
+          ))}
+          {testBench ? (
+            <TestBench />
+          ) : (
+            <Suspense fallback={null}>
+              <PlayfieldScene />
+            </Suspense>
+          )}
+          {/* <Plunger /> */}
         </PhysicsManager>
       </World>
     </>
+  )
+}
+
+export default function App() {
+  useIoTInputs()
+  useScreenHub()
+  useDebugKeys()
+
+  if (isWsTest) return <WebsocketTest />
+
+  return (
+    <MainDebugProvider>
+      <AppContent />
+    </MainDebugProvider>
   )
 }

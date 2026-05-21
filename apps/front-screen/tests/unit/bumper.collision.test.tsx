@@ -1,75 +1,50 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { render } from "@testing-library/react"
 
-/**
- * Tests for Bumper.tsx — specifically the collision handler that
- * fires when a physics body enters the bumper's collider.
- *
- * The 3D/physics stack (R3F, Rapier, Leva) is mocked entirely so
- * these run in happy-dom without a WebGL context.
- *
- * Strategy:
- *  - RigidBody is mocked as a lowercase function so that the
- *    react-hooks/immutability rule does not flag external state writes
- *    (ESLint's React Compiler rules only apply to PascalCase components).
- *  - The mock sets bodyRef.current and captures onCollisionEnter directly
- *    during render, which is correct because React 19 passes ref as a
- *    regular prop to function components.
- *  - Tests trigger collisions through callHandler(), which fails loudly
- *    if the handler was not captured.
- */
-
-// ─── Hoisted mock values ─────────────────────────────────────────────────────
-// vi.hoisted executes before all imports/mocks so these values can be safely
-// referenced inside vi.mock() factory closures.
-
-const { mockSendBumperHit, handlers, mockApplyImpulse, mockBody } = vi.hoisted(() => {
+const { mockBroadcastEvent, handlers, mockApplyImpulse, mockBody } = vi.hoisted(() => {
   const mockApplyImpulse = vi.fn()
   const mockBody = {
     translation: () => ({ x: 0, y: 0, z: 0 }),
     mass: () => 1,
     applyImpulse: mockApplyImpulse,
-    linvel: () => ({ x: 5, y: 0, z: 5 }), // non-zero so anti-stuck path clears
+    linvel: () => ({ x: 5, y: 0, z: 5 }),
   }
 
   return {
-    mockSendBumperHit: vi.fn(),
+    mockBroadcastEvent: vi.fn(),
     handlers: { onCollisionEnter: null as ((payload: unknown) => void) | null },
     mockApplyImpulse,
     mockBody,
   }
 })
 
-// ─── Module mocks ────────────────────────────────────────────────────────────
-
-vi.mock("@/stores/screenSender", () => ({
-  sendBumperHit: mockSendBumperHit,
+vi.mock("@frontend/ws", () => ({
+  broadcastEvent: mockBroadcastEvent,
+  registerScreenSender: vi.fn(),
 }))
 
 vi.mock("@react-three/fiber", () => ({
   useFrame: vi.fn(),
 }))
 
-vi.mock("leva", () => ({
-  useControls: () => ({
-    restitution: 0.3,
-    impulseStrength: 15,
-    stuckFrames: 30,
-    stuckVelocity: 0.5,
-    unstickImpulse: 5,
+vi.mock("@/debug/physicsDebugContext", () => ({
+  usePhysicsDebugControls: () => ({
+    ball: {
+      maxTangentSpeed: 5,
+      laneMaxTangentSpeed: 100,
+      minNormalSpeed: -4,
+      maxNormalSpeed: 0,
+    },
+    bumpers: {
+      restitution: 0.3,
+      impulseStrength: 15,
+      stuckFrames: 30,
+      stuckVelocity: 0.5,
+      unstickImpulse: 5,
+    },
   }),
 }))
 
-// RigidBody mock — lowercase function name.
-//
-// react-hooks/immutability (React Compiler ESLint rule v7) flags mutations of
-// module-scope variables inside PascalCase component functions, even in effects.
-// A lowercase function name is not recognised as a React component by the
-// linter, so the rule does not apply here, which is exactly what we want for
-// test infrastructure that intentionally captures external state.
-//
-// In React 19, ref is passed as a regular prop to function components, so the
-// ref from <RigidBody ref={bodyRef}> is accessible as props.ref here.
 vi.mock("@react-three/rapier", () => {
   interface RigidBodyMockProps {
     onCollisionEnter?: (p: unknown) => void
@@ -88,13 +63,8 @@ vi.mock("@react-three/rapier", () => {
   }
 })
 
-// ─── Import component under test (after all mocks are declared) ──────────────
-
 import Bumper from "@/components/bumbers/Bumper"
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-/** Asserts the collision handler was captured then calls it. */
 function callHandler(payload: unknown): void {
   if (handlers.onCollisionEnter === null) {
     throw new Error("onCollisionEnter was not captured — did you render <Bumper>?")
@@ -102,7 +72,6 @@ function callHandler(payload: unknown): void {
   handlers.onCollisionEnter(payload)
 }
 
-/** Builds a minimal CollisionEnterPayload where the other body is a named object. */
 function makeBallPayload(overrides?: {
   name?: string
   rigidBody?: unknown
@@ -117,6 +86,8 @@ function makeBallPayload(overrides?: {
               translation: () => ({ x: 1, y: 0, z: 1 }),
               mass: () => 1,
               applyImpulse: vi.fn(),
+              linvel: () => ({ x: 5, y: 2, z: 5 }),
+              setLinvel: vi.fn(),
             },
       rigidBodyObject:
         overrides?.rigidBodyObject !== undefined
@@ -126,113 +97,88 @@ function makeBallPayload(overrides?: {
   }
 }
 
-// ─── Tests ───────────────────────────────────────────────────────────────────
-
 describe("Bumper — handleCollision", () => {
   beforeEach(() => {
-    mockSendBumperHit.mockReset()
+    mockBroadcastEvent.mockReset()
     mockApplyImpulse.mockReset()
     handlers.onCollisionEnter = null
   })
 
-  // ── Success ────────────────────────────────────────────────────────────────
-
   describe("success — ball collision", () => {
-    it("calls sendBumperHit exactly once when the ball hits the bumper", () => {
+    it("calls broadcastEvent exactly once when the ball hits the bumper", () => {
       render(<Bumper position={[0, 0, 0]} bumperId={3} />)
-
       callHandler(makeBallPayload())
-
-      expect(mockSendBumperHit).toHaveBeenCalledOnce()
+      expect(mockBroadcastEvent).toHaveBeenCalledOnce()
     })
 
-    it("passes the correct bumperId to sendBumperHit", () => {
+    it("broadcasts bumper_hit with the correct bumperId", () => {
       render(<Bumper position={[0, 0, 0]} bumperId={3} />)
-
       callHandler(makeBallPayload())
-
-      expect(mockSendBumperHit).toHaveBeenCalledWith(3)
+      expect(mockBroadcastEvent).toHaveBeenCalledWith({
+        event_type: "bumper_hit",
+        payload: { bumper_id: 3 },
+      })
     })
 
-    it("passes each bumper's index as its bumperId", () => {
+    it("passes each bumper's index as its bumper_id", () => {
       render(<Bumper position={[0, 0, 0]} bumperId={0} />)
       callHandler(makeBallPayload())
-      expect(mockSendBumperHit).toHaveBeenLastCalledWith(0)
+      expect(mockBroadcastEvent).toHaveBeenLastCalledWith(
+        expect.objectContaining({ payload: { bumper_id: 0 } }),
+      )
 
-      mockSendBumperHit.mockReset()
+      mockBroadcastEvent.mockReset()
 
       render(<Bumper position={[0, 0, 0]} bumperId={8} />)
       callHandler(makeBallPayload())
-      expect(mockSendBumperHit).toHaveBeenLastCalledWith(8)
+      expect(mockBroadcastEvent).toHaveBeenLastCalledWith(
+        expect.objectContaining({ payload: { bumper_id: 8 } }),
+      )
+    })
+
+    it("clamps the ball velocity immediately after applying the bumper impulse", () => {
+      const ballBody = {
+        translation: () => ({ x: 1, y: 0, z: 1 }),
+        mass: () => 1,
+        applyImpulse: vi.fn(),
+        linvel: () => ({ x: 30, y: 3, z: 40 }),
+        setLinvel: vi.fn(),
+      }
+
+      render(<Bumper position={[0, 0, 0]} bumperId={3} />)
+      callHandler(makeBallPayload({ rigidBody: ballBody }))
+
+      expect(ballBody.applyImpulse).toHaveBeenCalledOnce()
+      expect(ballBody.setLinvel).toHaveBeenCalledWith({ x: 3, y: 0, z: 4 }, true)
+      expect(ballBody.applyImpulse).toHaveBeenCalledBefore(ballBody.setLinvel)
     })
   })
-
-  // ── Error — wrong collider type ────────────────────────────────────────────
 
   describe("error — non-ball collision", () => {
-    it("does not call sendBumperHit when the collider is a wall", () => {
+    it("does not broadcast when the collider is a wall", () => {
       render(<Bumper position={[0, 0, 0]} bumperId={0} />)
-
       callHandler(makeBallPayload({ name: "wall" }))
-
-      expect(mockSendBumperHit).not.toHaveBeenCalled()
+      expect(mockBroadcastEvent).not.toHaveBeenCalled()
     })
 
-    it("does not call sendBumperHit when the collider is a gutter", () => {
+    it("does not broadcast when the collider is a gutter", () => {
       render(<Bumper position={[0, 0, 0]} bumperId={0} />)
-
       callHandler(makeBallPayload({ name: "gutter" }))
-
-      expect(mockSendBumperHit).not.toHaveBeenCalled()
+      expect(mockBroadcastEvent).not.toHaveBeenCalled()
     })
 
-    it("does not call sendBumperHit when rigidBodyObject is null (sensor collider)", () => {
+    it("does not broadcast when rigidBodyObject is null (sensor collider)", () => {
       render(<Bumper position={[0, 0, 0]} bumperId={0} />)
-
-      // optional chaining gives undefined → name check fails
       callHandler(makeBallPayload({ rigidBodyObject: null }))
-
-      expect(mockSendBumperHit).not.toHaveBeenCalled()
+      expect(mockBroadcastEvent).not.toHaveBeenCalled()
     })
   })
-
-  // ── Edge — missing rigidBody on other object ───────────────────────────────
 
   describe("edge — missing rigidBody on other object", () => {
-    it("returns early and does not call sendBumperHit when other.rigidBody is null", () => {
+    it("returns early and does not broadcast when other.rigidBody is null", () => {
       render(<Bumper position={[0, 0, 0]} bumperId={2} />)
-
-      // Guard: if (!bodyRef.current || !other.rigidBody) return
       callHandler(makeBallPayload({ rigidBody: null }))
-
-      expect(mockSendBumperHit).not.toHaveBeenCalled()
-    })
-  })
-
-  // ── Exception ──────────────────────────────────────────────────────────────
-
-  describe("exception — sendBumperHit throws", () => {
-    it("propagates the exception to the collision handler caller", () => {
-      mockSendBumperHit.mockImplementationOnce(() => {
-        throw new Error("send failed: socket not ready")
-      })
-      render(<Bumper position={[0, 0, 0]} bumperId={1} />)
-
-      expect(() => {
-        callHandler(makeBallPayload())
-      }).toThrow("send failed: socket not ready")
-    })
-
-    it("does not silently swallow the error", () => {
-      const cause = new TypeError("JSON serialization error")
-      mockSendBumperHit.mockImplementationOnce(() => {
-        throw cause
-      })
-      render(<Bumper position={[0, 0, 0]} bumperId={4} />)
-
-      expect(() => {
-        callHandler(makeBallPayload())
-      }).toThrow(cause)
+      expect(mockBroadcastEvent).not.toHaveBeenCalled()
     })
   })
 })
