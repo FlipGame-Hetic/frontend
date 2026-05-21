@@ -15,18 +15,22 @@ export interface PlayfieldNodes {
   slingshots: Mesh[]
   slingshotRubbers: Mesh[]
   targets: Mesh[]
+  plunger: Mesh[]
+  overhead: Mesh[]
   tunnels: Mesh[]
   lockedBall: Mesh[]
 }
 
 function classifyMesh(name: string): keyof PlayfieldNodes | null {
   if (name === "spinner") return null
+  if (name === "tip" || /^ring_\d+$/.test(name)) return "plunger"
+  if (name.includes("rail") || name.includes("tunnel")) return "overhead"
   if (name === "l_flipper_arm" || name === "r_flipper_arm") return "cabinet"
   if (name.startsWith("l_flipper") || name.startsWith("r_flipper")) return "flippers"
   if (name === "locked_ball") return "lockedBall"
   if (name.includes("_bumper_slim")) return "slimBumpers"
-  if (name.includes("_bumper_rubber")) return "bumperRubbers"
-  if (name.includes("_bumper_base")) return "bumpers"
+  if (name.includes("_bumper") && name.includes("_rubber")) return "bumperRubbers"
+  if (name.includes("_bumper") && name.includes("_base")) return "bumpers"
   if (name.includes("_slingshot_rubber")) return "slingshotRubbers"
   if (name.includes("_slingshot_module")) return "slingshots"
   if (name.includes("_target_")) return "targets"
@@ -97,6 +101,8 @@ export function usePlayfieldModel(): PlayfieldNodes {
       slingshots: [],
       slingshotRubbers: [],
       targets: [],
+      plunger: [],
+      overhead: [],
       tunnels: [],
       lockedBall: [],
     }

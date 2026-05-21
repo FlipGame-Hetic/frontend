@@ -5,7 +5,7 @@ import { create } from "zustand"
 interface BallStore {
   balls: BallState[]
   playingBallIds: string[]
-  spawnBall: (position: PositionType) => void
+  spawnBall: (position: PositionType, options?: { isPlaying?: boolean }) => void
   deleteBall: (id: string) => void
   setBallPlaying: (id: string, isPlaying: boolean) => void
 }
@@ -13,10 +13,11 @@ interface BallStore {
 const useBallStore = create<BallStore>()((set) => ({
   balls: [],
   playingBallIds: [],
-  spawnBall: (position) => {
+  spawnBall: (position, options) => {
     const id = crypto.randomUUID()
     set((state) => ({
       balls: [...state.balls, { id, position }],
+      playingBallIds: options?.isPlaying ? [...state.playingBallIds, id] : state.playingBallIds,
     }))
   },
   deleteBall: (id) => {

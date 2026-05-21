@@ -29,14 +29,13 @@ const Drain = () => {
     }
   }, [])
 
-  const { posX, posY, posZ, halfX, halfZ, respawnDelay } = useControls("Drain", {
-    posX: { value: DRAIN_SENSOR_POSITION[0], min: -6, max: 6, step: 0.1 },
-    posY: { value: DRAIN_SENSOR_POSITION[1], min: -20, max: 0, step: 0.1 },
-    posZ: { value: DRAIN_SENSOR_POSITION[2], min: 0, max: 12, step: 0.1 },
-    halfX: { value: DRAIN_SENSOR_HALF_EXTENTS[0], min: 0.1, max: 6, step: 0.1 },
-    halfZ: { value: DRAIN_SENSOR_HALF_EXTENTS[2], min: 0.1, max: 3, step: 0.1 },
-    respawnDelay: { value: DRAIN_RESPAWN_DELAY_MS, min: 0, max: 5000, step: 100 },
-  })
+  const { respawnDelay } = useControls(
+    "Drain",
+    {
+      respawnDelay: { value: DRAIN_RESPAWN_DELAY_MS, min: 0, max: 5000, step: 100 },
+    },
+    { collapsed: true },
+  )
 
   const handleIntersectionEnter = useCallback(
     ({ other }: CollisionPayload) => {
@@ -66,9 +65,13 @@ const Drain = () => {
       <CuboidCollider
         sensor
         name="drain"
-        args={[halfX, DRAIN_SENSOR_HALF_EXTENTS[1], halfZ]}
+        args={[
+          DRAIN_SENSOR_HALF_EXTENTS[0],
+          DRAIN_SENSOR_HALF_EXTENTS[1],
+          DRAIN_SENSOR_HALF_EXTENTS[2],
+        ]}
         rotation={[Math.PI / 2, 0, 0]}
-        position={[posX, posY, posZ]}
+        position={[DRAIN_SENSOR_POSITION[0], DRAIN_SENSOR_POSITION[1], DRAIN_SENSOR_POSITION[2]]}
         onIntersectionEnter={handleIntersectionEnter}
       />
     </RigidBody>

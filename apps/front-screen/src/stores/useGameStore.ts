@@ -1,5 +1,6 @@
 import { create } from "zustand"
 import type { CharacterType, GameMode, GamePhase } from "@frontend/types"
+import useTargetStore from "./useTargetStore"
 
 interface SelectedPlayer {
   player: number
@@ -66,6 +67,7 @@ const useGameStore = create<GameStore>()((set) => ({
   },
 
   startGame: () => {
+    useTargetStore.getState().resetTargets()
     set((state) => ({
       phase: "playing",
       score: 0,
@@ -105,10 +107,12 @@ const useGameStore = create<GameStore>()((set) => ({
   },
 
   reset: () => {
+    useTargetStore.getState().resetTargets()
     set(INITIAL_STATE)
   },
 
   restartGame: () => {
+    useTargetStore.getState().resetTargets()
     set({ ...INITIAL_STATE, phase: "mode_select" as GamePhase })
   },
 }))

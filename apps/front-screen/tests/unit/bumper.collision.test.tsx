@@ -27,13 +27,15 @@ vi.mock("@react-three/fiber", () => ({
   useFrame: vi.fn(),
 }))
 
-vi.mock("leva", () => ({
-  useControls: () => ({
-    restitution: 0.3,
-    impulseStrength: 15,
-    stuckFrames: 30,
-    stuckVelocity: 0.5,
-    unstickImpulse: 5,
+vi.mock("@/debug/physicsDebugContext", () => ({
+  usePhysicsDebugControls: () => ({
+    bumpers: {
+      restitution: 0.3,
+      impulseStrength: 15,
+      stuckFrames: 30,
+      stuckVelocity: 0.5,
+      unstickImpulse: 5,
+    },
   }),
 }))
 
@@ -78,6 +80,8 @@ function makeBallPayload(overrides?: {
               translation: () => ({ x: 1, y: 0, z: 1 }),
               mass: () => 1,
               applyImpulse: vi.fn(),
+              linvel: () => ({ x: 5, y: 2, z: 5 }),
+              setLinvel: vi.fn(),
             },
       rigidBodyObject:
         overrides?.rigidBodyObject !== undefined
