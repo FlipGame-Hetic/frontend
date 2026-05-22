@@ -1,5 +1,6 @@
 import { useEffect } from "react"
 import { sendEventTo } from "@frontend/ws"
+import { playMenuForward } from "@/audio/menuSound"
 import { useBackScreenStore } from "@/stores/useBackScreenStore"
 import { MODE_OPTIONS, CHARACTER_OPTIONS } from "@/scenes/scene.types"
 
@@ -23,6 +24,7 @@ export function useKeyboardInput(): void {
       switch (phase) {
         case "idle": {
           if (e.key === "Enter") {
+            playMenuForward()
             sendEventTo("front_screen", {
               event_type: "menu_confirm",
               payload: { context: "idle" },
@@ -39,6 +41,7 @@ export function useKeyboardInput(): void {
           } else if (e.key === "Enter") {
             const option = MODE_OPTIONS[menuIndex]
             if (!option || option.locked) return
+            playMenuForward()
             const mode = option.id
             setSelectedMode(mode)
             sendEventTo("front_screen", {
@@ -51,6 +54,7 @@ export function useKeyboardInput(): void {
 
         case "game_over": {
           if (e.key === "Enter") {
+            playMenuForward()
             sendEventTo("front_screen", {
               event_type: "menu_confirm",
               payload: { context: "game_over" },
@@ -67,6 +71,7 @@ export function useKeyboardInput(): void {
           } else if (e.key === "Enter") {
             const charOption = CHARACTER_OPTIONS[menuIndex]
             if (!charOption || charOption.locked) return
+            playMenuForward()
             const character = charOption.id
             setSelectedCharacter(character)
             sendEventTo("front_screen", {

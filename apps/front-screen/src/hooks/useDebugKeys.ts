@@ -14,7 +14,7 @@ export function useDebugKeys(): void {
           broadcastEvent({ event_type: "bumper_hit", payload: { bumper_id: 0 } })
           addScore(BUMPER_SCORE)
           break
-        case "l":
+        case "k":
           broadcastEvent({
             event_type: "ball_lost",
             payload: { ball: ballNumber, player: currentPlayer },

@@ -36,6 +36,10 @@ function App() {
   const onEvent = useCallback(
     (envelope: ScreenEnvelope) => {
       if (isScreenEvent(envelope, "phase_change")) {
+        scenes.playing.update({
+          player: envelope.payload.player ?? 1,
+          ballNumber: envelope.payload.ball ?? 1,
+        })
         setPhase(envelope.payload.phase)
         return
       }
@@ -47,11 +51,6 @@ function App() {
           ballNumber: envelope.payload.ball,
         })
         scenes.game_over.update(envelope.payload.score)
-        return
-      }
-
-      if (isScreenEvent(envelope, "ball_lost")) {
-        scenes.playing.update({ ballNumber: envelope.payload.ball + 1 })
         return
       }
 

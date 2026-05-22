@@ -1,5 +1,6 @@
-import { useControls } from "leva"
+import { button, useControls } from "leva"
 import { createContext, useContext, type ReactNode } from "react"
+import { requestFrontScreenStartGame } from "@/hooks/useScreenHub"
 
 export interface MainDebugControls {
   testBench: boolean
@@ -24,6 +25,7 @@ export function MainDebugProvider({ children }: { children: ReactNode }) {
       testBench: false,
       enabled: { value: true, label: "Orbit controls" },
       autoMode: false,
+      "Start Game": button(requestFrontScreenStartGame),
     },
     { order: 0 },
   )

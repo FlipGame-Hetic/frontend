@@ -2,7 +2,7 @@ import type { PositionType } from "@/types/worldTypes"
 import { Euler, Quaternion, Vector3 } from "three"
 
 export const PLUNGER_POSITION: PositionType = [4.5, 0.25, 9.5]
-export const PLUNGER_BALL_SPAWN: PositionType = [3.3, 0.2, 6]
+export const PLUNGER_BALL_SPAWN: PositionType = [3.3, 0, 5]
 
 export interface PlungerLanePoint {
   x: number
@@ -74,6 +74,10 @@ export const PLUNGER_MIN_CHARGE = 0.05
 
 export const PLUNGER_RELEASE_DELAY = 0.05
 export const PLUNGER_BALL_CLEAR_TIMEOUT = 0.35
+
+export const PLUNGER_CEILING_POSITION: PositionType = [3.25, 0.45, 4]
+export const PLUNGER_CEILING_HALF_EXTENTS: PositionType = [0.2, 0.05, 3]
+export const PLUNGER_CEILING_ROTATION_X = 0.15
 
 export function clampPlungerPosition(position: number): number {
   if (!Number.isFinite(position)) return 0

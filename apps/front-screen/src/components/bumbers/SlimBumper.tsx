@@ -2,6 +2,7 @@ import type { PositionType } from "@/types/worldTypes"
 import { broadcastEvent } from "@frontend/ws"
 import { useFrame } from "@react-three/fiber"
 import useGameStore from "@/stores/useGameStore"
+import { playRandomSfx } from "@/audio/soundEngine"
 import { BUMPER_SCORE } from "@/config/scoreConfig"
 import type { RapierRigidBody } from "@react-three/rapier"
 import { RigidBody, type CollisionEnterPayload } from "@react-three/rapier"
@@ -9,10 +10,8 @@ import { usePhysicsDebugControls } from "@/debug/physicsDebugContext"
 import { useCallback, useEffect, useRef } from "react"
 import type { Mesh } from "three"
 import { Vector3 } from "three"
-import {
-  clampBallVelocityToPlayfield,
-  normalizedPlanarBounceDirection,
-} from "../physics/playfieldPlane"
+import { normalizedPlayfieldDirection } from "../physics/playfieldPlane"
+import { applyBumperImpulse, shouldSkipBumperHit } from "./bumperCollision"
 import {
   SLIM_BUMPER_BOUNCE_AMP,
   SLIM_BUMPER_BOUNCE_DURATION,
@@ -36,7 +35,7 @@ const SlimBumper = ({ position, bumperId, meshOverride }: SlimBumperProps) => {
   }, [meshOverride])
 
   const {
-    ball: { maxTangentSpeed, minNormalSpeed, maxNormalSpeed },
+    ball: { minNormalSpeed, maxNormalSpeed },
     slimBumpers: { restitution, impulseStrength, stuckFrames, stuckVelocity, unstickImpulse },
   } = usePhysicsDebugControls()
 
@@ -44,14 +43,16 @@ const SlimBumper = ({ position, bumperId, meshOverride }: SlimBumperProps) => {
     ({ other }: CollisionEnterPayload) => {
       if (!bodyRef.current || !other.rigidBody) return
       if (other.rigidBodyObject?.name !== "ball") return
+      if (shouldSkipBumperHit(other.rigidBody)) return
 
       broadcastEvent({ event_type: "bumper_hit", payload: { bumper_id: bumperId } })
       useGameStore.getState().addScore(BUMPER_SCORE)
+      playRandomSfx("bumpers")
       hitAt.current = performance.now() / 1000
 
       const bumperPos = bodyRef.current.translation()
       const ballPos = other.rigidBody.translation()
-      const dir = normalizedPlanarBounceDirection({
+      const dir = normalizedPlayfieldDirection({
         x: ballPos.x - bumperPos.x,
         y: ballPos.y - bumperPos.y,
         z: ballPos.z - bumperPos.z,
@@ -59,28 +60,11 @@ const SlimBumper = ({ position, bumperId, meshOverride }: SlimBumperProps) => {
 
       if (!dir) return
 
-      const ballMass = other.rigidBody.mass()
-      other.rigidBody.applyImpulse(
-        {
-          x: dir.x * impulseStrength * ballMass,
-          y: dir.y * impulseStrength * ballMass,
-          z: dir.z * impulseStrength * ballMass,
-        },
-        true,
-      )
-      other.rigidBody.setLinvel(
-        clampBallVelocityToPlayfield(
-          other.rigidBody.linvel(),
-          maxTangentSpeed,
-          minNormalSpeed,
-          maxNormalSpeed,
-        ),
-        true,
-      )
+      applyBumperImpulse(other.rigidBody, dir, impulseStrength, minNormalSpeed, maxNormalSpeed)
 
       stuckBall.current = { body: other.rigidBody, frames: 0 }
     },
-    [impulseStrength, bumperId, maxTangentSpeed, minNormalSpeed, maxNormalSpeed],
+    [impulseStrength, bumperId, minNormalSpeed, maxNormalSpeed],
   )
 
   useFrame(() => {
@@ -107,26 +91,10 @@ const SlimBumper = ({ position, bumperId, meshOverride }: SlimBumperProps) => {
     stuckBall.current.frames++
     if (stuckBall.current.frames >= stuckFrames) {
       const angle = Math.random() * Math.PI * 2
-      const ballMass = ball.mass()
-      const dir = normalizedPlanarBounceDirection({ x: Math.cos(angle), y: 0, z: Math.sin(angle) })
+      const dir = normalizedPlayfieldDirection({ x: Math.cos(angle), y: 0, z: Math.sin(angle) })
       if (!dir) return
-      ball.applyImpulse(
-        {
-          x: dir.x * unstickImpulse * ballMass,
-          y: dir.y * unstickImpulse * ballMass,
-          z: dir.z * unstickImpulse * ballMass,
-        },
-        true,
-      )
-      ball.setLinvel(
-        clampBallVelocityToPlayfield(
-          ball.linvel(),
-          maxTangentSpeed,
-          minNormalSpeed,
-          maxNormalSpeed,
-        ),
-        true,
-      )
+
+      applyBumperImpulse(ball, dir, unstickImpulse, minNormalSpeed, maxNormalSpeed)
       stuckBall.current = null
     }
   })

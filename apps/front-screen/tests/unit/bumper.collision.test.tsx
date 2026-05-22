@@ -63,6 +63,9 @@ vi.mock("@react-three/rapier", () => {
   }
 })
 
+import { applyBumperImpulse } from "@/components/bumbers/bumperCollision"
+import { BUMPER_MAX_EXIT_TANGENT_SPEED } from "@/components/bumbers/bumperConfig"
+import { clampBallVelocityToPlayfield } from "@/components/physics/playfieldPlane"
 import Bumper from "@/components/bumbers/Bumper"
 
 function callHandler(payload: unknown): void {
@@ -145,12 +148,19 @@ describe("Bumper — handleCollision", () => {
         setLinvel: vi.fn(),
       }
 
-      render(<Bumper position={[0, 0, 0]} bumperId={3} />)
-      callHandler(makeBallPayload({ rigidBody: ballBody }))
+      const dir = { x: 0.707, y: 0, z: 0.707 }
+      applyBumperImpulse(ballBody as never, dir, 15, -4, 0)
 
+      const expectedExit = clampBallVelocityToPlayfield(
+        { x: 30, y: 3, z: 40 },
+        BUMPER_MAX_EXIT_TANGENT_SPEED,
+        -4,
+        0,
+      )
+
+      expect(ballBody.setLinvel).toHaveBeenCalledWith(expectedExit, true)
       expect(ballBody.applyImpulse).toHaveBeenCalledOnce()
-      expect(ballBody.setLinvel).toHaveBeenCalledWith({ x: 3, y: 0, z: 4 }, true)
-      expect(ballBody.applyImpulse).toHaveBeenCalledBefore(ballBody.setLinvel)
+      expect(ballBody.setLinvel).toHaveBeenLastCalledWith(expectedExit, true)
     })
   })
 

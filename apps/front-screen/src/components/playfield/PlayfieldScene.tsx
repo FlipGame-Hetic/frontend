@@ -7,6 +7,7 @@ import GlbFlippers from "./GlbFlippers"
 import GlbTargetsManager from "./GlbTargetsManager"
 import GlbPlunger from "./GlbPlunger"
 import GlbSpinnerManager from "./GlbSpinnerManager"
+import GlbBallSaversManager from "./GlbBallSaversManager"
 
 export default function PlayfieldScene() {
   const nodes = usePlayfieldModel()
@@ -18,6 +19,7 @@ export default function PlayfieldScene() {
       <GlbSlingshotsManager nodes={nodes} />
       <GlbFlippers nodes={nodes} />
       <GlbTargetsManager nodes={nodes} />
+      <GlbBallSaversManager nodes={nodes} />
       <GlbPlunger nodes={nodes} />
       <GlbSpinnerManager nodes={nodes} />
     </>

@@ -1,7 +1,7 @@
+import { useFrame } from "@react-three/fiber"
 import type { CollisionPayload } from "@react-three/rapier"
 import { CuboidCollider, RigidBody } from "@react-three/rapier"
-import { useFrame } from "@react-three/fiber"
-import { folder, useControls } from "leva"
+import { useControls } from "leva"
 import { useCallback, useMemo, useRef } from "react"
 import { Quaternion, Vector3, type Group, type Mesh } from "three"
 import {
@@ -52,20 +52,15 @@ const Spinner = ({ mesh, worldPosition }: SpinnerProps) => {
     sensorHalfY,
     sensorHalfZ,
   } = useControls("Spinner", {
-    spinner: folder(
-      {
-        speedToAngular: { value: SPINNER_SPEED_TO_ANGULAR, min: 0, max: 20, step: 0.1 },
-        decayPerSecond: { value: SPINNER_DECAY_PER_SECOND, min: 0.01, max: 0.99, step: 0.01 },
-        minSpeed: { value: SPINNER_MIN_SPEED, min: 0, max: 10, step: 0.1 },
-        axisX: { value: 1, min: -1, max: 1, step: 0.01 },
-        axisY: { value: 0, min: -1, max: 1, step: 0.01 },
-        axisZ: { value: 0, min: -1, max: 1, step: 0.01 },
-        sensorHalfX: { value: SPINNER_SENSOR_HALF_EXTENTS[0], min: 0.1, max: 3, step: 0.05 },
-        sensorHalfY: { value: SPINNER_SENSOR_HALF_EXTENTS[1], min: 0.1, max: 3, step: 0.05 },
-        sensorHalfZ: { value: SPINNER_SENSOR_HALF_EXTENTS[2], min: 0.01, max: 1, step: 0.01 },
-      },
-      { collapsed: true },
-    ),
+    speedToAngular: { value: SPINNER_SPEED_TO_ANGULAR, min: 0, max: 20, step: 0.1 },
+    decayPerSecond: { value: SPINNER_DECAY_PER_SECOND, min: 0.01, max: 0.99, step: 0.01 },
+    minSpeed: { value: SPINNER_MIN_SPEED, min: 0, max: 10, step: 0.1 },
+    axisX: { value: 1, min: -1, max: 1, step: 0.01 },
+    axisY: { value: 0, min: -1, max: 1, step: 0.01 },
+    axisZ: { value: 0, min: -1, max: 1, step: 0.01 },
+    sensorHalfX: { value: SPINNER_SENSOR_HALF_EXTENTS[0], min: 0.1, max: 3, step: 0.05 },
+    sensorHalfY: { value: SPINNER_SENSOR_HALF_EXTENTS[1], min: 0.1, max: 3, step: 0.05 },
+    sensorHalfZ: { value: SPINNER_SENSOR_HALF_EXTENTS[2], min: 0.01, max: 1, step: 0.01 },
   }) as {
     speedToAngular: number
     decayPerSecond: number

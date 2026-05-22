@@ -19,7 +19,8 @@ const BallsManager = () => {
 
   useEffect(() => {
     if (phase !== "playing") return
-    spawnBall(PLUNGER_BALL_SPAWN)
+    if (useBallStore.getState().balls.length > 0) return
+    spawnBall(PLUNGER_BALL_SPAWN, { isPlaying: false })
   }, [phase, ballNumber, spawnBall])
 
   const handleSpawn = useCallback(() => {

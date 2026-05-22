@@ -1,5 +1,5 @@
 import useKeyboard from "@/hooks/useKeyboard"
-import { getPressedKeys } from "@/stores/inputStore"
+import { playSfx } from "@/audio/soundEngine"
 import type { PositionType } from "@/types/worldTypes"
 import { useGLTF } from "@react-three/drei"
 import { useFrame } from "@react-three/fiber"
@@ -7,7 +7,7 @@ import type { RapierRigidBody } from "@react-three/rapier"
 import { MeshCollider, RigidBody, useRevoluteJoint } from "@react-three/rapier"
 import { usePhysicsDebugControls } from "@/debug/physicsDebugContext"
 import { useMemo, useRef, type RefObject } from "react"
-import { Euler, Quaternion, type Mesh } from "three"
+import { Vector3, type Mesh } from "three"
 import { LEFT_KEYS, RIGHT_KEYS } from "./jointsConfig"
 
 interface FlipperJointsProps {
@@ -21,6 +21,7 @@ const FlipperJoints = ({ position, side, meshOverride }: FlipperJointsProps) => 
   const flipperRef = useRef<RapierRigidBody>(null)
   const pressedKeys = useKeyboard()
   const appliedLimitsRef = useRef({ min: NaN, max: NaN })
+  const prevPressedRef = useRef(false)
 
   const { nodes } = useGLTF(`${import.meta.env.BASE_URL}models/flipperJoints/scene.gltf`)
   const flipperGeometry = (nodes.Cube000_0 as Mesh).geometry
@@ -38,30 +39,21 @@ const FlipperJoints = ({ position, side, meshOverride }: FlipperJointsProps) => 
     mass,
     friction,
     restitution,
-    activeTiltXDeg,
-    activeTiltZDeg,
   } = usePhysicsDebugControls().flippers
-
-  const keyPressed = activationKeys.some((key) => getPressedKeys().has(key))
-  const activeTiltXRad = keyPressed ? (activeTiltXDeg * Math.PI) / 180 : 0
-  const activeTiltZSignedDeg = isLeft ? activeTiltZDeg : -activeTiltZDeg
-  const activeTiltZRad = keyPressed ? (activeTiltZSignedDeg * Math.PI) / 180 : 0
-  const colliderKey = keyPressed
-    ? `tilted-${String(activeTiltXDeg)}-${String(activeTiltZSignedDeg)}`
-    : "rest"
 
   const minLimit = isLeft ? restAngle : -maxAngle
   const maxLimit = isLeft ? maxAngle : -restAngle
 
+  const hingeAxis = useMemo<[number, number, number]>(() => {
+    const v = new Vector3(0, 1, 0)
+    if (meshOverride) v.applyQuaternion(meshOverride.quaternion)
+    return [v.x, v.y, v.z]
+  }, [meshOverride])
+
   const jointRef = useRevoluteJoint(
     anchorRef as unknown as RefObject<RapierRigidBody>,
     flipperRef as unknown as RefObject<RapierRigidBody>,
-    [
-      [0, 0, 0],
-      [0, 0, 0],
-      [0, 1, 0],
-      [minLimit, maxLimit],
-    ],
+    [[0, 0, 0], [0, 0, 0], hingeAxis, [minLimit, maxLimit]],
   )
 
   useFrame(() => {
@@ -74,6 +66,11 @@ const FlipperJoints = ({ position, side, meshOverride }: FlipperJointsProps) => 
 
     const keyPressedFrame = activationKeys.some((key) => pressedKeys.current.has(key))
     const isPressed = keyPressedFrame
+
+    if (isPressed && !prevPressedRef.current) playSfx("flipper_up")
+    else if (!isPressed && prevPressedRef.current) playSfx("flipper_down")
+    prevPressedRef.current = isPressed
+
     const target = isLeft ? (isPressed ? maxAngle : restAngle) : isPressed ? -maxAngle : -restAngle
     const targetVelocity = isLeft
       ? isPressed
@@ -85,13 +82,6 @@ const FlipperJoints = ({ position, side, meshOverride }: FlipperJointsProps) => 
 
     jointRef.current.configureMotor(target, targetVelocity, stiffness, damping)
   }, -1)
-
-  const meshOrientation = useMemo(() => {
-    if (!meshOverride) return undefined
-    if (!keyPressed) return meshOverride.quaternion
-    const tilt = new Quaternion().setFromEuler(new Euler(activeTiltXRad, 0, activeTiltZRad))
-    return meshOverride.quaternion.clone().multiply(tilt)
-  }, [activeTiltXRad, activeTiltZRad, keyPressed, meshOverride])
 
   return (
     <>
@@ -108,19 +98,19 @@ const FlipperJoints = ({ position, side, meshOverride }: FlipperJointsProps) => 
         restitution={restitution}
         friction={friction}
       >
-        <MeshCollider key={colliderKey} type="hull">
+        <MeshCollider type="hull">
           {meshOverride ? (
             <mesh
               geometry={meshOverride.geometry}
               material={meshOverride.material}
-              quaternion={meshOrientation ?? meshOverride.quaternion}
+              quaternion={meshOverride.quaternion}
               scale={meshOverride.scale}
             />
           ) : (
             <mesh
               geometry={flipperGeometry}
               scale={isLeft ? [0.3, 0.3, 0.3] : [-0.3, 0.3, 0.3]}
-              rotation={[-Math.PI / 2 + activeTiltXRad, 0, activeTiltZRad]}
+              rotation={[-Math.PI / 2, 0, 0]}
               position={[isLeft ? meshOffsetX : -meshOffsetX, 0, 0]}
             >
               <meshStandardMaterial color="#666" />

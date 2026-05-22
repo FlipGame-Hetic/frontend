@@ -1,4 +1,5 @@
 import { useFrame } from "@react-three/fiber"
+import { Stats } from "@react-three/drei"
 import { Physics, useRapier } from "@react-three/rapier"
 import { PhysicsDebugProvider, usePhysicsDebugControls } from "@/debug/physicsDebugContext"
 import type { ReactNode } from "react"
@@ -30,6 +31,7 @@ const PhysicsWorld = ({ children, isDebug }: PhysicsManagerProps) => {
       timeStep={TIME_STEP}
       paused={slowMotion}
     >
+      {isDebug && <Stats showPanel={0} />}
       {slowMotion && <SlowMotionStepper speed={slowMotionSpeed} />}
       {children}
     </Physics>
