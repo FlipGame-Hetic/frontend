@@ -4,7 +4,7 @@ export type BallSaverSide = "left" | "right"
 
 export const BALL_SAVER_TARGET_IDS: Record<BallSaverSide, readonly string[]> = {
   left: ["l_target_01", "l_target_02", "l_target_03", "l_target_04"],
-  right: ["r_target_01", "r_target_02", "r_target_03", "r_target_04"],
+  right: ["r_target_01", "r_target_02", "r_target_03"],
 }
 
 export const BALL_SAVER_POST_EXIT_DELAY_MS = 250

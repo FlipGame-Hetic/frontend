@@ -1,8 +1,14 @@
 import { readFileSync } from "node:fs"
-import { resolve } from "node:path"
+import { dirname, join } from "node:path"
+import { fileURLToPath } from "node:url"
 import { describe, expect, it } from "vitest"
 import { BALL_SAVER_TARGET_IDS } from "@/components/ballSavers/ballSaverConfig"
 import { classifyMesh } from "@/components/playfield/usePlayfieldModel"
+
+const PLAYFIELD_MODEL_PATH = join(
+  dirname(fileURLToPath(import.meta.url)),
+  "../../public/models/playfield_x15.glb",
+)
 
 describe("usePlayfieldModel — ball saver classification", () => {
   it("classifies only renamed saver meshes as ball savers", () => {
@@ -12,7 +18,7 @@ describe("usePlayfieldModel — ball saver classification", () => {
   })
 
   it("uses saver names in the playfield model asset", () => {
-    const model = readFileSync(resolve(process.cwd(), "public/models/playfield_x15.glb"))
+    const model = readFileSync(PLAYFIELD_MODEL_PATH)
     const modelText = model.toString("utf8")
 
     expect(modelText).toContain("l_ball_saver")
@@ -21,7 +27,7 @@ describe("usePlayfieldModel — ball saver classification", () => {
   })
 
   it("uses every configured ball saver target in the playfield model asset", () => {
-    const model = readFileSync(resolve(process.cwd(), "public/models/playfield_x15.glb"))
+    const model = readFileSync(PLAYFIELD_MODEL_PATH)
     const modelText = model.toString("utf8")
 
     for (const targetId of [...BALL_SAVER_TARGET_IDS.left, ...BALL_SAVER_TARGET_IDS.right]) {
