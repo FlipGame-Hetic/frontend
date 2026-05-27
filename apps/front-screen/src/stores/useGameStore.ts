@@ -2,6 +2,7 @@ import { create } from "zustand"
 import type { CharacterType, GameMode, GamePhase } from "@frontend/types"
 import { PLUNGER_BALL_SPAWN } from "@/components/plunger/plungerConfig"
 import useBallStore from "./useBallStore"
+import useMultiballStore from "./useMultiballStore"
 import useTargetStore from "./useTargetStore"
 
 interface SelectedPlayer {
@@ -76,6 +77,7 @@ const useGameStore = create<GameStore>()((set) => ({
   startGame: (options) => {
     useTargetStore.getState().resetTargets()
     useBallStore.getState().resetBalls()
+    useMultiballStore.getState().reset()
     useBallStore.getState().spawnBall(PLUNGER_BALL_SPAWN, { isPlaying: false })
 
     set((state) => {
@@ -127,12 +129,14 @@ const useGameStore = create<GameStore>()((set) => ({
   reset: () => {
     useTargetStore.getState().resetTargets()
     useBallStore.getState().resetBalls()
+    useMultiballStore.getState().reset()
     set(INITIAL_STATE)
   },
 
   restartGame: () => {
     useTargetStore.getState().resetTargets()
     useBallStore.getState().resetBalls()
+    useMultiballStore.getState().reset()
     set({ ...INITIAL_STATE, phase: "mode_select" as GamePhase })
   },
 }))

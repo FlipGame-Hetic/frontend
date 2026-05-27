@@ -43,6 +43,15 @@ import {
   SLINGSHOT_UNSTICK_IMPULSE,
 } from "@/components/slingshots/slingshotConfig"
 import {
+  BONUS_ZONE_BOUNCE_THRESHOLD,
+  BONUS_ZONE_COOLDOWN_MS,
+  BONUS_ZONE_RESTITUTION,
+  BONUS_ZONE_SPAWN_INTERVAL_MS,
+  MULTIBALL_BALL_COUNT,
+  MULTIBALL_SPAWN_POSITION1,
+  MULTIBALL_SPAWN_POSITION2,
+} from "@/components/playfield/bonusZoneConfig"
+import {
   PLUNGER_ARROW_PULL_SPEED,
   PLUNGER_BALL_CLEAR_TIMEOUT,
   PLUNGER_CHARGE_FACTOR,
@@ -133,6 +142,20 @@ export interface FlipperDebugControls {
   restitution: number
 }
 
+export interface BonusZoneDebugControls {
+  restitution: number
+  bounceThreshold: number
+  cooldownMs: number
+  spawn1X: number
+  spawn1Y: number
+  spawn1Z: number
+  spawn2X: number
+  spawn2Y: number
+  spawn2Z: number
+  spawnIntervalMs: number
+  ballCount: number
+}
+
 export interface PhysicsDebugControls {
   motion: MotionDebugControls
   gravity: GravityDebugControls
@@ -142,12 +165,14 @@ export interface PhysicsDebugControls {
   slingshots: SlingshotDebugControls
   plunger: PlungerDebugControls
   flippers: FlipperDebugControls
+  bonusZone: BonusZoneDebugControls
   showGate: boolean
   plungerGate: PlungerGateDebugControls
 }
 
 const PhysicsDebugContext = createContext<PhysicsDebugControls | null>(null)
 
+// eslint-disable-next-line
 export function usePhysicsDebugControls(): PhysicsDebugControls {
   const ctx = useContext(PhysicsDebugContext)
   if (!ctx) {
@@ -337,6 +362,79 @@ export function PhysicsDebugProvider({ children }: { children: ReactNode }) {
     ),
   })
 
+  const bonusZone = useControls("Physics", {
+    BonusZone: folder(
+      {
+        restitution: { value: BONUS_ZONE_RESTITUTION, min: 0, max: 5, step: 0.05 },
+        bounceThreshold: {
+          value: BONUS_ZONE_BOUNCE_THRESHOLD,
+          min: 1,
+          max: 20,
+          step: 1,
+          label: "Bounce threshold",
+        },
+        cooldownMs: {
+          value: BONUS_ZONE_COOLDOWN_MS,
+          min: 1000,
+          max: 30000,
+          step: 500,
+          label: "Cooldown (ms)",
+        },
+        spawn1X: {
+          value: MULTIBALL_SPAWN_POSITION1[0],
+          min: -5,
+          max: 5,
+          step: 0.05,
+          label: "Spawn1 X",
+        },
+        spawn1Y: {
+          value: MULTIBALL_SPAWN_POSITION1[1],
+          min: -5,
+          max: 20,
+          step: 0.05,
+          label: "Spawn1 Y",
+        },
+        spawn1Z: {
+          value: MULTIBALL_SPAWN_POSITION1[2],
+          min: -15,
+          max: 5,
+          step: 0.05,
+          label: "Spawn1 Z",
+        },
+        spawn2X: {
+          value: MULTIBALL_SPAWN_POSITION2[0],
+          min: -5,
+          max: 5,
+          step: 0.05,
+          label: "Spawn2 X",
+        },
+        spawn2Y: {
+          value: MULTIBALL_SPAWN_POSITION2[1],
+          min: -5,
+          max: 20,
+          step: 0.05,
+          label: "Spawn2 Y",
+        },
+        spawn2Z: {
+          value: MULTIBALL_SPAWN_POSITION2[2],
+          min: -15,
+          max: 5,
+          step: 0.05,
+          label: "Spawn2 Z",
+        },
+        spawnIntervalMs: {
+          value: BONUS_ZONE_SPAWN_INTERVAL_MS,
+          min: 0,
+          max: 1000,
+          step: 10,
+          label: "Spawn interval (ms)",
+        },
+        ballCount: { value: MULTIBALL_BALL_COUNT, min: 1, max: 6, step: 1, label: "Ball count" },
+      },
+      { collapsed: true },
+    ),
+  })
+
   const {
     showGate,
     gatePx,
@@ -460,6 +558,7 @@ export function PhysicsDebugProvider({ children }: { children: ReactNode }) {
     slingshots,
     plunger,
     flippers,
+    bonusZone,
     showGate,
     plungerGate,
   }

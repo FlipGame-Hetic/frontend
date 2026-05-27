@@ -11,10 +11,22 @@ const PLAYFIELD_MODEL_PATH = join(
 )
 
 describe("usePlayfieldModel — ball saver classification", () => {
+  it("keeps the central inner bonus mesh in the bonus zone bucket", () => {
+    expect(classifyMesh("central_bonus_zone_inter")).toBe("bonusZone")
+    expect(classifyMesh("central_bonus_zone")).toBe("playfield")
+  })
+
   it("classifies only renamed saver meshes as ball savers", () => {
     expect(classifyMesh("l_ball_saver")).toBe("ballSavers")
     expect(classifyMesh("r_ball_saver")).toBe("ballSavers")
     expect(classifyMesh("l_ball_savor")).toBe("cabinet")
+  })
+
+  it("uses the inner bonus mesh in the playfield model asset", () => {
+    const model = readFileSync(PLAYFIELD_MODEL_PATH)
+    const modelText = model.toString("utf8")
+
+    expect(modelText).toContain("central_bonus_zone_inter")
   })
 
   it("uses saver names in the playfield model asset", () => {

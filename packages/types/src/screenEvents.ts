@@ -15,6 +15,7 @@ export const SCREEN_EVENT_TYPES = {
   SlingshotHit: "slingshot_hit",
   BallLost: "ball_lost",
   TargetHit: "target_hit",
+  MultiballTriggered: "multiball_triggered",
 } as const
 
 export type ScreenEventType = (typeof SCREEN_EVENT_TYPES)[keyof typeof SCREEN_EVENT_TYPES]
@@ -94,6 +95,11 @@ export interface TargetHitEvent {
   payload: { target_id: string }
 }
 
+export interface MultiballTriggeredEvent {
+  event_type: "multiball_triggered"
+  payload: Record<string, never>
+}
+
 export type ScreenEvent =
   | PhaseChangeEvent
   | ScoreUpdateEvent
@@ -108,6 +114,7 @@ export type ScreenEvent =
   | SlingshotHitEvent
   | BallLostEvent
   | TargetHitEvent
+  | MultiballTriggeredEvent
 
 export function makeEnvelope(from: ScreenId, to: ScreenTarget, event: ScreenEvent): ScreenEnvelope {
   return { from, to, event_type: event.event_type, payload: event.payload }

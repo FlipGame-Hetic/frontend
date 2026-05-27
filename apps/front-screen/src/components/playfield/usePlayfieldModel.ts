@@ -8,6 +8,7 @@ export const PLAYFIELD_OFFSET: [number, number, number] = [0, -12, 0]
 export interface PlayfieldNodes {
   cabinet: Mesh[]
   playfield: Mesh[]
+  bonusZone: Mesh[]
   flippers: Mesh[]
   bumpers: Mesh[]
   bumperRubbers: Mesh[]
@@ -21,12 +22,15 @@ export interface PlayfieldNodes {
   tunnels: Mesh[]
   lockedBall: Mesh[]
   spinner: Mesh[]
+  rails: Mesh[]
 }
 
 export function classifyMesh(name: string): keyof PlayfieldNodes | null {
+  if (name === "central_bonus_zone_inter") return "bonusZone"
   if (name === "spinner") return "spinner"
   if (name === "tip" || /^ring_\d+$/.test(name)) return "plunger"
   if (name.includes("_ball_saver")) return "ballSavers"
+  if (name === "l_rail" || name === "r_rail") return "rails"
   if (name.includes("rail") || name.includes("tunnel")) return "overhead"
   if (name === "l_flipper_arm" || name === "r_flipper_arm") return "cabinet"
   if (name.startsWith("l_flipper") || name.startsWith("r_flipper")) return "flippers"
@@ -97,6 +101,7 @@ export function usePlayfieldModel(): PlayfieldNodes {
     const result: PlayfieldNodes = {
       cabinet: [],
       playfield: [],
+      bonusZone: [],
       flippers: [],
       bumpers: [],
       bumperRubbers: [],
@@ -110,6 +115,7 @@ export function usePlayfieldModel(): PlayfieldNodes {
       tunnels: [],
       lockedBall: [],
       spinner: [],
+      rails: [],
     }
     scene.traverse((node) => {
       if (!isMesh(node)) return
