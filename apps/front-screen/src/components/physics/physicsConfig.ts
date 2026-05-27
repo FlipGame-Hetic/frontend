@@ -10,3 +10,7 @@ export const CEILING_ROTATION_X = 0.25
 export const BENCH_FLOOR_FRICTION = 0.4
 export const BENCH_HALF_WIDTH = 7
 export const BENCH_HALF_DEPTH = 13
+
+export const TOP_TUNNEL_POSITION: [number, number, number] = [2.66, 2, -4.5]
+export const TOP_TUNNEL_HALF_EXTENTS: [number, number, number] = [0.2, 0.5, 0.4]
+export const TOP_TUNNEL_ROTATION: [number, number, number] = [0.2, -0.25, 0]

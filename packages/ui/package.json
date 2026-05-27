@@ -10,8 +10,13 @@
     "test": "vitest run",
     "test:watch": "vitest"
   },
+  "dependencies": {
+    "@frontend/utils": "workspace:*"
+  },
   "devDependencies": {
-    "@frontend/tsconfig": "workspace:*"
+    "@frontend/tsconfig": "workspace:*",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3"
   },
   "peerDependencies": {
     "react": "^19.0.0",

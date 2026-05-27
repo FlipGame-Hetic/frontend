@@ -24,8 +24,6 @@ import {
   SLIM_BUMPER_UNSTICK_IMPULSE,
 } from "@/components/bumbers/slimBumperConfig"
 import {
-  FLIPPER_ACTIVE_TILT_X_DEG,
-  FLIPPER_ACTIVE_TILT_Z_DEG,
   FLIPPER_FRICTION,
   FLIPPER_JOINT_MASS,
   FLIPPER_MESH_OFFSET_X,
@@ -133,8 +131,6 @@ export interface FlipperDebugControls {
   mass: number
   friction: number
   restitution: number
-  activeTiltXDeg: number
-  activeTiltZDeg: number
 }
 
 export interface PhysicsDebugControls {
@@ -336,20 +332,6 @@ export function PhysicsDebugProvider({ children }: { children: ReactNode }) {
         mass: { value: FLIPPER_JOINT_MASS, min: 0, max: 10.0, step: 0.5 },
         friction: { value: FLIPPER_FRICTION, min: 0, max: 1.0, step: 0.01 },
         restitution: { value: FLIPPER_RESTITUTION, min: 0, max: 10, step: 0.001 },
-        activeTiltXDeg: {
-          value: FLIPPER_ACTIVE_TILT_X_DEG,
-          min: -90,
-          max: 90,
-          step: 0.5,
-          label: "Active tilt X (deg)",
-        },
-        activeTiltZDeg: {
-          value: FLIPPER_ACTIVE_TILT_Z_DEG,
-          min: -90,
-          max: 90,
-          step: 0.5,
-          label: "Active tilt Z (deg)",
-        },
       },
       { collapsed: true },
     ),

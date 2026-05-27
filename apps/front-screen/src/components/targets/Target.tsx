@@ -1,4 +1,5 @@
 import useTargetStore from "@/stores/useTargetStore"
+import { playRandomSfx } from "@/audio/soundEngine"
 import { broadcastEvent } from "@frontend/ws"
 import { useFrame } from "@react-three/fiber"
 import { RigidBody, type CollisionEnterPayload, type RapierRigidBody } from "@react-three/rapier"
@@ -15,6 +16,7 @@ const STANDUP_ANGLE = Math.PI / 4
 const STANDUP_DURATION = 220
 const STANDUP_RETURN_DURATION = 180
 const DROP_TARGET_DURATION = 140
+export const DROP_TARGET_RETURN_DURATION = 220
 const DROP_TARGET_VISIBLE_HEIGHT = 0.08
 const DROP_TARGET_MIN_DROP_RATIO = 0.75
 
@@ -47,8 +49,13 @@ function setTargetCollidersEnabled(body: RapierRigidBody | null, enabled: boolea
 
 const Target = ({ mesh, worldPosition }: TargetProps) => {
   const bodyRef = useRef<RapierRigidBody>(null)
+  const collidersEnabledRef = useRef<boolean | null>(null)
+  const currentYOffsetRef = useRef(0)
+  const resetStartYOffsetRef = useRef(0)
+  const resetStartedAtRef = useRef<number | null>(null)
   const isStandup = mesh.name.includes("_standup")
   const isActivated = useTargetStore((state) => state.activatedTargetIds.includes(mesh.name))
+  const previousActivatedRef = useRef(isActivated)
   const hitTime = useRef<number | null>(null)
   const tiltAxis = useMemo(() => getTiltAxis(mesh.name), [mesh.name])
   const rotationRef = useRef(new Quaternion())
@@ -60,24 +67,56 @@ const Target = ({ mesh, worldPosition }: TargetProps) => {
     return Math.max(size.y - DROP_TARGET_VISIBLE_HEIGHT, size.y * DROP_TARGET_MIN_DROP_RATIO)
   }, [clone])
 
+  const setCollidersEnabled = useCallback((enabled: boolean) => {
+    if (!bodyRef.current || collidersEnabledRef.current === enabled) return
+    setTargetCollidersEnabled(bodyRef.current, enabled)
+    collidersEnabledRef.current = enabled
+  }, [])
+
   useEffect(() => {
     if (isStandup) return
-    setTargetCollidersEnabled(bodyRef.current, !isActivated)
-  }, [isActivated, isStandup])
+
+    const wasActivated = previousActivatedRef.current
+
+    if (!isActivated) {
+      if (wasActivated) {
+        hitTime.current = null
+        resetStartedAtRef.current = performance.now()
+        resetStartYOffsetRef.current =
+          currentYOffsetRef.current > 0 ? currentYOffsetRef.current : dropDistance
+        setCollidersEnabled(false)
+      } else if (resetStartedAtRef.current === null) {
+        setCollidersEnabled(true)
+      }
+    } else if (hitTime.current === null) {
+      resetStartedAtRef.current = null
+      setCollidersEnabled(false)
+    }
+
+    previousActivatedRef.current = isActivated
+  }, [dropDistance, isActivated, isStandup, setCollidersEnabled])
 
   const handleCollision = useCallback(
     ({ other }: CollisionEnterPayload) => {
       if (other.rigidBodyObject?.name !== "ball") return
-      useTargetStore.getState().recordTargetHit(mesh.name)
-      broadcastEvent({ event_type: "target_hit", payload: { target_id: mesh.name } })
 
       if (isStandup) {
+        useTargetStore.getState().recordTargetHit(mesh.name)
+        broadcastEvent({ event_type: "target_hit", payload: { target_id: mesh.name } })
+        playRandomSfx("targets")
         hitTime.current = performance.now()
-      } else if (!useTargetStore.getState().activatedTargetIds.includes(mesh.name)) {
-        setTargetCollidersEnabled(bodyRef.current, false)
-        useTargetStore.getState().activateTarget(mesh.name)
-        hitTime.current = performance.now()
+        return
       }
+
+      const targetStore = useTargetStore.getState()
+      if (targetStore.activatedTargetIds.includes(mesh.name)) return
+
+      targetStore.recordTargetHit(mesh.name)
+      broadcastEvent({ event_type: "target_hit", payload: { target_id: mesh.name } })
+      playRandomSfx("targets")
+      resetStartedAtRef.current = null
+      hitTime.current = performance.now()
+      targetStore.activateTarget(mesh.name)
     },
     [mesh.name, isStandup],
   )
@@ -109,9 +148,21 @@ const Target = ({ mesh, worldPosition }: TargetProps) => {
       yOffset = dropDistance * easeOutCubic(progress)
       if (progress >= 1) {
         hitTime.current = null
+        setCollidersEnabled(false)
+      }
+    } else if (resetStartedAtRef.current !== null) {
+      const elapsed = performance.now() - resetStartedAtRef.current
+      const progress = MathUtils.clamp(elapsed / DROP_TARGET_RETURN_DURATION, 0, 1)
+      yOffset = resetStartYOffsetRef.current * (1 - easeOutCubic(progress))
+
+      if (progress >= 1) {
+        yOffset = 0
+        resetStartedAtRef.current = null
+        setCollidersEnabled(true)
       }
     }
 
+    currentYOffsetRef.current = yOffset
     rotationRef.current.setFromAxisAngle(tiltAxis, angle)
     bodyRef.current.setNextKinematicTranslation({ x, y: y - yOffset, z })
     bodyRef.current.setNextKinematicRotation(rotationRef.current)
@@ -121,7 +172,7 @@ const Target = ({ mesh, worldPosition }: TargetProps) => {
     <RigidBody
       ref={bodyRef}
       type="kinematicPosition"
-      colliders="trimesh"
+      colliders="hull"
       position={worldPosition}
       onCollisionEnter={handleCollision}
     >

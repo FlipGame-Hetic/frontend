@@ -15,7 +15,9 @@ export const BUMPER_POSITIONS: PositionType[] = [
 export const BUMPER_SIZE_ARGS: [number | undefined, number | undefined, number | undefined] = [
   0.5, 0.5, 0.5,
 ]
-export const BUMPER_RESTITUTION = 0.3
+export const BUMPER_RESTITUTION = 0
+export const BUMPER_MAX_EXIT_TANGENT_SPEED = 26
+export const BUMPER_HIT_DEBOUNCE_MS = 50
 export const BUMPER_IMPULSE_STRENGTH = 15
 export const BUMPER_STUCK_FRAMES = 30
 export const BUMPER_STUCK_VELOCITY = 0.5

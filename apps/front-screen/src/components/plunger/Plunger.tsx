@@ -1,4 +1,5 @@
 import useKeyboard from "@/hooks/useKeyboard"
+import { playSfx } from "@/audio/soundEngine"
 import { usePhysicsDebugControls } from "@/debug/physicsDebugContext"
 import { getPlungerInputSnapshot } from "@/stores/inputStore"
 import type { PositionType } from "@/types/worldTypes"
@@ -94,6 +95,7 @@ const Plunger = ({ position = PLUNGER_POSITION, tipMesh, ringMeshes = [] }: Plun
 
       if (charge >= plunger.minCharge) {
         if (ballInLane) {
+          playSfx("plunger_launch")
           waitForBallClearRef.current = true
           ballClearTimerRef.current = plunger.ballClearTimeout
 

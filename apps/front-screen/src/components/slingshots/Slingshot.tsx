@@ -1,4 +1,5 @@
 import type { PositionType } from "@/types/worldTypes"
+import { playRandomSfx } from "@/audio/soundEngine"
 import { broadcastEvent } from "@frontend/ws"
 import { useFrame } from "@react-three/fiber"
 import useGameStore from "@/stores/useGameStore"
@@ -73,6 +74,7 @@ const Slingshot = ({ position, side, slingshotId, moduleMesh, rubberMesh }: Slin
       if (other.rigidBodyObject?.name !== "ball") return
       broadcastEvent({ event_type: "slingshot_hit", payload: { slingshot_id: slingshotId } })
       useGameStore.getState().addScore(SLINGSHOT_SCORE)
+      playRandomSfx("slingshots")
       hitAt.current = performance.now() / 1000
 
       const slingshotPos = bodyRef.current.translation()

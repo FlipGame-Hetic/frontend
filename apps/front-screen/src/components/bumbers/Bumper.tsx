@@ -1,4 +1,5 @@
 import type { PositionType } from "@/types/worldTypes"
+import { playRandomSfx } from "@/audio/soundEngine"
 import { broadcastEvent } from "@frontend/ws"
 import { useFrame } from "@react-three/fiber"
 import useGameStore from "@/stores/useGameStore"
@@ -8,10 +9,8 @@ import { RigidBody, type CollisionEnterPayload } from "@react-three/rapier"
 import { usePhysicsDebugControls } from "@/debug/physicsDebugContext"
 import { useCallback, useRef } from "react"
 import type { Group, Mesh } from "three"
-import {
-  clampBallVelocityToPlayfield,
-  normalizedPlanarBounceDirection,
-} from "../physics/playfieldPlane"
+import { normalizedPlayfieldDirection } from "../physics/playfieldPlane"
+import { applyBumperImpulse, shouldSkipBumperHit } from "./bumperCollision"
 import { BUMPER_SCALE_FACTOR, BUMPER_SIZE_ARGS } from "./bumperConfig"
 
 interface BumperProps {
@@ -29,8 +28,8 @@ const Bumper = ({ position, bumperId, meshOverride, rubberMesh }: BumperProps) =
   const stuckBall = useRef<{ body: RapierRigidBody; frames: number } | null>(null)
 
   const {
-    ball: { maxTangentSpeed, minNormalSpeed, maxNormalSpeed },
     bumpers: { restitution, impulseStrength, stuckFrames, stuckVelocity, unstickImpulse },
+    ball: { minNormalSpeed, maxNormalSpeed },
   } = usePhysicsDebugControls()
 
   const handleCollision = useCallback(
@@ -42,14 +41,16 @@ const Bumper = ({ position, bumperId, meshOverride, rubberMesh }: BumperProps) =
 
       if (!bodyRef.current || !other.rigidBody) return
       if (other.rigidBodyObject?.name !== "ball") return
+      if (shouldSkipBumperHit(other.rigidBody)) return
 
       broadcastEvent({ event_type: "bumper_hit", payload: { bumper_id: bumperId } })
       useGameStore.getState().addScore(BUMPER_SCORE)
+      playRandomSfx("bumpers")
 
       const bumperPos = bodyRef.current.translation()
       const ballPos = other.rigidBody.translation()
 
-      const dir = normalizedPlanarBounceDirection({
+      const dir = normalizedPlayfieldDirection({
         x: ballPos.x - bumperPos.x,
         y: ballPos.y - bumperPos.y,
         z: ballPos.z - bumperPos.z,
@@ -57,26 +58,11 @@ const Bumper = ({ position, bumperId, meshOverride, rubberMesh }: BumperProps) =
 
       if (!dir) return
 
-      const ballMass = other.rigidBody.mass()
-      const impulseMag = impulseStrength * ballMass
-
-      other.rigidBody.applyImpulse(
-        { x: dir.x * impulseMag, y: dir.y * impulseMag, z: dir.z * impulseMag },
-        true,
-      )
-      other.rigidBody.setLinvel(
-        clampBallVelocityToPlayfield(
-          other.rigidBody.linvel(),
-          maxTangentSpeed,
-          minNormalSpeed,
-          maxNormalSpeed,
-        ),
-        true,
-      )
+      applyBumperImpulse(other.rigidBody, dir, impulseStrength, minNormalSpeed, maxNormalSpeed)
 
       stuckBall.current = { body: other.rigidBody, frames: 0 }
     },
-    [impulseStrength, bumperId, maxTangentSpeed, minNormalSpeed, maxNormalSpeed],
+    [impulseStrength, bumperId, minNormalSpeed, maxNormalSpeed],
   )
 
   useFrame(() => {
@@ -106,28 +92,11 @@ const Bumper = ({ position, bumperId, meshOverride, rubberMesh }: BumperProps) =
 
     if (stuckBall.current.frames >= stuckFrames) {
       const angle = Math.random() * Math.PI * 2
-      const ballMass = ball.mass()
-      const dir = normalizedPlanarBounceDirection({ x: Math.cos(angle), y: 0, z: Math.sin(angle) })
+      const dir = normalizedPlayfieldDirection({ x: Math.cos(angle), y: 0, z: Math.sin(angle) })
 
       if (!dir) return
 
-      ball.applyImpulse(
-        {
-          x: dir.x * unstickImpulse * ballMass,
-          y: dir.y * unstickImpulse * ballMass,
-          z: dir.z * unstickImpulse * ballMass,
-        },
-        true,
-      )
-      ball.setLinvel(
-        clampBallVelocityToPlayfield(
-          ball.linvel(),
-          maxTangentSpeed,
-          minNormalSpeed,
-          maxNormalSpeed,
-        ),
-        true,
-      )
+      applyBumperImpulse(ball, dir, unstickImpulse, minNormalSpeed, maxNormalSpeed)
       stuckBall.current = null
     }
   })

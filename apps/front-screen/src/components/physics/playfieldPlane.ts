@@ -6,7 +6,7 @@ export interface VectorLike {
   z: number
 }
 
-export const PLAYFIELD_NORMAL: Vector3Tuple = [0, 1, 0]
+export const PLAYFIELD_NORMAL: Vector3Tuple = [0, 1, 0.21]
 
 const normalLength = Math.hypot(PLAYFIELD_NORMAL[0], PLAYFIELD_NORMAL[1], PLAYFIELD_NORMAL[2])
 

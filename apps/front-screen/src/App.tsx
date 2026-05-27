@@ -7,12 +7,13 @@ import Drain from "./components/drain/Drain"
 import DebugCamera from "./components/DebugCamera"
 import ProductionCamera from "./components/ProductionCamera"
 import Ceiling from "./components/physics/Ceiling"
+import TopTunnelCollider from "./components/physics/TopTunnelCollider"
 import PhysicsManager from "./components/physics/PhysicsManager"
 import PlayfieldScene from "./components/playfield/PlayfieldScene"
 import PlungerLaneGate from "./components/plunger/PlungerLaneGate"
+import PlungerLaneCeiling from "./components/plunger/PlungerLaneCeiling"
 import PlungerLaneGateDebug from "./components/plunger/PlungerLaneGateDebug"
-import LaneBooster from "./components/laneBooster/LaneBooster"
-import { LANE_BOOSTER_CONFIGS } from "./components/laneBooster/laneBoostersConfig"
+import SoundManager from "./components/sound/SoundManager"
 import TestBench from "./components/playfield/TestBench"
 import World from "./components/World"
 import { useDebugKeys } from "./hooks/useDebugKeys"
@@ -29,6 +30,7 @@ function AppContent() {
 
   return (
     <>
+      <SoundManager />
       <Leva
         hidden={false}
         titleBar={{ title: "Tweaks GUI" }}
@@ -60,11 +62,10 @@ function AppContent() {
           <BallsManager />
           <Drain />
           <Ceiling />
+          <TopTunnelCollider />
           <PlungerLaneGate />
+          <PlungerLaneCeiling />
           <PlungerLaneGateDebug />
-          {LANE_BOOSTER_CONFIGS.map((cfg) => (
-            <LaneBooster key={cfg.id} {...cfg} />
-          ))}
           {testBench ? (
             <TestBench />
           ) : (

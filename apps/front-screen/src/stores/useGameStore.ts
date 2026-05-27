@@ -1,10 +1,17 @@
 import { create } from "zustand"
 import type { CharacterType, GameMode, GamePhase } from "@frontend/types"
+import { PLUNGER_BALL_SPAWN } from "@/components/plunger/plungerConfig"
+import useBallStore from "./useBallStore"
 import useTargetStore from "./useTargetStore"
 
 interface SelectedPlayer {
   player: number
   character: CharacterType
+}
+
+interface StartGameOptions {
+  mode: GameMode
+  players: SelectedPlayer[]
 }
 
 interface GameStore {
@@ -20,7 +27,7 @@ interface GameStore {
   setPhase: (phase: GamePhase) => void
   selectMode: (mode: GameMode) => void
   selectCharacter: (player: number, character: CharacterType) => void
-  startGame: () => void
+  startGame: (options?: StartGameOptions) => void
   endGame: () => void
   pause: () => void
   resume: () => void
@@ -66,15 +73,26 @@ const useGameStore = create<GameStore>()((set) => ({
     })
   },
 
-  startGame: () => {
+  startGame: (options) => {
     useTargetStore.getState().resetTargets()
-    set((state) => ({
-      phase: "playing",
-      score: 0,
-      ballNumber: 1,
-      currentPlayer: 1,
-      totalBalls: TOTAL_BALLS_BY_MODE[state.mode ?? "solo"],
-    }))
+    useBallStore.getState().resetBalls()
+    useBallStore.getState().spawnBall(PLUNGER_BALL_SPAWN, { isPlaying: false })
+
+    set((state) => {
+      const mode = options?.mode ?? state.mode ?? "solo"
+      const selectedPlayers = options?.players ?? state.selectedPlayers
+
+      return {
+        phase: "playing",
+        mode,
+        selectedPlayers,
+        score: 0,
+        ballNumber: 1,
+        currentPlayer: 1,
+        totalBalls: TOTAL_BALLS_BY_MODE[mode],
+        totalPlayers: Math.max(1, selectedPlayers.length),
+      }
+    })
   },
 
   endGame: () => {
@@ -108,11 +126,13 @@ const useGameStore = create<GameStore>()((set) => ({
 
   reset: () => {
     useTargetStore.getState().resetTargets()
+    useBallStore.getState().resetBalls()
     set(INITIAL_STATE)
   },
 
   restartGame: () => {
     useTargetStore.getState().resetTargets()
+    useBallStore.getState().resetBalls()
     set({ ...INITIAL_STATE, phase: "mode_select" as GamePhase })
   },
 }))
