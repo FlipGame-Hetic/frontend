@@ -17,6 +17,8 @@ import {
   SLIM_BUMPER_BOUNCE_DURATION,
   SLIM_BUMPER_BOUNCE_FREQ,
 } from "./slimBumperConfig"
+import useScreenShakeStore from "@/stores/useScreenShakeStore"
+import { SHAKE_INTENSITY } from "@/components/screenShake/shakeIntensity"
 
 interface SlimBumperProps {
   position: PositionType
@@ -48,6 +50,7 @@ const SlimBumper = ({ position, bumperId, meshOverride }: SlimBumperProps) => {
       broadcastEvent({ event_type: "bumper_hit", payload: { bumper_id: bumperId } })
       useGameStore.getState().addScore(BUMPER_SCORE)
       playRandomSfx("bumpers")
+      useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.slimBumper)
       hitAt.current = performance.now() / 1000
 
       const bumperPos = bodyRef.current.translation()

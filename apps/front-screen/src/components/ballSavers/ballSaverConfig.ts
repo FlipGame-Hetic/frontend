@@ -8,7 +8,7 @@ export const BALL_SAVER_TARGET_IDS: Record<BallSaverSide, readonly string[]> = {
 }
 
 export const BALL_SAVER_POST_EXIT_DELAY_MS = 250
-export const BALL_SAVER_MIN_CONTACT_DURATION_MS = 80
+export const BALL_SAVER_MIN_CONTACT_DURATION_MS = 40
 export const BALL_SAVER_COOLDOWN_MS = 5000
 export const BALL_SAVER_RAISE_DURATION_MS = 180
 export const BALL_SAVER_RETRACT_DURATION_MS = 180

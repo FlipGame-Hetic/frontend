@@ -12,6 +12,8 @@ import type { Group, Mesh } from "three"
 import { normalizedPlayfieldDirection } from "../physics/playfieldPlane"
 import { applyBumperImpulse, shouldSkipBumperHit } from "./bumperCollision"
 import { BUMPER_SCALE_FACTOR, BUMPER_SIZE_ARGS } from "./bumperConfig"
+import useScreenShakeStore from "@/stores/useScreenShakeStore"
+import { SHAKE_INTENSITY } from "@/components/screenShake/shakeIntensity"
 
 interface BumperProps {
   position: PositionType
@@ -46,6 +48,7 @@ const Bumper = ({ position, bumperId, meshOverride, rubberMesh }: BumperProps) =
       broadcastEvent({ event_type: "bumper_hit", payload: { bumper_id: bumperId } })
       useGameStore.getState().addScore(BUMPER_SCORE)
       playRandomSfx("bumpers")
+      useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.bumper)
 
       const bumperPos = bodyRef.current.translation()
       const ballPos = other.rigidBody.translation()

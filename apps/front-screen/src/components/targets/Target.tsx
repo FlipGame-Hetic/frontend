@@ -6,6 +6,8 @@ import { RigidBody, type CollisionEnterPayload, type RapierRigidBody } from "@re
 import { useCallback, useEffect, useMemo, useRef } from "react"
 import { Box3, MathUtils, Quaternion, Vector3, type Mesh } from "three"
 import { cloneWithWorldOrientation } from "../playfield/usePlayfieldModel"
+import useScreenShakeStore from "@/stores/useScreenShakeStore"
+import { SHAKE_INTENSITY } from "@/components/screenShake/shakeIntensity"
 
 interface TargetProps {
   mesh: Mesh
@@ -104,6 +106,7 @@ const Target = ({ mesh, worldPosition }: TargetProps) => {
         useTargetStore.getState().recordTargetHit(mesh.name)
         broadcastEvent({ event_type: "target_hit", payload: { target_id: mesh.name } })
         playRandomSfx("targets")
+        useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.targetStandup)
         hitTime.current = performance.now()
         return
       }
@@ -114,6 +117,7 @@ const Target = ({ mesh, worldPosition }: TargetProps) => {
       targetStore.recordTargetHit(mesh.name)
       broadcastEvent({ event_type: "target_hit", payload: { target_id: mesh.name } })
       playRandomSfx("targets")
+      useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.targetDrop)
       resetStartedAtRef.current = null
       hitTime.current = performance.now()
       targetStore.activateTarget(mesh.name)

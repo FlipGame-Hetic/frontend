@@ -7,11 +7,13 @@ import Drain from "./components/drain/Drain"
 import DebugCamera from "./components/DebugCamera"
 import ProductionCamera from "./components/ProductionCamera"
 import InvisibleWallsManager from "./components/physics/InvisibleWallsManager"
+import PortalsManager from "./components/portal/PortalsManager"
 import PhysicsManager from "./components/physics/PhysicsManager"
 import PlayfieldScene from "./components/playfield/PlayfieldScene"
 import PlungerLaneGate from "./components/plunger/PlungerLaneGate"
 import PlungerLaneGateDebug from "./components/plunger/PlungerLaneGateDebug"
 import SoundManager from "./components/sound/SoundManager"
+import ScreenShakeController from "./components/screenShake/ScreenShakeController"
 import TestBench from "./components/playfield/TestBench"
 import World from "./components/World"
 import { useDebugKeys } from "./hooks/useDebugKeys"
@@ -55,11 +57,13 @@ function AppContent() {
         ) : (
           <DebugCamera cameraPosition={cameraSettings.position} cameraFov={cameraSettings.fov} />
         )}
+        <ScreenShakeController />
 
         <PhysicsManager isDebug={true}>
           <BallsManager />
           <Drain />
           <InvisibleWallsManager />
+          <PortalsManager />
           <PlungerLaneGate />
           <PlungerLaneGateDebug />
           {testBench ? (

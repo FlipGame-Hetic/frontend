@@ -26,6 +26,8 @@ export const SFX_PATHS: Record<string, string> = {
 }
 
 export const SFX_GROUPS: Record<string, string[]> = {
+  portal_enter: [`${base}sounds/portal/enter1.wav`, `${base}sounds/portal/enter2.wav`],
+  portal_exit: [`${base}sounds/portal/exit1.wav`, `${base}sounds/portal/exit2.wav`],
   bumpers: [
     `${base}sounds/bumpers/0.m4a`,
     `${base}sounds/bumpers/1.m4a`,

@@ -24,6 +24,8 @@ import {
   SLINGSHOT_TREMBLE_DURATION,
   SLINGSHOT_TREMBLE_FREQ,
 } from "./slingshotConfig"
+import useScreenShakeStore from "@/stores/useScreenShakeStore"
+import { SHAKE_INTENSITY } from "@/components/screenShake/shakeIntensity"
 
 interface SlingshotProps {
   position: PositionType
@@ -75,6 +77,7 @@ const Slingshot = ({ position, side, slingshotId, moduleMesh, rubberMesh }: Slin
       broadcastEvent({ event_type: "slingshot_hit", payload: { slingshot_id: slingshotId } })
       useGameStore.getState().addScore(SLINGSHOT_SCORE)
       playRandomSfx("slingshots")
+      useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.slingshot)
       hitAt.current = performance.now() / 1000
 
       const slingshotPos = bodyRef.current.translation()

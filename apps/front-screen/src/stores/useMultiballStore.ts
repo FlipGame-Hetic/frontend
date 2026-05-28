@@ -3,6 +3,8 @@ import { playSfx } from "@/audio/soundEngine"
 import { broadcastEvent } from "@frontend/ws"
 import { create } from "zustand"
 import type { Vector3Tuple } from "three"
+import useScreenShakeStore from "@/stores/useScreenShakeStore"
+import { SHAKE_INTENSITY } from "@/components/screenShake/shakeIntensity"
 
 const BOUNCE_DEBOUNCE_MS = 200
 
@@ -52,11 +54,13 @@ const useMultiballStore = create<MultiballStore>()((set, get) => {
       if (nextCount < threshold) {
         const hitIndex = Math.min(nextCount - 1, 9)
         playSfx(`hit${String(hitIndex)}`)
+        useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.multiballBounce)
         set({ bounceCount: nextCount })
         return
       }
 
       playSfx("multiball_triggered")
+      useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.multiballTrigger)
       set({ bounceCount: 0, cooldownActive: true })
 
       const spawnBall = useBallStore.getState().spawnBall
