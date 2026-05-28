@@ -35,10 +35,16 @@ export const INVISIBLE_WALLS: InvisibleWallConfig[] = [
     friction: 0,
   },
   {
-    id: "rail-right-guard-entrance",
+    id: "rail-right-guard-entrance-left",
     halfExtents: [0.4, 0.23, 0.05],
     position: [1, 1.4, -4],
     rotation: [-0.05, -1.1, 0],
+  },
+  {
+    id: "rail-right-guard-entrance-right",
+    halfExtents: [0.2, 0.23, 0.02],
+    position: [1.61, 1.4, -4],
+    rotation: [-0.05, 1.2, 0],
   },
   {
     id: "rail-right-guard-bottom",
