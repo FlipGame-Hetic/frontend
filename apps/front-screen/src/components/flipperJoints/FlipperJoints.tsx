@@ -6,6 +6,8 @@ import { useFrame } from "@react-three/fiber"
 import type { RapierRigidBody } from "@react-three/rapier"
 import { MeshCollider, RigidBody, useRevoluteJoint } from "@react-three/rapier"
 import { usePhysicsDebugControls } from "@/debug/physicsDebugContext"
+import { useMainDebugControls } from "@/debug/mainDebugContext"
+import { pressKey, releaseKey } from "@/stores/inputStore"
 import { useMemo, useRef, type RefObject } from "react"
 import { Vector3, type Mesh } from "three"
 import { LEFT_KEYS, RIGHT_KEYS } from "./jointsConfig"
@@ -22,6 +24,8 @@ const FlipperJoints = ({ position, side, meshOverride }: FlipperJointsProps) => 
   const pressedKeys = useKeyboard()
   const appliedLimitsRef = useRef({ min: NaN, max: NaN })
   const prevPressedRef = useRef(false)
+  const { autoMode } = useMainDebugControls()
+  const isAutoPressingRef = useRef(false)
 
   const { nodes } = useGLTF(`${import.meta.env.BASE_URL}models/flipperJoints/scene.gltf`)
   const flipperGeometry = (nodes.Cube000_0 as Mesh).geometry
@@ -97,6 +101,15 @@ const FlipperJoints = ({ position, side, meshOverride }: FlipperJointsProps) => 
         mass={mass}
         restitution={restitution}
         friction={friction}
+        onCollisionEnter={() => {
+          if (!autoMode || isAutoPressingRef.current) return
+          isAutoPressingRef.current = true
+          activationKeys.forEach(pressKey)
+          setTimeout(() => {
+            activationKeys.forEach(releaseKey)
+            isAutoPressingRef.current = false
+          }, 200)
+        }}
       >
         <MeshCollider type="hull">
           {meshOverride ? (

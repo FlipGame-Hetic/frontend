@@ -6,12 +6,10 @@ import BallsManager from "./components/balls/BallsManager"
 import Drain from "./components/drain/Drain"
 import DebugCamera from "./components/DebugCamera"
 import ProductionCamera from "./components/ProductionCamera"
-import Ceiling from "./components/physics/Ceiling"
-import TopTunnelCollider from "./components/physics/TopTunnelCollider"
+import InvisibleWallsManager from "./components/physics/InvisibleWallsManager"
 import PhysicsManager from "./components/physics/PhysicsManager"
 import PlayfieldScene from "./components/playfield/PlayfieldScene"
 import PlungerLaneGate from "./components/plunger/PlungerLaneGate"
-import PlungerLaneCeiling from "./components/plunger/PlungerLaneCeiling"
 import PlungerLaneGateDebug from "./components/plunger/PlungerLaneGateDebug"
 import SoundManager from "./components/sound/SoundManager"
 import TestBench from "./components/playfield/TestBench"
@@ -61,10 +59,8 @@ function AppContent() {
         <PhysicsManager isDebug={true}>
           <BallsManager />
           <Drain />
-          <Ceiling />
-          <TopTunnelCollider />
+          <InvisibleWallsManager />
           <PlungerLaneGate />
-          <PlungerLaneCeiling />
           <PlungerLaneGateDebug />
           {testBench ? (
             <TestBench />

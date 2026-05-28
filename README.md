@@ -61,20 +61,23 @@ pnpm dev
 
 ---
 
-
 ## Starting with Docker
 
 We used [Athena](https://github.com/Jeck0v/Athena) for init the structure of the docker-compose.yml file.
 For use it, you need to install it first.
 After that, you can run:
+
 ```bash
 athena validate multi-react-apps.ath
 ```
+
 This will validate the configuration.
 After this you need to run:
+
 ```bash
 athena build multi-react-apps.ath
 ```
+
 This will generate the docker-compose.yml file.
 
 To run the app locally using Docker, follow these steps:
@@ -82,17 +85,18 @@ To run the app locally using Docker, follow these steps:
 ```bash
 docker compose up --build
 ```
-Then go to: 
+
+Then go to:
+
 - Back Screen: http://localhost:3000
 - DMD Screen: http://localhost:3001
 - Front Screen: http://localhost:3002
 
-
 And if you want to stop the app:
+
 ```bash
 docker compose down
 ```
-
 
 ## Commands
 
@@ -228,6 +232,14 @@ The visual theme is defined once in `packages/tailwind-config/theme.css` and imp
 | `surface-border` | `#1E1E2E` | Borders, dividers         |
 
 **Fonts:** Orbitron (display/headings) · Inter (body)
+
+---
+
+## Credits
+
+**Music**
+
+- _Only a Dream_ — [DANCE WITH THE DEAD](https://dancewiththedead.bandcamp.com) — used with permission / for non-commercial purposes
 
 ---
 
