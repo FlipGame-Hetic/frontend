@@ -40,6 +40,6 @@ export const SFX_GROUPS: Record<string, string[]> = {
 
 export const MUSIC_TRACKS = [
   `${base}sounds/music/1.mp3`,
-  `${base}sounds/music/2.mp3`,
+  // `${base}sounds/music/2.mp3`,
   `${base}sounds/music/3.mp3`,
 ]

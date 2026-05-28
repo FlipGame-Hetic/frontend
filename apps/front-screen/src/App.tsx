@@ -10,6 +10,7 @@ import InvisibleWallsManager from "./components/physics/InvisibleWallsManager"
 import PortalsManager from "./components/portal/PortalsManager"
 import PhysicsManager from "./components/physics/PhysicsManager"
 import PlayfieldScene from "./components/playfield/PlayfieldScene"
+import TopTunnelAssistManager from "./components/playfield/TopTunnelAssistManager"
 import PlungerLaneGate from "./components/plunger/PlungerLaneGate"
 import PlungerLaneGateDebug from "./components/plunger/PlungerLaneGateDebug"
 import SoundManager from "./components/sound/SoundManager"
@@ -63,6 +64,7 @@ function AppContent() {
           <BallsManager />
           <Drain />
           <InvisibleWallsManager />
+          <TopTunnelAssistManager />
           <PortalsManager />
           <PlungerLaneGate />
           <PlungerLaneGateDebug />

@@ -76,4 +76,10 @@ export const INVISIBLE_WALLS: InvisibleWallConfig[] = [
     position: [-1.86, 0.99, -3.055],
     rotation: [-0.1, 1.7, 0],
   },
+  {
+    id: "top-tunnel-exit",
+    halfExtents: [0.3, 0.2, 0.1],
+    position: [-3.4, 1, 1.72],
+    rotation: [0, 0, 0],
+  },
 ]
