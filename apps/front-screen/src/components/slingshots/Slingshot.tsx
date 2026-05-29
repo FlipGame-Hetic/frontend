@@ -1,8 +1,9 @@
 import type { PositionType } from "@/types/worldTypes"
-import { playRandomSfx } from "@/audio/soundEngine"
+import { playRandomSfx, playSfx } from "@/audio/soundEngine"
 import { broadcastEvent } from "@frontend/ws"
 import { useFrame } from "@react-three/fiber"
 import useGameStore from "@/stores/useGameStore"
+import useScorePopupsStore from "@/stores/useScorePopupsStore"
 import { SLINGSHOT_SCORE } from "@/config/scoreConfig"
 import {
   CuboidCollider,
@@ -78,11 +79,15 @@ const Slingshot = ({ position, side, slingshotId, moduleMesh, rubberMesh }: Slin
       broadcastEvent({ event_type: "slingshot_hit", payload: { slingshot_id: slingshotId } })
       useGameStore.getState().addScore(SLINGSHOT_SCORE)
       playRandomSfx("slingshots")
+      playSfx("score_event")
       useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.slingshot)
       hitAt.current = performance.now() / 1000
 
       const slingshotPos = bodyRef.current.translation()
       const ballPos = other.rigidBody.translation()
+      useScorePopupsStore
+        .getState()
+        .addPopup(SLINGSHOT_SCORE, { x: ballPos.x, y: ballPos.y, z: ballPos.z })
       const exitDir = normalizedPlayfieldDirection({
         x: ballPos.x - slingshotPos.x,
         y: ballPos.y - slingshotPos.y,

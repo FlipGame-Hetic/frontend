@@ -11,6 +11,7 @@ export const SFX_PATHS: Record<string, string> = {
   flipper_up: `${base}sounds/flipperJoints/up.m4a`,
   flipper_down: `${base}sounds/flipperJoints/down.m4a`,
   game_over: `${base}sounds/score/game_over.m4a`,
+  score_event: `${base}sounds/score/event.wav`,
   zone_bounce: `${base}sounds/multiball/zone_enter.m4a`,
   multiball_triggered: `${base}sounds/multiball/multiball.m4a`,
   hit0: `${base}sounds/multiball/hit0.m4a`,

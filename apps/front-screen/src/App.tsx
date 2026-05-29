@@ -12,6 +12,7 @@ import PhysicsManager from "./components/physics/PhysicsManager"
 import PlayfieldScene from "./components/playfield/PlayfieldScene"
 import TopTunnelAssistManager from "./components/playfield/TopTunnelAssistManager"
 import PlungerLaneGate from "./components/plunger/PlungerLaneGate"
+import ScorePopupsManager from "./components/scorePopups/ScorePopupsManager"
 import SoundManager from "./components/sound/SoundManager"
 import ScreenShakeController from "./components/screenShake/ScreenShakeController"
 import TestBench from "./components/playfield/TestBench"
@@ -66,6 +67,7 @@ function AppContent() {
           <TopTunnelAssistManager />
           <PortalsManager />
           <PlungerLaneGate />
+          <ScorePopupsManager />
           {testBench ? (
             <TestBench />
           ) : (

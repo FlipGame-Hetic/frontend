@@ -2,7 +2,8 @@ import type { PositionType } from "@/types/worldTypes"
 import { broadcastEvent } from "@frontend/ws"
 import { useFrame } from "@react-three/fiber"
 import useGameStore from "@/stores/useGameStore"
-import { playRandomSfx } from "@/audio/soundEngine"
+import useScorePopupsStore from "@/stores/useScorePopupsStore"
+import { playRandomSfx, playSfx } from "@/audio/soundEngine"
 import { BUMPER_SCORE } from "@/config/scoreConfig"
 import type { RapierRigidBody } from "@react-three/rapier"
 import { RigidBody, type CollisionEnterPayload } from "@react-three/rapier"
@@ -50,11 +51,15 @@ const SlimBumper = ({ position, bumperId, meshOverride }: SlimBumperProps) => {
       broadcastEvent({ event_type: "bumper_hit", payload: { bumper_id: bumperId } })
       useGameStore.getState().addScore(BUMPER_SCORE)
       playRandomSfx("bumpers")
+      playSfx("score_event")
       useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.slimBumper)
       hitAt.current = performance.now() / 1000
 
       const bumperPos = bodyRef.current.translation()
       const ballPos = other.rigidBody.translation()
+      useScorePopupsStore
+        .getState()
+        .addPopup(BUMPER_SCORE, { x: ballPos.x, y: ballPos.y, z: ballPos.z })
       const dir = normalizedPlayfieldDirection({
         x: ballPos.x - bumperPos.x,
         y: ballPos.y - bumperPos.y,
