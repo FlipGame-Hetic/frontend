@@ -12,6 +12,7 @@ import {
   PLUNGER_PULL_KEY,
   PLUNGER_RETURN_KEY,
   PLUNGER_MIN_CHARGE,
+  PLUNGER_MIN_LAUNCH_CHARGE,
   PLUNGER_BALL_CLEAR_TIMEOUT,
   PLUNGER_CHARGE_FACTOR,
   PLUNGER_IMPULSE_MULTIPLIER,
@@ -77,7 +78,7 @@ export const usePlungerSimulation = ({
 
     if (charge >= PLUNGER_MIN_CHARGE) {
       if (ballInLaneRef.current) {
-        playSfx("plunger_launch")
+        playSfx(charge >= PLUNGER_MIN_LAUNCH_CHARGE ? "plunger_launch" : "flipper_up")
         waitForBallClearRef.current = true
         ballClearTimerRef.current = PLUNGER_BALL_CLEAR_TIMEOUT
 

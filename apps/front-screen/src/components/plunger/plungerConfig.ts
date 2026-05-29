@@ -71,6 +71,7 @@ export const PLUNGER_RELEASE_SPEED = 25
 export const PLUNGER_CHARGE_FACTOR = 1
 
 export const PLUNGER_MIN_CHARGE = 0.05
+export const PLUNGER_MIN_LAUNCH_CHARGE = 0.1
 
 export const PLUNGER_RELEASE_DELAY = 0.05
 export const PLUNGER_BALL_CLEAR_TIMEOUT = 0.35
