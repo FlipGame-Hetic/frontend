@@ -11,6 +11,7 @@ import { useCallback, useEffect, useRef } from "react"
 import type { Mesh } from "three"
 import { Vector3 } from "three"
 import { normalizedPlayfieldDirection } from "../physics/playfieldPlane"
+import { createStuckBallTracker } from "../physics/stuckBallTracker"
 import { applyBumperImpulse, shouldSkipBumperHit } from "./bumperCollision"
 import {
   SLIM_BUMPER_BOUNCE_AMP,
@@ -36,7 +37,21 @@ const SlimBumper = ({ position, bumperId, meshOverride }: SlimBumperProps) => {
   const bodyRef = useRef<RapierRigidBody>(null)
   const hitAt = useRef(-Infinity)
   const baseScale = useRef(new Vector3())
-  const stuckBall = useRef<{ body: RapierRigidBody; frames: number } | null>(null)
+  const stuckTracker = useRef(
+    createStuckBallTracker({
+      stuckVelocity: SLIM_BUMPER_STUCK_VELOCITY,
+      stuckFrames: SLIM_BUMPER_STUCK_FRAMES,
+      unstick: (body, dir) => {
+        applyBumperImpulse(
+          body,
+          dir,
+          SLIM_BUMPER_UNSTICK_IMPULSE,
+          BALL_MIN_NORMAL_SPEED,
+          BALL_MAX_NORMAL_SPEED,
+        )
+      },
+    }),
+  )
 
   useEffect(() => {
     baseScale.current.copy(meshOverride.scale)
@@ -76,7 +91,7 @@ const SlimBumper = ({ position, bumperId, meshOverride }: SlimBumperProps) => {
         BALL_MAX_NORMAL_SPEED,
       )
 
-      stuckBall.current = { body: other.rigidBody, frames: 0 }
+      stuckTracker.current.arm(other.rigidBody)
     },
     [bumperId],
   )
@@ -95,28 +110,7 @@ const SlimBumper = ({ position, bumperId, meshOverride }: SlimBumperProps) => {
       meshOverride.scale.copy(baseScale.current)
     }
 
-    if (!stuckBall.current || !bodyRef.current) return
-    const ball = stuckBall.current.body
-    const vel = ball.linvel()
-    if (Math.hypot(vel.x, vel.y, vel.z) > SLIM_BUMPER_STUCK_VELOCITY) {
-      stuckBall.current = null
-      return
-    }
-    stuckBall.current.frames++
-    if (stuckBall.current.frames >= SLIM_BUMPER_STUCK_FRAMES) {
-      const angle = Math.random() * Math.PI * 2
-      const dir = normalizedPlayfieldDirection({ x: Math.cos(angle), y: 0, z: Math.sin(angle) })
-      if (!dir) return
-
-      applyBumperImpulse(
-        ball,
-        dir,
-        SLIM_BUMPER_UNSTICK_IMPULSE,
-        BALL_MIN_NORMAL_SPEED,
-        BALL_MAX_NORMAL_SPEED,
-      )
-      stuckBall.current = null
-    }
+    stuckTracker.current.tick()
   })
 
   return (

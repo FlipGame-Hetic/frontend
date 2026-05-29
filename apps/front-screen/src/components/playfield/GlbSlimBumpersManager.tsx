@@ -6,7 +6,7 @@ import {
   type PlayfieldNodes,
 } from "./usePlayfieldModel"
 
-export default function GlbSlimBumpersManager({ nodes }: { nodes: PlayfieldNodes }) {
+const GlbSlimBumpersManager = ({ nodes }: { nodes: PlayfieldNodes }) => {
   const bumpers = useMemo(
     () =>
       nodes.slimBumpers.map((mesh, i) => ({
@@ -25,3 +25,5 @@ export default function GlbSlimBumpersManager({ nodes }: { nodes: PlayfieldNodes
     </>
   )
 }
+
+export default GlbSlimBumpersManager

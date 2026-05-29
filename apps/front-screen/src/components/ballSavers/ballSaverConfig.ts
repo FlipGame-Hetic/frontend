@@ -15,13 +15,13 @@ export const BALL_SAVER_RETRACT_DURATION_MS = 180
 export const BALL_SAVER_VISIBLE_HEIGHT = 0.04
 export const BALL_SAVER_MIN_DROP_RATIO = 0.9
 
-export function getBallSaverSideFromWorldPosition(position: PositionType): BallSaverSide {
+export const getBallSaverSideFromWorldPosition = (position: PositionType): BallSaverSide => {
   return position[0] < 0 ? "left" : "right"
 }
 
-export function areBallSaverTargetsDown(
+export const areBallSaverTargetsDown = (
   side: BallSaverSide,
   activatedTargetIds: readonly string[],
-): boolean {
+): boolean => {
   return BALL_SAVER_TARGET_IDS[side].every((id) => activatedTargetIds.includes(id))
 }

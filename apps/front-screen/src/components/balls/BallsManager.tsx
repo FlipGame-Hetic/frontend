@@ -3,7 +3,7 @@ import useGameStore from "@/stores/useGameStore"
 import type { PositionType } from "@/types/worldTypes"
 import { isPointInPlungerLaneSensor, PLUNGER_BALL_SPAWN } from "@/components/plunger/plungerConfig"
 import { useControls, button } from "leva"
-import { useCallback, useEffect } from "react"
+import { useCallback, useEffect, useState } from "react"
 import Ball from "./Ball"
 import {
   DEFAULT_BALL_SPAWN,
@@ -18,14 +18,15 @@ import {
   BALL_MAX_NORMAL_SPEED,
 } from "./ballConfig"
 
-let _spawnX = DEFAULT_BALL_SPAWN[0]
-let _spawnY = DEFAULT_BALL_SPAWN[1]
-let _spawnZ = DEFAULT_BALL_SPAWN[2]
-
 const BallsManager = () => {
   const { balls, spawnBall } = useBallStore()
   const phase = useGameStore((s) => s.phase)
   const ballNumber = useGameStore((s) => s.ballNumber)
+  const [spawnPos, setSpawnPos] = useState<[number, number, number]>([
+    DEFAULT_BALL_SPAWN[0],
+    DEFAULT_BALL_SPAWN[1],
+    DEFAULT_BALL_SPAWN[2],
+  ])
 
   useEffect(() => {
     if (phase !== "playing") return
@@ -34,11 +35,11 @@ const BallsManager = () => {
   }, [phase, ballNumber, spawnBall])
 
   const handleSpawn = useCallback(() => {
-    const position: PositionType = [_spawnX, _spawnY, _spawnZ]
-    const isPlaying = !isPointInPlungerLaneSensor({ x: _spawnX, y: _spawnY, z: _spawnZ })
-
+    const [x, y, z] = spawnPos
+    const position: PositionType = [x, y, z]
+    const isPlaying = !isPointInPlungerLaneSensor({ x, y, z })
     spawnBall(position, { isPlaying })
-  }, [spawnBall])
+  }, [spawnPos, spawnBall])
 
   const handleSpawnInPlunger = useCallback(() => {
     spawnBall(PLUNGER_BALL_SPAWN, { isPlaying: false })
@@ -69,7 +70,7 @@ const BallsManager = () => {
       max: 3.3,
       step: 0.05,
       onChange: (v: number) => {
-        _spawnX = v
+        setSpawnPos((prev) => [v, prev[1], prev[2]])
       },
     },
     spawnY: {
@@ -78,7 +79,7 @@ const BallsManager = () => {
       max: 3.5,
       step: 0.05,
       onChange: (v: number) => {
-        _spawnY = v
+        setSpawnPos((prev) => [prev[0], v, prev[2]])
       },
     },
     spawnZ: {
@@ -87,7 +88,7 @@ const BallsManager = () => {
       max: 7,
       step: 0.05,
       onChange: (v: number) => {
-        _spawnZ = v
+        setSpawnPos((prev) => [prev[0], prev[1], v])
       },
     },
     "Spawn Ball": button(handleSpawn),

@@ -3,7 +3,7 @@ import { broadcastEvent } from "@frontend/ws"
 import useGameStore from "@/stores/useGameStore"
 import { BUMPER_SCORE } from "@/config/scoreConfig"
 
-export function useDebugKeys(): void {
+export const useDebugKeys = (): void => {
   useEffect(() => {
     if (!import.meta.env.DEV) return
     const handler = (e: KeyboardEvent) => {

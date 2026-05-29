@@ -6,7 +6,7 @@ import {
   type PlayfieldNodes,
 } from "./usePlayfieldModel"
 
-export default function GlbFlippers({ nodes }: { nodes: PlayfieldNodes }) {
+const GlbFlippers = ({ nodes }: { nodes: PlayfieldNodes }) => {
   const flippers = useMemo(
     () =>
       nodes.flippers.map((mesh) => {
@@ -29,3 +29,5 @@ export default function GlbFlippers({ nodes }: { nodes: PlayfieldNodes }) {
     </>
   )
 }
+
+export default GlbFlippers

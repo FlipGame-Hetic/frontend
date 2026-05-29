@@ -1,36 +1,40 @@
+import DebugProvider from "@/debug/DebugProvider"
 import type { CameraProps } from "@react-three/fiber"
-import { DebugProvider, useDebugControls } from "@/debug/debugContext"
 import { Leva } from "leva"
 import { Suspense } from "react"
 import BallsManager from "./components/balls/BallsManager"
-import Drain from "./components/drain/Drain"
 import DebugCamera from "./components/DebugCamera"
-import ProductionCamera from "./components/ProductionCamera"
+import Drain from "./components/drain/Drain"
 import InvisibleWallsManager from "./components/physics/InvisibleWallsManager"
-import PortalsManager from "./components/portal/PortalsManager"
 import PhysicsManager from "./components/physics/PhysicsManager"
 import PlayfieldScene from "./components/playfield/PlayfieldScene"
 import TopTunnelAssistManager from "./components/playfield/TopTunnelAssistManager"
 import PlungerLaneGate from "./components/plunger/PlungerLaneGate"
+import PortalsManager from "./components/portal/PortalsManager"
+import ProductionCamera from "./components/ProductionCamera"
 import ScorePopupsManager from "./components/scorePopups/ScorePopupsManager"
-import SoundManager from "./components/sound/SoundManager"
 import ScreenShakeController from "./components/screenShake/ScreenShakeController"
-import TestBench from "./components/playfield/TestBench"
+import SoundManager from "./components/sound/SoundManager"
 import World from "./components/World"
 import { useDebugKeys } from "./hooks/useDebugKeys"
 import { useIoTInputs } from "./hooks/useIoTInputs"
 import { useScreenHub } from "./hooks/useScreenHub"
-import { WebsocketTest } from "./websocket-test/WebsocketTest"
+import WebsocketTest from "./websocket-test/WebsocketTest"
 
 const isProduction = import.meta.env.VITE_ENVIRONMENT === "production"
 const isWsTest = !isProduction && new URLSearchParams(window.location.search).has("wstest")
 
-function AppContent() {
+const App = () => {
+  useIoTInputs()
+  useScreenHub()
+  useDebugKeys()
+
   const cameraSettings = { position: [0, 20, 25] as [number, number, number], fov: 35 }
-  const { testBench } = useDebugControls()
+
+  if (isWsTest) return <WebsocketTest />
 
   return (
-    <>
+    <DebugProvider>
       <SoundManager />
       <Leva
         hidden={false}
@@ -68,30 +72,13 @@ function AppContent() {
           <PortalsManager />
           <PlungerLaneGate />
           <ScorePopupsManager />
-          {testBench ? (
-            <TestBench />
-          ) : (
-            <Suspense fallback={null}>
-              <PlayfieldScene />
-            </Suspense>
-          )}
-          {/* <Plunger /> */}
+          <Suspense fallback={null}>
+            <PlayfieldScene />
+          </Suspense>
         </PhysicsManager>
       </World>
-    </>
-  )
-}
-
-export default function App() {
-  useIoTInputs()
-  useScreenHub()
-  useDebugKeys()
-
-  if (isWsTest) return <WebsocketTest />
-
-  return (
-    <DebugProvider>
-      <AppContent />
     </DebugProvider>
   )
 }
+
+export default App

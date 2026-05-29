@@ -6,6 +6,7 @@ import type { CollisionPayload } from "@react-three/rapier"
 import { CuboidCollider, RigidBody } from "@react-three/rapier"
 import { useCallback } from "react"
 import { Vector3 } from "three"
+import { getBallId } from "@/components/balls/ballUserData"
 import {
   PORTAL_A_POSITION,
   PORTAL_A_ROTATION,
@@ -35,23 +36,13 @@ import PortalSurface from "./PortalSurface"
 import useScreenShakeStore from "@/stores/useScreenShakeStore"
 import { SHAKE_INTENSITY } from "@/components/screenShake/shakeIntensity"
 
-function hasBallId(value: unknown): value is { ballId: string } {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    "ballId" in value &&
-    typeof (value as Record<string, unknown>).ballId === "string"
-  )
-}
-
-function extractBallId(payload: CollisionPayload): string | null {
+const extractBallId = (payload: CollisionPayload): string | null => {
   const obj = payload.other.rigidBodyObject
   if (obj?.name !== "ball") return null
-  if (!hasBallId(obj.userData)) return null
-  return obj.userData.ballId
+  return getBallId(obj.userData) ?? null
 }
 
-function handlePortalEnter(portalId: PortalId, payload: CollisionPayload): void {
+const handlePortalEnter = (portalId: PortalId, payload: CollisionPayload): void => {
   const ballId = extractBallId(payload)
   if (!ballId) return
   if (isCooldown(ballId)) return
@@ -72,7 +63,7 @@ function handlePortalEnter(portalId: PortalId, payload: CollisionPayload): void 
   useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.portalEnter)
 }
 
-function handlePortalExit(portalId: PortalId, payload: CollisionPayload): void {
+const handlePortalExit = (portalId: PortalId, payload: CollisionPayload): void => {
   const ballId = extractBallId(payload)
   if (!ballId) return
 

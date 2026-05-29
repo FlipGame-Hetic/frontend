@@ -16,12 +16,12 @@ interface Triangle {
 const RAY_DIRECTION = new Vector3(1, 0, 0)
 const HIT_DEDUP_EPSILON = 1e-4
 
-function getWorldVertex(mesh: Mesh, vertexIndex: number): Vector3 {
+const getWorldVertex = (mesh: Mesh, vertexIndex: number): Vector3 => {
   const position = mesh.geometry.getAttribute("position")
   return new Vector3().fromBufferAttribute(position, vertexIndex).applyMatrix4(mesh.matrixWorld)
 }
 
-function collectWorldTriangles(mesh: Mesh): Triangle[] {
+const collectWorldTriangles = (mesh: Mesh): Triangle[] => {
   mesh.updateWorldMatrix(true, false)
 
   const triangles: Triangle[] = []
@@ -50,11 +50,11 @@ function collectWorldTriangles(mesh: Mesh): Triangle[] {
   return triangles
 }
 
-function hasSimilarDistance(distances: number[], distance: number): boolean {
+const hasSimilarDistance = (distances: number[], distance: number): boolean => {
   return distances.some((existing) => Math.abs(existing - distance) < HIT_DEDUP_EPSILON)
 }
 
-export function createBonusZoneHitTester(meshes: Mesh[]) {
+export const createBonusZoneHitTester = (meshes: Mesh[]) => {
   const triangles = meshes.flatMap(collectWorldTriangles)
   const ray = new Ray()
   const origin = new Vector3()

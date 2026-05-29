@@ -20,11 +20,11 @@ export interface BallDrainResult {
   isLifeLost: boolean
 }
 
-function getDrainResult(
+const getDrainResult = (
   balls: BallState[],
   playingBallIds: string[],
   wasTracked: boolean,
-): BallDrainResult {
+): BallDrainResult => {
   return {
     wasTracked,
     remainingBallCount: balls.length,

@@ -10,6 +10,7 @@ import {
 } from "@react-three/rapier"
 import { useCallback, useEffect, useMemo, useRef } from "react"
 import { Box3, MathUtils, type Mesh, Vector3 } from "three"
+import { hasBallId } from "@/components/balls/ballUserData"
 import { cloneWithWorldOrientation } from "../playfield/usePlayfieldModel"
 import {
   areBallSaverTargetsDown,
@@ -33,27 +34,18 @@ interface BallSaverProps {
 type BallSaverPhase = "down" | "rising" | "active" | "retracting" | "cooldown"
 type BallCollisionTarget = CollisionEnterPayload["other"]
 
-function easeOutCubic(t: number) {
+const easeOutCubic = (t: number) => {
   return 1 - (1 - t) ** 3
 }
 
-function setBodyCollidersEnabled(body: RapierRigidBody | null, enabled: boolean) {
+const setBodyCollidersEnabled = (body: RapierRigidBody | null, enabled: boolean) => {
   if (!body) return
   for (let i = 0; i < body.numColliders(); i += 1) {
     body.collider(i).setEnabled(enabled)
   }
 }
 
-function hasBallId(value: unknown): value is { ballId: string } {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    "ballId" in value &&
-    typeof (value as Record<string, unknown>).ballId === "string"
-  )
-}
-
-function getBallCollisionKey(other: BallCollisionTarget): string | null {
+const getBallCollisionKey = (other: BallCollisionTarget): string | null => {
   if (other.rigidBodyObject?.name !== "ball") return null
 
   if (hasBallId(other.rigidBodyObject.userData)) {

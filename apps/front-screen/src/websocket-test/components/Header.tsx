@@ -1,11 +1,11 @@
 import type { ConnectionStatus } from "@frontend/types"
-import { SocketStatus } from "@/websocket-test/components/SocketStatus"
+import SocketStatus from "@/websocket-test/components/SocketStatus"
 
 interface Props {
   status: ConnectionStatus
 }
 
-export function Header({ status }: Props) {
+const Header = ({ status }: Props) => {
   return (
     <header className="flex items-center justify-between border-b border-cyan-400/20 pb-4">
       <div>
@@ -25,3 +25,5 @@ export function Header({ status }: Props) {
     </header>
   )
 }
+
+export default Header

@@ -1,9 +1,9 @@
 import { Stats } from "@react-three/drei"
-import { Physics, useRapier } from "@react-three/rapier"
+import { Physics } from "@react-three/rapier"
 import { useControls } from "leva"
 import { useEffect, useRef, type ReactNode } from "react"
-import { useFrame } from "@react-three/fiber"
 import { GRAVITY_Y, GRAVITY_Z, SLOW_MOTION_SPEED, TIME_STEP } from "./physicsConfig"
+import SlowMotionStepper from "./SlowMotionStepper"
 
 interface PhysicsManagerProps {
   isDebug: boolean
@@ -44,7 +44,9 @@ const PhysicsManager = ({ children, isDebug }: PhysicsManagerProps) => {
       setMotion({ slowMotion: !slowMotionRef.current })
     }
     window.addEventListener("keydown", handleKeyDown)
-    return () => { window.removeEventListener("keydown", handleKeyDown); }
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown)
+    }
   }, [setMotion])
 
   return (
@@ -59,14 +61,6 @@ const PhysicsManager = ({ children, isDebug }: PhysicsManagerProps) => {
       {children}
     </Physics>
   )
-}
-
-const SlowMotionStepper = ({ speed }: { speed: number }) => {
-  const { step } = useRapier()
-  useFrame((_, delta) => {
-    step(delta * speed)
-  })
-  return null
 }
 
 export default PhysicsManager

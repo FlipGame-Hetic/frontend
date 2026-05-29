@@ -1,13 +1,8 @@
 import type { PositionType } from "@/types/worldTypes"
 
 export const BUMPER_POSITIONS: PositionType[] = [
-  // [-2.8, 0, -6],
-  // [2.8, 0, -6],
-  // [-2.8, 0, 6],
-  // [2.8, 0, 6],
   [1.5, 0, 2.8],
   [-1.5, 0, 2.8],
-  // [0, 0, 0],
   [-2.8, 0, 0],
   [2.8, 0, 0],
 ]

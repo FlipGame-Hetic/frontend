@@ -4,7 +4,7 @@ import { BUMPER_HIT_DEBOUNCE_MS, BUMPER_MAX_EXIT_TANGENT_SPEED } from "./bumperC
 
 const lastHitByBall = new WeakMap<RapierRigidBody, number>()
 
-export function shouldSkipBumperHit(ball: RapierRigidBody): boolean {
+export const shouldSkipBumperHit = (ball: RapierRigidBody): boolean => {
   const now = performance.now()
   const lastHit = lastHitByBall.get(ball)
 
@@ -16,13 +16,13 @@ export function shouldSkipBumperHit(ball: RapierRigidBody): boolean {
   return false
 }
 
-export function applyBumperImpulse(
+export const applyBumperImpulse = (
   ball: RapierRigidBody,
   direction: { x: number; y: number; z: number },
   impulseStrength: number,
   minNormalSpeed: number,
   maxNormalSpeed: number,
-) {
+) => {
   const ballMass = ball.mass()
   const impulseMag = impulseStrength * ballMass
 

@@ -4,6 +4,7 @@ import { RigidBody } from "@react-three/rapier"
 import { useDebugControls } from "@/debug/debugContext"
 import useMultiballStore from "@/stores/useMultiballStore"
 import type { Vector3Tuple } from "three"
+import { getBallId } from "@/components/balls/ballUserData"
 import { cloneAtWorldTransform, type PlayfieldNodes } from "./usePlayfieldModel"
 import { enterRail, scheduleExitRail } from "./railState"
 import { createBonusZoneHitTester } from "./bonusZoneHitTest"
@@ -15,7 +16,7 @@ import {
   MULTIBALL_SPAWN_POSITION2,
 } from "./bonusZoneConfig"
 
-export default function StaticPlayfield({ nodes }: { nodes: PlayfieldNodes }) {
+const StaticPlayfield = ({ nodes }: { nodes: PlayfieldNodes }) => {
   const { bounceThreshold, ballCount } = useDebugControls()
 
   const clones = useMemo(
@@ -34,14 +35,14 @@ export default function StaticPlayfield({ nodes }: { nodes: PlayfieldNodes }) {
 
   const handleRailEnter = useCallback(({ other }: CollisionPayload) => {
     if (other.rigidBodyObject?.name !== "ball") return
-    const ballId = other.rigidBodyObject.userData.ballId as string | undefined
+    const ballId = getBallId(other.rigidBodyObject.userData)
     if (!ballId) return
     enterRail(ballId)
   }, [])
 
   const handleRailExit = useCallback(({ other }: CollisionPayload) => {
     if (other.rigidBodyObject?.name !== "ball") return
-    const ballId = other.rigidBodyObject.userData.ballId as string | undefined
+    const ballId = getBallId(other.rigidBodyObject.userData)
     if (!ballId) return
     scheduleExitRail(ballId)
   }, [])
@@ -49,7 +50,7 @@ export default function StaticPlayfield({ nodes }: { nodes: PlayfieldNodes }) {
   const handleBonusZoneCollision = useCallback(
     ({ other }: CollisionPayload) => {
       if (other.rigidBodyObject?.name !== "ball") return
-      const ballId = other.rigidBodyObject.userData.ballId as string | undefined
+      const ballId = getBallId(other.rigidBodyObject.userData)
       if (!ballId) return
       const ballPosition = other.rigidBody?.translation()
       if (!ballPosition || !bonusZoneHitTester.containsPoint(ballPosition)) return
@@ -115,3 +116,5 @@ export default function StaticPlayfield({ nodes }: { nodes: PlayfieldNodes }) {
     </>
   )
 }
+
+export default StaticPlayfield

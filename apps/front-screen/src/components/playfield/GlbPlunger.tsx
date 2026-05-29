@@ -7,15 +7,15 @@ import {
   type PlayfieldNodes,
 } from "./usePlayfieldModel"
 
-function getRingIndex(name: string): number {
+const getRingIndex = (name: string): number => {
   return Number(name.replace("ring_", ""))
 }
 
-function toLocalPosition(position: PositionType, root: PositionType): PositionType {
+const toLocalPosition = (position: PositionType, root: PositionType): PositionType => {
   return [position[0] - root[0], position[1] - root[1], position[2] - root[2]]
 }
 
-export default function GlbPlunger({ nodes }: { nodes: PlayfieldNodes }) {
+const GlbPlunger = ({ nodes }: { nodes: PlayfieldNodes }) => {
   const plunger = useMemo(() => {
     const tip = nodes.plunger.find((mesh) => mesh.name === "tip")
     if (!tip) return null
@@ -46,3 +46,5 @@ export default function GlbPlunger({ nodes }: { nodes: PlayfieldNodes }) {
 
   return <Plunger position={plunger.position} tipMesh={plunger.tip} ringMeshes={plunger.rings} />
 }
+
+export default GlbPlunger

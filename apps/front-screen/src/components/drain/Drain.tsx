@@ -6,20 +6,12 @@ import type { CollisionPayload } from "@react-three/rapier"
 import { CuboidCollider, RigidBody } from "@react-three/rapier"
 import { useControls } from "leva"
 import { useCallback, useEffect, useRef } from "react"
+import { hasBallId } from "@/components/balls/ballUserData"
 import {
   DRAIN_RESPAWN_DELAY_MS,
   DRAIN_SENSOR_HALF_EXTENTS,
   DRAIN_SENSOR_POSITION,
 } from "./drainConfig"
-
-function hasBallId(value: unknown): value is { ballId: string } {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    "ballId" in value &&
-    typeof (value as Record<string, unknown>).ballId === "string"
-  )
-}
 
 const Drain = () => {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)

@@ -2,18 +2,18 @@ import { useCallback, useState } from "react"
 
 import type { GameMessage } from "@frontend/types"
 import { useGameSocket } from "@frontend/ws"
-import { EventLog } from "@/websocket-test/components/EventLog"
-import { Header } from "@/websocket-test/components/Header"
-import { CyberLayout } from "@/websocket-test/components/layout/CyberLayout"
-import { BallSection } from "@/websocket-test/components/sections/BallSection"
-import { BumperSection } from "@/websocket-test/components/sections/BumperSection"
-import { EnergySection } from "@/websocket-test/components/sections/EnergySection"
-import { FlipperSection } from "@/websocket-test/components/sections/FlipperSection"
-import { GameSection } from "@/websocket-test/components/sections/GameSection"
-import { SpecialsSection } from "@/websocket-test/components/sections/SpecialsSection"
+import EventLog from "@/websocket-test/components/EventLog"
+import Header from "@/websocket-test/components/Header"
+import CyberLayout from "@/websocket-test/components/layout/CyberLayout"
+import BallSection from "@/websocket-test/components/sections/BallSection"
+import BumperSection from "@/websocket-test/components/sections/BumperSection"
+import EnergySection from "@/websocket-test/components/sections/EnergySection"
+import FlipperSection from "@/websocket-test/components/sections/FlipperSection"
+import GameSection from "@/websocket-test/components/sections/GameSection"
+import SpecialsSection from "@/websocket-test/components/sections/SpecialsSection"
 import type { Dispatcher, LogEntry } from "@/websocket-test/types"
 
-function toLogEntry(type: string, payload: unknown, direction: "→" | "←"): LogEntry {
+const toLogEntry = (type: string, payload: unknown, direction: "→" | "←"): LogEntry => {
   return {
     id: Date.now() + Math.random(),
     type: `${direction} ${type}`,
@@ -27,7 +27,7 @@ function toLogEntry(type: string, payload: unknown, direction: "→" | "←"): L
   }
 }
 
-export function WebsocketTest() {
+const WebsocketTest = () => {
   const [log, setLog] = useState<LogEntry[]>([])
 
   const onMessage = useCallback((message: GameMessage) => {
@@ -68,3 +68,5 @@ export function WebsocketTest() {
     </CyberLayout>
   )
 }
+
+export default WebsocketTest

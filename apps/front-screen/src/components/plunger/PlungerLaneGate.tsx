@@ -10,7 +10,7 @@ import {
   PLUNGER_LANE_GATE_ROTATION,
 } from "./plungerConfig"
 
-function getBallId(payload: CollisionPayload): string | null {
+const getBallId = (payload: CollisionPayload): string | null => {
   const obj = payload.other.rigidBodyObject
   if (!obj) return null
   const { ballId } = obj.userData as { ballId?: unknown }

@@ -1,5 +1,5 @@
 import { button, useControls } from "leva"
-import { createContext, useContext, useEffect, useRef, type ReactNode } from "react"
+import { useEffect, useRef, type ReactNode } from "react"
 import { requestFrontScreenStartGame } from "@/hooks/useScreenHub"
 import useMultiballStore from "@/stores/useMultiballStore"
 import useBallStore from "@/stores/useBallStore"
@@ -13,24 +13,9 @@ import {
   MULTIBALL_SPAWN_POSITION1,
   MULTIBALL_SPAWN_POSITION2,
 } from "@/components/playfield/bonusZoneConfig"
+import { DebugContext, type DebugControls } from "@/debug/debugContext"
 
-export interface DebugControls {
-  testBench: boolean
-  enabled: boolean
-  autoMode: boolean
-  bounceThreshold: number
-  ballCount: number
-}
-
-const DebugContext = createContext<DebugControls | null>(null)
-
-export function useDebugControls(): DebugControls {
-  const ctx = useContext(DebugContext)
-  if (!ctx) throw new Error("useDebugControls must be used within DebugProvider")
-  return ctx
-}
-
-export function DebugProvider({ children }: { children: ReactNode }) {
+const DebugProvider = ({ children }: { children: ReactNode }) => {
   const ballCountRef = useRef(MULTIBALL_BALL_COUNT)
 
   const mainControls = useControls(
@@ -89,3 +74,5 @@ export function DebugProvider({ children }: { children: ReactNode }) {
 
   return <DebugContext.Provider value={value}>{children}</DebugContext.Provider>
 }
+
+export default DebugProvider

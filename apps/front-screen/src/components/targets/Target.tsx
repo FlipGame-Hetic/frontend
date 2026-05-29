@@ -22,11 +22,11 @@ export const DROP_TARGET_RETURN_DURATION = 220
 const DROP_TARGET_VISIBLE_HEIGHT = 0.08
 const DROP_TARGET_MIN_DROP_RATIO = 0.75
 
-function easeOutCubic(t: number) {
+const easeOutCubic = (t: number) => {
   return 1 - (1 - t) ** 3
 }
 
-function hashName(name: string) {
+const hashName = (name: string) => {
   let hash = 0
   for (let i = 0; i < name.length; i += 1) {
     hash = (hash * 31 + name.charCodeAt(i)) | 0
@@ -34,7 +34,7 @@ function hashName(name: string) {
   return Math.abs(hash)
 }
 
-function getTiltAxis(name: string) {
+const getTiltAxis = (name: string) => {
   const hash = hashName(name)
   const xAmount = 0.35 + ((hash % 100) / 100) * 0.65
   const zAmount = 0.25 + (((hash >> 8) % 100) / 100) * 0.75
@@ -42,7 +42,7 @@ function getTiltAxis(name: string) {
   return new Vector3(xAmount, 0, zAmount * zSign).normalize()
 }
 
-function setTargetCollidersEnabled(body: RapierRigidBody | null, enabled: boolean) {
+const setTargetCollidersEnabled = (body: RapierRigidBody | null, enabled: boolean) => {
   if (!body) return
   for (let i = 0; i < body.numColliders(); i += 1) {
     body.collider(i).setEnabled(enabled)

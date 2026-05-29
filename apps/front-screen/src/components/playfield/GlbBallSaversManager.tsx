@@ -3,7 +3,7 @@ import BallSaver from "../ballSavers/BallSaver"
 import { getBallSaverSideFromWorldPosition } from "../ballSavers/ballSaverConfig"
 import { getWorldPosition, type PlayfieldNodes } from "./usePlayfieldModel"
 
-export default function GlbBallSaversManager({ nodes }: { nodes: PlayfieldNodes }) {
+const GlbBallSaversManager = ({ nodes }: { nodes: PlayfieldNodes }) => {
   const ballSavers = useMemo(
     () =>
       nodes.ballSavers.map((mesh) => {
@@ -25,3 +25,5 @@ export default function GlbBallSaversManager({ nodes }: { nodes: PlayfieldNodes 
     </>
   )
 }
+
+export default GlbBallSaversManager

@@ -22,7 +22,7 @@ interface ScorePopupProps {
   position: { x: number; y: number; z: number }
 }
 
-function easeOutCubic(t: number): number {
+const easeOutCubic = (t: number): number => {
   return 1 - Math.pow(1 - t, 3)
 }
 

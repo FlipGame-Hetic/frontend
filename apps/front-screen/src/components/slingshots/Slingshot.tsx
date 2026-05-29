@@ -15,6 +15,7 @@ import {
 import { useCallback, useMemo, useRef } from "react"
 import type { Group, Mesh } from "three"
 import { normalizedPlayfieldDirection } from "../physics/playfieldPlane"
+import { createStuckBallTracker } from "../physics/stuckBallTracker"
 import {
   SLINGSHOT_ACTIVE_FACE_POINTS,
   SLINGSHOT_FACE_HEIGHT,
@@ -44,7 +45,23 @@ const Slingshot = ({ position, side, slingshotId, moduleMesh, rubberMesh }: Slin
   const bodyRef = useRef<RapierRigidBody>(null)
   const rubberGroupRef = useRef<Group>(null)
   const hitAt = useRef(-Infinity)
-  const stuckBall = useRef<{ body: RapierRigidBody; frames: number } | null>(null)
+  const stuckTracker = useRef(
+    createStuckBallTracker({
+      stuckVelocity: SLINGSHOT_STUCK_VELOCITY,
+      stuckFrames: SLINGSHOT_STUCK_FRAMES,
+      unstick: (body, dir) => {
+        const m = body.mass()
+        body.applyImpulse(
+          {
+            x: dir.x * SLINGSHOT_UNSTICK_IMPULSE * m,
+            y: dir.y * SLINGSHOT_UNSTICK_IMPULSE * m,
+            z: dir.z * SLINGSHOT_UNSTICK_IMPULSE * m,
+          },
+          true,
+        )
+      },
+    }),
+  )
 
   const activeFace = useMemo(() => {
     const face = SLINGSHOT_ACTIVE_FACE_POINTS[side]
@@ -106,7 +123,7 @@ const Slingshot = ({ position, side, slingshotId, moduleMesh, rubberMesh }: Slin
         )
       }
 
-      stuckBall.current = { body: other.rigidBody, frames: 0 }
+      stuckTracker.current.arm(other.rigidBody)
     },
     [slingshotId],
   )
@@ -125,29 +142,7 @@ const Slingshot = ({ position, side, slingshotId, moduleMesh, rubberMesh }: Slin
       }
     }
 
-    if (!stuckBall.current || !bodyRef.current) return
-    const ball = stuckBall.current.body
-    const v = ball.linvel()
-    if (Math.hypot(v.x, v.y, v.z) > SLINGSHOT_STUCK_VELOCITY) {
-      stuckBall.current = null
-      return
-    }
-    stuckBall.current.frames++
-    if (stuckBall.current.frames >= SLINGSHOT_STUCK_FRAMES) {
-      const a = Math.random() * Math.PI * 2
-      const m = ball.mass()
-      const dir = normalizedPlayfieldDirection({ x: Math.cos(a), y: 0, z: Math.sin(a) })
-      if (!dir) return
-      ball.applyImpulse(
-        {
-          x: dir.x * SLINGSHOT_UNSTICK_IMPULSE * m,
-          y: dir.y * SLINGSHOT_UNSTICK_IMPULSE * m,
-          z: dir.z * SLINGSHOT_UNSTICK_IMPULSE * m,
-        },
-        true,
-      )
-      stuckBall.current = null
-    }
+    stuckTracker.current.tick()
   })
 
   return (

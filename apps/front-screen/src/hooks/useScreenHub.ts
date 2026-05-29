@@ -17,7 +17,7 @@ const DEFAULT_START_CHARACTER: CharacterType = "striker"
 const TOKEN =
   (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_SCREEN_TOKEN ?? ""
 
-function handleScreenEvent(envelope: ScreenEnvelope): void {
+const handleScreenEvent = (envelope: ScreenEnvelope): void => {
   const { selectMode, selectCharacter, startGame, setPhase, restartGame } = useGameStore.getState()
 
   if (isScreenEvent(envelope, "menu_confirm")) {
@@ -38,7 +38,7 @@ function handleScreenEvent(envelope: ScreenEnvelope): void {
   }
 }
 
-function getStartGamePayload(): StartGameEvent["payload"] {
+const getStartGamePayload = (): StartGameEvent["payload"] => {
   const { mode, selectedPlayers } = useGameStore.getState()
 
   return {
@@ -50,19 +50,19 @@ function getStartGamePayload(): StartGameEvent["payload"] {
   }
 }
 
-export function dispatchFrontScreenEvent(event: ScreenEvent): void {
+export const dispatchFrontScreenEvent = (event: ScreenEvent): void => {
   sendEventTo(SCREEN_ID, event)
   handleScreenEvent(makeEnvelope(SCREEN_ID, { kind: "screen", id: SCREEN_ID }, event))
 }
 
-export function requestFrontScreenStartGame(): void {
+export const requestFrontScreenStartGame = (): void => {
   dispatchFrontScreenEvent({
     event_type: "start_game",
     payload: getStartGamePayload(),
   })
 }
 
-export function useScreenHub(): void {
+export const useScreenHub = (): void => {
   const { send } = useScreenHubBase({
     screenId: SCREEN_ID,
     token: TOKEN,

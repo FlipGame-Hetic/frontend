@@ -16,7 +16,7 @@ export const PLAYFIELD_UNIT_NORMAL: VectorLike = {
   z: PLAYFIELD_NORMAL[2] / normalLength,
 }
 
-export function dotPlayfieldNormal(vector: VectorLike) {
+export const dotPlayfieldNormal = (vector: VectorLike) => {
   return (
     vector.x * PLAYFIELD_UNIT_NORMAL.x +
     vector.y * PLAYFIELD_UNIT_NORMAL.y +
@@ -24,7 +24,7 @@ export function dotPlayfieldNormal(vector: VectorLike) {
   )
 }
 
-export function projectOnPlayfield(vector: VectorLike): VectorLike {
+export const projectOnPlayfield = (vector: VectorLike): VectorLike => {
   const normalSpeed = dotPlayfieldNormal(vector)
 
   return {
@@ -34,7 +34,7 @@ export function projectOnPlayfield(vector: VectorLike): VectorLike {
   }
 }
 
-export function normalizedPlayfieldDirection(vector: VectorLike): VectorLike | null {
+export const normalizedPlayfieldDirection = (vector: VectorLike): VectorLike | null => {
   const projected = projectOnPlayfield(vector)
   const length = Math.hypot(projected.x, projected.y, projected.z)
 
@@ -47,7 +47,7 @@ export function normalizedPlayfieldDirection(vector: VectorLike): VectorLike | n
   }
 }
 
-export function normalizedPlanarBounceDirection(vector: VectorLike): VectorLike | null {
+export const normalizedPlanarBounceDirection = (vector: VectorLike): VectorLike | null => {
   const length = Math.hypot(vector.x, vector.z)
 
   if (length < 0.001) return null
@@ -59,7 +59,7 @@ export function normalizedPlanarBounceDirection(vector: VectorLike): VectorLike 
   }
 }
 
-export function removePositiveVerticalVelocity(velocity: VectorLike): VectorLike {
+export const removePositiveVerticalVelocity = (velocity: VectorLike): VectorLike => {
   return {
     x: velocity.x,
     y: Math.min(0, velocity.y),
@@ -67,12 +67,12 @@ export function removePositiveVerticalVelocity(velocity: VectorLike): VectorLike
   }
 }
 
-export function clampVelocityToPlayfield(
+export const clampVelocityToPlayfield = (
   velocity: VectorLike,
   maxTangentSpeed: number,
   minNormalSpeed: number,
   maxNormalSpeed: number,
-): VectorLike {
+): VectorLike => {
   const normalSpeed = Math.min(
     maxNormalSpeed,
     Math.max(minNormalSpeed, dotPlayfieldNormal(velocity)),
@@ -89,12 +89,12 @@ export function clampVelocityToPlayfield(
   }
 }
 
-export function clampBallVelocityToPlayfield(
+export const clampBallVelocityToPlayfield = (
   velocity: VectorLike,
   maxTangentSpeed: number,
   minNormalSpeed: number,
   maxNormalSpeed: number,
-): VectorLike {
+): VectorLike => {
   return clampVelocityToPlayfield(
     velocity,
     maxTangentSpeed,

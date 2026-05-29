@@ -18,7 +18,7 @@ const PORTAL_TINT: Record<PortalId, [number, number, number]> = {
   B: [0.961, 0.592, 0.078],
 }
 
-function createPortalMaterial(r: number, g: number, b: number) {
+const createPortalMaterial = (r: number, g: number, b: number) => {
   return new ShaderMaterial({
     vertexShader: VERTEX_SHADER,
     fragmentShader: FRAGMENT_SHADER,

@@ -1,208 +1,46 @@
 import useBallStore from "@/stores/useBallStore"
+import { getBallId } from "@/components/balls/ballUserData"
 import { useFrame } from "@react-three/fiber"
 import type { CollisionPayload, RapierRigidBody } from "@react-three/rapier"
 import { ConeCollider, CuboidCollider, RigidBody } from "@react-three/rapier"
 import { useCallback, useEffect, useMemo, useRef } from "react"
 import { Vector3 } from "three"
 import {
-  TOP_TUNNEL_ASSIST_CENTER_DEAD_ZONE,
   TOP_TUNNEL_ASSIST_CORNER_BLENDS,
   TOP_TUNNEL_ASSIST_EXIT_DEBOUNCE_MS,
-  TOP_TUNNEL_ASSIST_MAX_FORWARD_SPEED,
   TOP_TUNNEL_ASSIST_MIN_ENTRY_FORWARD_SPEED,
-  TOP_TUNNEL_ASSIST_PULL_FULL_DISTANCE,
   TOP_TUNNEL_ASSIST_SEGMENTS,
   TOP_TUNNEL_ENTRY_TRACTOR,
-  type TopTunnelAssistCornerBlendConfig,
-  type TopTunnelAssistSegmentConfig,
-  type TopTunnelAssistSegmentId,
 } from "./topTunnelAssistConfig"
-
-const ENTRY_ZONE_ID = "entry"
-type TopTunnelAssistZoneId = typeof ENTRY_ZONE_ID | TopTunnelAssistSegmentId
-
-interface RuntimeSegment {
-  config: TopTunnelAssistSegmentConfig
-  direction: Vector3
-  end: Vector3
-  index: number
-  length: number
-  start: Vector3
-}
-
-interface RuntimeCornerBlend {
-  afterDistance: number
-  beforeDistance: number
-  from: RuntimeSegment
-  to: RuntimeSegment
-}
-
-interface ActiveTopTunnelAssist {
-  body: RapierRigidBody
-  exitTimeout?: ReturnType<typeof setTimeout>
-  lastSegmentIndex: number
-  zones: Set<TopTunnelAssistZoneId>
-}
+import {
+  addCenterPullImpulse,
+  addForwardImpulse,
+  createRuntimeCornerBlend,
+  createRuntimeSegment,
+  dotBodyVelocity,
+  ENTRY_ZONE_ID,
+  getActiveSegment,
+  getCornerBlendWeight,
+  type ActiveTopTunnelAssist,
+  type RuntimeCornerBlend,
+  type TopTunnelAssistZoneId,
+} from "./topTunnelAssistRuntime"
 
 interface BallPayload {
   body: RapierRigidBody
   id: string
 }
 
-function extractBall(payload: CollisionPayload): BallPayload | null {
+const extractBall = (payload: CollisionPayload): BallPayload | null => {
   const obj = payload.other.rigidBodyObject
   const body = payload.other.rigidBody
   if (obj?.name !== "ball" || !body) return null
-
-  const ballId = obj.userData.ballId as string | undefined
+  const ballId = getBallId(obj.userData)
   if (!ballId) return null
   return { body, id: ballId }
 }
 
-function dotBodyVelocity(body: RapierRigidBody, direction: Vector3): number {
-  const vel = body.linvel()
-  return vel.x * direction.x + vel.y * direction.y + vel.z * direction.z
-}
-
-function clamp01(value: number): number {
-  return Math.min(Math.max(value, 0), 1)
-}
-
-function smoothstep(value: number): number {
-  const t = clamp01(value)
-  return t * t * (3 - 2 * t)
-}
-
-function createRuntimeSegment(config: TopTunnelAssistSegmentConfig, index: number): RuntimeSegment {
-  const start = new Vector3(...config.start)
-  const end = new Vector3(...config.end)
-  const direction = end.clone().sub(start)
-  const length = direction.length()
-
-  if (length > 0) direction.divideScalar(length)
-
-  return { config, direction, end, index, length, start }
-}
-
-function createRuntimeCornerBlend(
-  config: TopTunnelAssistCornerBlendConfig,
-  segments: RuntimeSegment[],
-): RuntimeCornerBlend | null {
-  const from = segments.find((segment) => segment.config.id === config.fromSegmentId)
-  const to = segments.find((segment) => segment.config.id === config.toSegmentId)
-
-  if (!from || !to) return null
-
-  return {
-    afterDistance: config.afterDistance,
-    beforeDistance: config.beforeDistance,
-    from,
-    to,
-  }
-}
-
-function distanceAlongSegment(point: Vector3, segment: RuntimeSegment): number {
-  return point.clone().sub(segment.start).dot(segment.direction)
-}
-
-function closestPointOnSegment(point: Vector3, segment: RuntimeSegment): Vector3 {
-  if (segment.length <= 0) return segment.start.clone()
-
-  const alongSegment = point.clone().sub(segment.start).dot(segment.direction)
-  const clampedDistance = Math.min(Math.max(alongSegment, 0), segment.length)
-  return segment.start.clone().addScaledVector(segment.direction, clampedDistance)
-}
-
-function getCornerBlendWeight(
-  point: Vector3,
-  activeSegment: RuntimeSegment,
-  blends: RuntimeCornerBlend[],
-): { blend: RuntimeCornerBlend; toWeight: number } | null {
-  for (const blend of blends) {
-    let signedDistanceFromCorner: number | null = null
-
-    if (activeSegment.index === blend.from.index) {
-      const remainingDistance = blend.from.length - distanceAlongSegment(point, blend.from)
-      if (remainingDistance > blend.beforeDistance) continue
-      signedDistanceFromCorner = -remainingDistance
-    } else if (activeSegment.index === blend.to.index) {
-      const nextSegmentDistance = distanceAlongSegment(point, blend.to)
-      if (nextSegmentDistance > blend.afterDistance) continue
-      signedDistanceFromCorner = nextSegmentDistance
-    }
-
-    if (signedDistanceFromCorner === null) continue
-
-    const transitionLength = blend.beforeDistance + blend.afterDistance
-    const toWeight = smoothstep(
-      (signedDistanceFromCorner + blend.beforeDistance) / transitionLength,
-    )
-
-    return { blend, toWeight }
-  }
-
-  return null
-}
-
-function addCenterPullImpulse(
-  impulse: Vector3,
-  point: Vector3,
-  segment: RuntimeSegment,
-  accel: number,
-  weight: number,
-  delta: number,
-  mass: number,
-): void {
-  if (weight <= 0.001) return
-
-  const offset = closestPointOnSegment(point, segment).sub(point)
-  const distance = offset.length()
-  if (distance <= TOP_TUNNEL_ASSIST_CENTER_DEAD_ZONE) return
-
-  const pullRatio = Math.min(distance / TOP_TUNNEL_ASSIST_PULL_FULL_DISTANCE, 1)
-  impulse.addScaledVector(offset.divideScalar(distance), accel * weight * pullRatio * delta * mass)
-}
-
-function addForwardImpulse(
-  impulse: Vector3,
-  body: RapierRigidBody,
-  direction: Vector3,
-  accel: number,
-  weight: number,
-  delta: number,
-  mass: number,
-): void {
-  if (weight <= 0.001) return
-  if (dotBodyVelocity(body, direction) >= TOP_TUNNEL_ASSIST_MAX_FORWARD_SPEED) return
-
-  impulse.addScaledVector(direction, accel * weight * delta * mass)
-}
-
-function getSegmentZoneIndex(zone: TopTunnelAssistZoneId, segments: RuntimeSegment[]): number {
-  return segments.findIndex((segment) => segment.config.id === zone)
-}
-
-function getActiveSegment(
-  state: ActiveTopTunnelAssist,
-  segments: RuntimeSegment[],
-): RuntimeSegment | null {
-  let bestIndex = -1
-
-  for (const zone of state.zones) {
-    if (zone === ENTRY_ZONE_ID) continue
-
-    const index = getSegmentZoneIndex(zone, segments)
-    if (index <= state.lastSegmentIndex) bestIndex = Math.max(bestIndex, index)
-  }
-
-  if (bestIndex < 0) {
-    return state.lastSegmentIndex >= 0 ? (segments[state.lastSegmentIndex] ?? null) : null
-  }
-
-  return segments[bestIndex] ?? null
-}
-
-export default function TopTunnelAssistManager() {
+const TopTunnelAssistManager = () => {
   const activeBallsRef = useRef(new Map<string, ActiveTopTunnelAssist>())
   const runtimeSegments = useMemo(() => TOP_TUNNEL_ASSIST_SEGMENTS.map(createRuntimeSegment), [])
   const runtimeCornerBlends = useMemo(
@@ -305,7 +143,7 @@ export default function TopTunnelAssistManager() {
       if (segmentIndex > state.lastSegmentIndex + 1) return
 
       state.lastSegmentIndex = Math.max(state.lastSegmentIndex, segmentIndex)
-      state.zones.add(segment.config.id)
+      state.zones.add(segment.config.id as TopTunnelAssistZoneId)
     },
     [canStartAssist, ensureState, runtimeSegments],
   )
@@ -321,7 +159,7 @@ export default function TopTunnelAssistManager() {
       const state = activeBallsRef.current.get(ball.id)
       if (!state) return
 
-      state.zones.delete(segment.config.id)
+      state.zones.delete(segment.config.id as TopTunnelAssistZoneId)
       scheduleCleanup(ball.id, state)
     },
     [runtimeSegments, scheduleCleanup],
@@ -467,3 +305,5 @@ export default function TopTunnelAssistManager() {
     </RigidBody>
   )
 }
+
+export default TopTunnelAssistManager

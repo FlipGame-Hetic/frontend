@@ -10,6 +10,7 @@ import { RigidBody, type CollisionEnterPayload } from "@react-three/rapier"
 import { useCallback, useRef } from "react"
 import type { Group, Mesh } from "three"
 import { normalizedPlayfieldDirection } from "../physics/playfieldPlane"
+import { createStuckBallTracker } from "../physics/stuckBallTracker"
 import { applyBumperImpulse, shouldSkipBumperHit } from "./bumperCollision"
 import {
   BUMPER_SCALE_FACTOR,
@@ -36,7 +37,21 @@ const Bumper = ({ position, bumperId, meshOverride, rubberMesh }: BumperProps) =
   const meshRef = useRef<Mesh>(null)
   const rubberGroupRef = useRef<Group>(null)
   const isBouncing = useRef(false)
-  const stuckBall = useRef<{ body: RapierRigidBody; frames: number } | null>(null)
+  const stuckTracker = useRef(
+    createStuckBallTracker({
+      stuckVelocity: BUMPER_STUCK_VELOCITY,
+      stuckFrames: BUMPER_STUCK_FRAMES,
+      unstick: (body, dir) => {
+        applyBumperImpulse(
+          body,
+          dir,
+          BUMPER_UNSTICK_IMPULSE,
+          BALL_MIN_NORMAL_SPEED,
+          BALL_MAX_NORMAL_SPEED,
+        )
+      },
+    }),
+  )
 
   const handleCollision = useCallback(
     ({ other }: CollisionEnterPayload) => {
@@ -77,7 +92,7 @@ const Bumper = ({ position, bumperId, meshOverride, rubberMesh }: BumperProps) =
         BALL_MAX_NORMAL_SPEED,
       )
 
-      stuckBall.current = { body: other.rigidBody, frames: 0 }
+      stuckTracker.current.arm(other.rigidBody)
     },
     [bumperId],
   )
@@ -94,34 +109,7 @@ const Bumper = ({ position, bumperId, meshOverride, rubberMesh }: BumperProps) =
       }
     }
 
-    if (!stuckBall.current || !bodyRef.current) return
-    const ball = stuckBall.current.body
-
-    const vel = ball.linvel()
-    const speed = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z)
-
-    if (speed > BUMPER_STUCK_VELOCITY) {
-      stuckBall.current = null
-      return
-    }
-
-    stuckBall.current.frames++
-
-    if (stuckBall.current.frames >= BUMPER_STUCK_FRAMES) {
-      const angle = Math.random() * Math.PI * 2
-      const dir = normalizedPlayfieldDirection({ x: Math.cos(angle), y: 0, z: Math.sin(angle) })
-
-      if (!dir) return
-
-      applyBumperImpulse(
-        ball,
-        dir,
-        BUMPER_UNSTICK_IMPULSE,
-        BALL_MIN_NORMAL_SPEED,
-        BALL_MAX_NORMAL_SPEED,
-      )
-      stuckBall.current = null
-    }
+    stuckTracker.current.tick()
   })
 
   return (

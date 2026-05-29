@@ -14,47 +14,47 @@ const ghostRefs = new Map<string, Group>()
 const cooldowns = new Map<string, number>()
 const lockedPortals = new Set<PortalId>()
 
-export function startTraversal(
+export const startTraversal = (
   ballId: string,
   fromPortal: PortalId,
   masterBody: RapierRigidBody,
   enterSign: number,
-): void {
+): void => {
   activeTraversals.set(ballId, { ballId, fromPortal, masterBody, enterSign })
   lockedPortals.add(fromPortal)
 }
 
-export function endTraversal(ballId: string): void {
+export const endTraversal = (ballId: string): void => {
   const t = activeTraversals.get(ballId)
   if (t) lockedPortals.delete(t.fromPortal)
   activeTraversals.delete(ballId)
 }
 
-export function getTraversal(ballId: string): ActiveTraversal | undefined {
+export const getTraversal = (ballId: string): ActiveTraversal | undefined => {
   return activeTraversals.get(ballId)
 }
 
-export function getAllTraversals(): ActiveTraversal[] {
+export const getAllTraversals = (): ActiveTraversal[] => {
   return [...activeTraversals.values()]
 }
 
-export function registerGhostRef(ballId: string, ref: Group): void {
+export const registerGhostRef = (ballId: string, ref: Group): void => {
   ghostRefs.set(ballId, ref)
 }
 
-export function unregisterGhostRef(ballId: string): void {
+export const unregisterGhostRef = (ballId: string): void => {
   ghostRefs.delete(ballId)
 }
 
-export function getGhostRef(ballId: string): Group | undefined {
+export const getGhostRef = (ballId: string): Group | undefined => {
   return ghostRefs.get(ballId)
 }
 
-export function setCooldown(ballId: string, durationMs: number): void {
+export const setCooldown = (ballId: string, durationMs: number): void => {
   cooldowns.set(ballId, performance.now() + durationMs)
 }
 
-export function isCooldown(ballId: string): boolean {
+export const isCooldown = (ballId: string): boolean => {
   const exp = cooldowns.get(ballId)
   if (exp === undefined) return false
   if (performance.now() > exp) {
@@ -64,11 +64,11 @@ export function isCooldown(ballId: string): boolean {
   return true
 }
 
-export function isPortalLocked(portalId: PortalId): boolean {
+export const isPortalLocked = (portalId: PortalId): boolean => {
   return lockedPortals.has(portalId)
 }
 
-export function cleanupAll(): void {
+export const cleanupAll = (): void => {
   activeTraversals.clear()
   ghostRefs.clear()
   cooldowns.clear()
