@@ -2,11 +2,21 @@ import useBallStore from "@/stores/useBallStore"
 import useGameStore from "@/stores/useGameStore"
 import type { PositionType } from "@/types/worldTypes"
 import { isPointInPlungerLaneSensor, PLUNGER_BALL_SPAWN } from "@/components/plunger/plungerConfig"
-import { usePhysicsDebugControls } from "@/debug/physicsDebugContext"
 import { useControls, button } from "leva"
 import { useCallback, useEffect } from "react"
 import Ball from "./Ball"
-import { DEFAULT_BALL_SPAWN } from "./ballConfig"
+import {
+  DEFAULT_BALL_SPAWN,
+  BALL_MASS,
+  BALL_RESTITUTION,
+  BALL_FRICTION,
+  BALL_LINEAR_DAMPING,
+  BALL_ANGULAR_DAMPING,
+  BALL_MAX_TANGENT_SPEED,
+  BALL_LANE_MAX_TANGENT_SPEED,
+  BALL_MIN_NORMAL_SPEED,
+  BALL_MAX_NORMAL_SPEED,
+} from "./ballConfig"
 
 let _spawnX = DEFAULT_BALL_SPAWN[0]
 let _spawnY = DEFAULT_BALL_SPAWN[1]
@@ -52,18 +62,6 @@ const BallsManager = () => {
     }
   }, [handleSpawn, handleSpawnInPlunger])
 
-  const {
-    mass,
-    restitution,
-    friction,
-    linearDamping,
-    angularDamping,
-    maxTangentSpeed,
-    laneMaxTangentSpeed,
-    minNormalSpeed,
-    maxNormalSpeed,
-  } = usePhysicsDebugControls().ball
-
   useControls("Ball Spawner", {
     spawnX: {
       value: DEFAULT_BALL_SPAWN[0],
@@ -103,15 +101,15 @@ const BallsManager = () => {
           key={ball.id}
           id={ball.id}
           position={ball.position}
-          mass={mass}
-          restitution={restitution}
-          friction={friction}
-          linearDamping={linearDamping}
-          angularDamping={angularDamping}
-          maxTangentSpeed={maxTangentSpeed}
-          laneMaxTangentSpeed={laneMaxTangentSpeed}
-          minNormalSpeed={minNormalSpeed}
-          maxNormalSpeed={maxNormalSpeed}
+          mass={BALL_MASS}
+          restitution={BALL_RESTITUTION}
+          friction={BALL_FRICTION}
+          linearDamping={BALL_LINEAR_DAMPING}
+          angularDamping={BALL_ANGULAR_DAMPING}
+          maxTangentSpeed={BALL_MAX_TANGENT_SPEED}
+          laneMaxTangentSpeed={BALL_LANE_MAX_TANGENT_SPEED}
+          minNormalSpeed={BALL_MIN_NORMAL_SPEED}
+          maxNormalSpeed={BALL_MAX_NORMAL_SPEED}
         />
       ))}
     </>

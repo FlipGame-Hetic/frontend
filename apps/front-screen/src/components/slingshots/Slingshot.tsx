@@ -11,7 +11,6 @@ import {
   type CollisionEnterPayload,
   type RapierRigidBody,
 } from "@react-three/rapier"
-import { usePhysicsDebugControls } from "@/debug/physicsDebugContext"
 import { useCallback, useMemo, useRef } from "react"
 import type { Group, Mesh } from "three"
 import { normalizedPlayfieldDirection } from "../physics/playfieldPlane"
@@ -23,6 +22,11 @@ import {
   SLINGSHOT_TREMBLE_AMP,
   SLINGSHOT_TREMBLE_DURATION,
   SLINGSHOT_TREMBLE_FREQ,
+  SLINGSHOT_RESTITUTION,
+  SLINGSHOT_IMPULSE_STRENGTH,
+  SLINGSHOT_STUCK_FRAMES,
+  SLINGSHOT_STUCK_VELOCITY,
+  SLINGSHOT_UNSTICK_IMPULSE,
 } from "./slingshotConfig"
 import useScreenShakeStore from "@/stores/useScreenShakeStore"
 import { SHAKE_INTENSITY } from "@/components/screenShake/shakeIntensity"
@@ -40,9 +44,6 @@ const Slingshot = ({ position, side, slingshotId, moduleMesh, rubberMesh }: Slin
   const rubberGroupRef = useRef<Group>(null)
   const hitAt = useRef(-Infinity)
   const stuckBall = useRef<{ body: RapierRigidBody; frames: number } | null>(null)
-
-  const { restitution, impulseStrength, stuckFrames, stuckVelocity, unstickImpulse } =
-    usePhysicsDebugControls().slingshots
 
   const activeFace = useMemo(() => {
     const face = SLINGSHOT_ACTIVE_FACE_POINTS[side]
@@ -92,9 +93,9 @@ const Slingshot = ({ position, side, slingshotId, moduleMesh, rubberMesh }: Slin
         const mass = other.rigidBody.mass()
         other.rigidBody.applyImpulse(
           {
-            x: exitDir.x * impulseStrength * mass,
-            y: exitDir.y * impulseStrength * mass,
-            z: exitDir.z * impulseStrength * mass,
+            x: exitDir.x * SLINGSHOT_IMPULSE_STRENGTH * mass,
+            y: exitDir.y * SLINGSHOT_IMPULSE_STRENGTH * mass,
+            z: exitDir.z * SLINGSHOT_IMPULSE_STRENGTH * mass,
           },
           true,
         )
@@ -102,7 +103,7 @@ const Slingshot = ({ position, side, slingshotId, moduleMesh, rubberMesh }: Slin
 
       stuckBall.current = { body: other.rigidBody, frames: 0 }
     },
-    [impulseStrength, slingshotId],
+    [slingshotId],
   )
 
   useFrame(() => {
@@ -122,21 +123,21 @@ const Slingshot = ({ position, side, slingshotId, moduleMesh, rubberMesh }: Slin
     if (!stuckBall.current || !bodyRef.current) return
     const ball = stuckBall.current.body
     const v = ball.linvel()
-    if (Math.hypot(v.x, v.y, v.z) > stuckVelocity) {
+    if (Math.hypot(v.x, v.y, v.z) > SLINGSHOT_STUCK_VELOCITY) {
       stuckBall.current = null
       return
     }
     stuckBall.current.frames++
-    if (stuckBall.current.frames >= stuckFrames) {
+    if (stuckBall.current.frames >= SLINGSHOT_STUCK_FRAMES) {
       const a = Math.random() * Math.PI * 2
       const m = ball.mass()
       const dir = normalizedPlayfieldDirection({ x: Math.cos(a), y: 0, z: Math.sin(a) })
       if (!dir) return
       ball.applyImpulse(
         {
-          x: dir.x * unstickImpulse * m,
-          y: dir.y * unstickImpulse * m,
-          z: dir.z * unstickImpulse * m,
+          x: dir.x * SLINGSHOT_UNSTICK_IMPULSE * m,
+          y: dir.y * SLINGSHOT_UNSTICK_IMPULSE * m,
+          z: dir.z * SLINGSHOT_UNSTICK_IMPULSE * m,
         },
         true,
       )
@@ -153,7 +154,7 @@ const Slingshot = ({ position, side, slingshotId, moduleMesh, rubberMesh }: Slin
         args={activeFace.args}
         position={activeFace.position}
         rotation={activeFace.rotation}
-        restitution={restitution}
+        restitution={SLINGSHOT_RESTITUTION}
         friction={0}
         onCollisionEnter={handleCollision}
       />

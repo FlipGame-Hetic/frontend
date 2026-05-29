@@ -241,6 +241,10 @@ The visual theme is defined once in `packages/tailwind-config/theme.css` and imp
 
 - _Only a Dream_ — [DANCE WITH THE DEAD](https://dancewiththedead.bandcamp.com) — used with permission / for non-commercial purposes
 
+**Shaders**
+
+- Portal effect — adapted from [Shadertoy `lcfyDj`](https://www.shadertoy.com/view/lcfyDj) by [MisterPrada](https://www.shadertoy.com/user/MisterPrada) ([@Mister_Prada](https://twitter.com/Mister_Prada)) — [CC BY-NC-SA 3.0](https://creativecommons.org/licenses/by-nc-sa/3.0/) (Shadertoy default license; non-commercial use with attribution)
+
 ---
 
 ## Team

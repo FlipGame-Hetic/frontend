@@ -59,10 +59,16 @@ export const INVISIBLE_WALLS: InvisibleWallConfig[] = [
     rotation: [-0.05, 1.6, 0],
   },
   {
-    id: "rail-left-guard-entrance",
+    id: "rail-left-guard-entrance-left",
     halfExtents: [0.2, 0.23, 0.02],
     position: [-2.29, 1.5, -4.3],
     rotation: [-0.05, -1.1, 0],
+  },
+  {
+    id: "rail-left-guard-entrance-right",
+    halfExtents: [0.3, 0.23, 0.02],
+    position: [-1.75, 1.5, -4.35],
+    rotation: [-0.05, 1.3, 0],
   },
   {
     id: "rail-left-guard-bottom",

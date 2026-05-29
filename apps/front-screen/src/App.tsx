@@ -1,5 +1,5 @@
 import type { CameraProps } from "@react-three/fiber"
-import { MainDebugProvider, useMainDebugControls } from "@/debug/mainDebugContext"
+import { DebugProvider, useDebugControls } from "@/debug/debugContext"
 import { Leva } from "leva"
 import { Suspense } from "react"
 import BallsManager from "./components/balls/BallsManager"
@@ -12,7 +12,6 @@ import PhysicsManager from "./components/physics/PhysicsManager"
 import PlayfieldScene from "./components/playfield/PlayfieldScene"
 import TopTunnelAssistManager from "./components/playfield/TopTunnelAssistManager"
 import PlungerLaneGate from "./components/plunger/PlungerLaneGate"
-import PlungerLaneGateDebug from "./components/plunger/PlungerLaneGateDebug"
 import SoundManager from "./components/sound/SoundManager"
 import ScreenShakeController from "./components/screenShake/ScreenShakeController"
 import TestBench from "./components/playfield/TestBench"
@@ -27,7 +26,7 @@ const isWsTest = !isProduction && new URLSearchParams(window.location.search).ha
 
 function AppContent() {
   const cameraSettings = { position: [0, 20, 25] as [number, number, number], fov: 35 }
-  const { testBench } = useMainDebugControls()
+  const { testBench } = useDebugControls()
 
   return (
     <>
@@ -67,7 +66,6 @@ function AppContent() {
           <TopTunnelAssistManager />
           <PortalsManager />
           <PlungerLaneGate />
-          <PlungerLaneGateDebug />
           {testBench ? (
             <TestBench />
           ) : (
@@ -90,8 +88,8 @@ export default function App() {
   if (isWsTest) return <WebsocketTest />
 
   return (
-    <MainDebugProvider>
+    <DebugProvider>
       <AppContent />
-    </MainDebugProvider>
+    </DebugProvider>
   )
 }

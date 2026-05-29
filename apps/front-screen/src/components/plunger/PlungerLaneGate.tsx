@@ -1,9 +1,14 @@
 import useBallStore from "@/stores/useBallStore"
-import { usePhysicsDebugControls } from "@/debug/physicsDebugContext"
 import type { CollisionPayload } from "@react-three/rapier"
 import { CuboidCollider, RigidBody } from "@react-three/rapier"
 import { useCallback } from "react"
-import { isPastPlungerLaneGate } from "./plungerConfig"
+import {
+  isPastPlungerLaneGate,
+  PLUNGER_LANE_GATE_HALF_EXTENTS,
+  PLUNGER_LANE_GATE_NORMAL,
+  PLUNGER_LANE_GATE_POSITION,
+  PLUNGER_LANE_GATE_ROTATION,
+} from "./plungerConfig"
 
 function getBallId(payload: CollisionPayload): string | null {
   const obj = payload.other.rigidBodyObject
@@ -15,7 +20,6 @@ function getBallId(payload: CollisionPayload): string | null {
 const PlungerLaneGate = () => {
   const setBallPlaying = useBallStore((state) => state.setBallPlaying)
   const playingCount = useBallStore((state) => state.playingBallIds.length)
-  const { plungerGate } = usePhysicsDebugControls()
   const isGateActive = playingCount > 0
 
   const handleSensorExit = useCallback(
@@ -26,11 +30,13 @@ const PlungerLaneGate = () => {
       const ballPosition = payload.other.rigidBody?.translation()
       if (!ballPosition) return
 
-      if (isPastPlungerLaneGate(ballPosition, plungerGate.position, plungerGate.normal)) {
+      if (
+        isPastPlungerLaneGate(ballPosition, PLUNGER_LANE_GATE_POSITION, PLUNGER_LANE_GATE_NORMAL)
+      ) {
         setBallPlaying(ballId, true)
       }
     },
-    [setBallPlaying, plungerGate.position, plungerGate.normal],
+    [setBallPlaying],
   )
 
   return (
@@ -38,17 +44,17 @@ const PlungerLaneGate = () => {
       <CuboidCollider
         sensor
         name="plunger-lane-gate-sensor"
-        args={plungerGate.halfExtents}
-        position={plungerGate.position}
-        rotation={plungerGate.rotation}
+        args={PLUNGER_LANE_GATE_HALF_EXTENTS}
+        position={PLUNGER_LANE_GATE_POSITION}
+        rotation={PLUNGER_LANE_GATE_ROTATION}
         onIntersectionExit={handleSensorExit}
       />
       {isGateActive && (
         <CuboidCollider
           name="plunger-lane-gate"
-          args={plungerGate.halfExtents}
-          position={plungerGate.position}
-          rotation={plungerGate.rotation}
+          args={PLUNGER_LANE_GATE_HALF_EXTENTS}
+          position={PLUNGER_LANE_GATE_POSITION}
+          rotation={PLUNGER_LANE_GATE_ROTATION}
         />
       )}
     </RigidBody>

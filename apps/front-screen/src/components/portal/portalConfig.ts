@@ -4,13 +4,18 @@ import { BALL_RADIUS } from "../balls/ballConfig"
 
 export type PortalId = "A" | "B"
 
-export const PORTAL_A_POSITION: PositionType = [-2.8, 1.7, -4.4]
-export const PORTAL_A_ROTATION: PositionType = [0.2, 0.28, 0]
+export const PORTAL_A_POSITION: PositionType = [-2.73, 1.7, -4.33]
+export const PORTAL_A_ROTATION: PositionType = [0.17, 0.28, 0]
 
-export const PORTAL_B_POSITION: PositionType = [2.2, 1.7, -4.32]
+export const PORTAL_B_POSITION: PositionType = [2.2, 1.8, -4.28]
 export const PORTAL_B_ROTATION: PositionType = [0.2, -0.17, 0]
 
 export const PORTAL_SENSOR_HALF_EXTENTS: PositionType = [0.3, 0.3, 0.5]
+
+export const PORTAL_SIZE: Record<PortalId, number> = {
+  A: 0.9,
+  B: 1.16,
+}
 
 export const PORTAL_SWAP_THRESHOLD_Z = PORTAL_SENSOR_HALF_EXTENTS[2] - BALL_RADIUS
 export const PORTAL_REENTRY_COOLDOWN_MS = 200

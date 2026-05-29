@@ -27,7 +27,7 @@ const PortalGhost = ({ ballId }: PortalGhostProps) => {
     <group ref={groupRef} position={initialPos}>
       <mesh>
         <sphereGeometry args={[BALL_RADIUS, 32, 32]} />
-        <meshStandardMaterial color="white" transparent opacity={0.6} />
+        <meshStandardMaterial color="white" />
       </mesh>
     </group>
   )

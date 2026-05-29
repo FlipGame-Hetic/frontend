@@ -31,6 +31,7 @@ import {
   startTraversal,
 } from "./portalTraversalState"
 import PortalGhost from "./PortalGhost"
+import PortalSurface from "./PortalSurface"
 import useScreenShakeStore from "@/stores/useScreenShakeStore"
 import { SHAKE_INTENSITY } from "@/components/screenShake/shakeIntensity"
 
@@ -166,6 +167,9 @@ const PortalsManager = () => {
           onIntersectionExit={handleExitB}
         />
       </RigidBody>
+
+      <PortalSurface portalId="A" />
+      <PortalSurface portalId="B" />
 
       {ghostBallIds.map((ballId) => (
         <PortalGhost key={ballId} ballId={ballId} />

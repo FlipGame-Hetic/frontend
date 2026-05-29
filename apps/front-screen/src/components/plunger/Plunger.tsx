@@ -1,6 +1,5 @@
 import useKeyboard from "@/hooks/useKeyboard"
 import { playSfx } from "@/audio/soundEngine"
-import { usePhysicsDebugControls } from "@/debug/physicsDebugContext"
 import { getPlungerInputSnapshot } from "@/stores/inputStore"
 import type { PositionType } from "@/types/worldTypes"
 import { useFrame } from "@react-three/fiber"
@@ -23,6 +22,17 @@ import {
   PLUNGER_SPRING_SPACING,
   PLUNGER_SPRING_TORUS_COUNT,
   PLUNGER_SPRING_TUBE_RADIUS,
+  PLUNGER_MIN_CHARGE,
+  PLUNGER_BALL_CLEAR_TIMEOUT,
+  PLUNGER_CHARGE_FACTOR,
+  PLUNGER_IMPULSE_MULTIPLIER,
+  PLUNGER_MAX_IMPULSE,
+  PLUNGER_MIN_IMPULSE,
+  PLUNGER_RELEASE_DELAY,
+  PLUNGER_MAX_CHARGE_TIME,
+  PLUNGER_ARROW_PULL_SPEED,
+  PLUNGER_RELEASE_SPEED,
+  PLUNGER_MAX_COMPRESSION,
 } from "./plungerConfig"
 
 let ballInLane: RapierRigidBody | null = null
@@ -44,7 +54,6 @@ function toVector3(position: PositionType): Vector3 {
 
 const Plunger = ({ position = PLUNGER_POSITION, tipMesh, ringMeshes = [] }: PlungerProps) => {
   const pressedKeys = useKeyboard()
-  const plunger = usePhysicsDebugControls().plunger
 
   const plungerPositionRef = useRef(0)
   const wasSpacePressed = useRef(false)
@@ -89,53 +98,42 @@ const Plunger = ({ position = PLUNGER_POSITION, tipMesh, ringMeshes = [] }: Plun
     }
   }, [])
 
-  const releaseFromPosition = useCallback(
-    (position: number) => {
-      const charge = clampPlungerPosition(position)
+  const releaseFromPosition = useCallback((pos: number) => {
+    const charge = clampPlungerPosition(pos)
 
-      if (charge >= plunger.minCharge) {
-        if (ballInLane) {
-          playSfx("plunger_launch")
-          waitForBallClearRef.current = true
-          ballClearTimerRef.current = plunger.ballClearTimeout
+    if (charge >= PLUNGER_MIN_CHARGE) {
+      if (ballInLane) {
+        playSfx("plunger_launch")
+        waitForBallClearRef.current = true
+        ballClearTimerRef.current = PLUNGER_BALL_CLEAR_TIMEOUT
 
-          const scaledCharge = Math.pow(charge, plunger.chargeFactor)
-          const impulse =
-            (plunger.minImpulse + (plunger.maxImpulse - plunger.minImpulse) * scaledCharge) *
-            plunger.impulseMultiplier
-          const dir = normalizedPlayfieldDirection({ x: 0, y: 0, z: -1 })
+        const scaledCharge = Math.pow(charge, PLUNGER_CHARGE_FACTOR)
+        const impulse =
+          (PLUNGER_MIN_IMPULSE + (PLUNGER_MAX_IMPULSE - PLUNGER_MIN_IMPULSE) * scaledCharge) *
+          PLUNGER_IMPULSE_MULTIPLIER
+        const dir = normalizedPlayfieldDirection({ x: 0, y: 0, z: -1 })
 
-          if (dir) {
-            ballInLane.applyImpulse(
-              {
-                x: dir.x * impulse * ballInLane.mass(),
-                y: dir.y * impulse * ballInLane.mass(),
-                z: dir.z * impulse * ballInLane.mass(),
-              },
-              true,
-            )
-          }
-        } else {
-          waitForBallClearRef.current = false
-          ballClearTimerRef.current = 0
+        if (dir) {
+          ballInLane.applyImpulse(
+            {
+              x: dir.x * impulse * ballInLane.mass(),
+              y: dir.y * impulse * ballInLane.mass(),
+              z: dir.z * impulse * ballInLane.mass(),
+            },
+            true,
+          )
         }
-
-        pendingReleaseRef.current = true
-        releaseTimerRef.current = plunger.releaseDelay
       } else {
-        plungerPositionRef.current = 0
+        waitForBallClearRef.current = false
+        ballClearTimerRef.current = 0
       }
-    },
-    [
-      plunger.chargeFactor,
-      plunger.ballClearTimeout,
-      plunger.impulseMultiplier,
-      plunger.maxImpulse,
-      plunger.minCharge,
-      plunger.minImpulse,
-      plunger.releaseDelay,
-    ],
-  )
+
+      pendingReleaseRef.current = true
+      releaseTimerRef.current = PLUNGER_RELEASE_DELAY
+    } else {
+      plungerPositionRef.current = 0
+    }
+  }, [])
 
   useFrame((_, delta) => {
     const plungerInput = getPlungerInputSnapshot()
@@ -159,19 +157,19 @@ const Plunger = ({ position = PLUNGER_POSITION, tipMesh, ringMeshes = [] }: Plun
     } else if (!releasingRef.current && !pendingReleaseRef.current) {
       if (isSpacePressed) {
         plungerPositionRef.current = clampPlungerPosition(
-          plungerPositionRef.current + delta / plunger.maxChargeTime,
+          plungerPositionRef.current + delta / PLUNGER_MAX_CHARGE_TIME,
         )
       }
 
       if (isPullPressed) {
         plungerPositionRef.current = clampPlungerPosition(
-          plungerPositionRef.current + delta * plunger.arrowPullSpeed,
+          plungerPositionRef.current + delta * PLUNGER_ARROW_PULL_SPEED,
         )
       }
 
       if (isReturnPressed) {
         plungerPositionRef.current = clampPlungerPosition(
-          plungerPositionRef.current - delta * plunger.arrowPullSpeed,
+          plungerPositionRef.current - delta * PLUNGER_ARROW_PULL_SPEED,
         )
       }
 
@@ -199,7 +197,7 @@ const Plunger = ({ position = PLUNGER_POSITION, tipMesh, ringMeshes = [] }: Plun
 
     if (releasingRef.current) {
       plungerPositionRef.current = Math.max(
-        plungerPositionRef.current - delta * plunger.releaseSpeed,
+        plungerPositionRef.current - delta * PLUNGER_RELEASE_SPEED,
         0,
       )
       if (plungerPositionRef.current <= 0) {
@@ -210,7 +208,7 @@ const Plunger = ({ position = PLUNGER_POSITION, tipMesh, ringMeshes = [] }: Plun
     wasSpacePressed.current = isSpacePressed
     wasArrowPressed.current = isArrowPressed
 
-    const compression = plungerPositionRef.current * plunger.maxCompression
+    const compression = plungerPositionRef.current * PLUNGER_MAX_COMPRESSION
     const offset = movementAxis.clone().multiplyScalar(compression)
 
     if (tipGroupRef.current) {

@@ -1,15 +1,22 @@
 import { useCallback, useMemo } from "react"
 import type { CollisionPayload } from "@react-three/rapier"
 import { RigidBody } from "@react-three/rapier"
-import { usePhysicsDebugControls } from "@/debug/physicsDebugContext"
+import { useDebugControls } from "@/debug/debugContext"
 import useMultiballStore from "@/stores/useMultiballStore"
 import type { Vector3Tuple } from "three"
 import { cloneAtWorldTransform, type PlayfieldNodes } from "./usePlayfieldModel"
 import { enterRail, scheduleExitRail } from "./railState"
 import { createBonusZoneHitTester } from "./bonusZoneHitTest"
+import {
+  BONUS_ZONE_RESTITUTION,
+  BONUS_ZONE_COOLDOWN_MS,
+  BONUS_ZONE_SPAWN_INTERVAL_MS,
+  MULTIBALL_SPAWN_POSITION1,
+  MULTIBALL_SPAWN_POSITION2,
+} from "./bonusZoneConfig"
 
 export default function StaticPlayfield({ nodes }: { nodes: PlayfieldNodes }) {
-  const { bonusZone: bonusZoneDebug } = usePhysicsDebugControls()
+  const { bounceThreshold, ballCount } = useDebugControls()
 
   const clones = useMemo(
     () => ({
@@ -47,29 +54,21 @@ export default function StaticPlayfield({ nodes }: { nodes: PlayfieldNodes }) {
       const ballPosition = other.rigidBody?.translation()
       if (!ballPosition || !bonusZoneHitTester.containsPoint(ballPosition)) return
 
-      const pos1: Vector3Tuple = [
-        bonusZoneDebug.spawn1X,
-        bonusZoneDebug.spawn1Y,
-        bonusZoneDebug.spawn1Z,
-      ]
-      const pos2: Vector3Tuple = [
-        bonusZoneDebug.spawn2X,
-        bonusZoneDebug.spawn2Y,
-        bonusZoneDebug.spawn2Z,
-      ]
+      const pos1: Vector3Tuple = [...MULTIBALL_SPAWN_POSITION1]
+      const pos2: Vector3Tuple = [...MULTIBALL_SPAWN_POSITION2]
       useMultiballStore
         .getState()
         .registerBounce(
           ballId,
-          bonusZoneDebug.bounceThreshold,
+          bounceThreshold,
           pos1,
           pos2,
-          bonusZoneDebug.spawnIntervalMs,
-          bonusZoneDebug.cooldownMs,
-          bonusZoneDebug.ballCount,
+          BONUS_ZONE_SPAWN_INTERVAL_MS,
+          BONUS_ZONE_COOLDOWN_MS,
+          ballCount,
         )
     },
-    [bonusZoneDebug, bonusZoneHitTester],
+    [bounceThreshold, ballCount, bonusZoneHitTester],
   )
 
   return (
@@ -84,7 +83,7 @@ export default function StaticPlayfield({ nodes }: { nodes: PlayfieldNodes }) {
         <RigidBody
           type="fixed"
           colliders="trimesh"
-          restitution={bonusZoneDebug.restitution}
+          restitution={BONUS_ZONE_RESTITUTION}
           onCollisionEnter={handleBonusZoneCollision}
         >
           {clones.bonusZone.map((mesh) => (

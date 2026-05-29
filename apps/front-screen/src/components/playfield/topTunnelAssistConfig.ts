@@ -33,18 +33,20 @@ export const TOP_TUNNEL_ENTRY_TRACTOR: TopTunnelEntryTractorConfig = {
   radius: 0.65,
   position: [3, 1.95, -4],
   rotation: [-Math.PI / 2, 0, -0.15],
-  pullAccel: 14,
+  // pullAccel: 14,
+  pullAccel: 0,
 }
 
 export const TOP_TUNNEL_ASSIST_SEGMENTS: TopTunnelAssistSegmentConfig[] = [
   {
     id: "entry-drop",
-    start: [2.8, 1.95, -4.2],
-    end: [2.8, 2.5, -6.8],
-    sensorHalfExtents: [0.45, 1, 1.8],
-    sensorPosition: [2.8, 1.95, -5.375],
-    centerPullAccel: 12,
-    forwardAccel: 18,
+    start: [3.1, 1.95, -4.2],
+    end: [3.1, 2.5, -6.8],
+    sensorHalfExtents: [0.25, 1, 1.8],
+    sensorPosition: [3.1, 1.95, -5.375],
+    // centerPullAccel: 12,
+    centerPullAccel: 0,
+    forwardAccel: 0,
   },
   {
     id: "top-cross",

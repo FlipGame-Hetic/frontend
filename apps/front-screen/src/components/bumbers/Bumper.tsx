@@ -6,12 +6,20 @@ import useGameStore from "@/stores/useGameStore"
 import { BUMPER_SCORE } from "@/config/scoreConfig"
 import type { RapierRigidBody } from "@react-three/rapier"
 import { RigidBody, type CollisionEnterPayload } from "@react-three/rapier"
-import { usePhysicsDebugControls } from "@/debug/physicsDebugContext"
 import { useCallback, useRef } from "react"
 import type { Group, Mesh } from "three"
 import { normalizedPlayfieldDirection } from "../physics/playfieldPlane"
 import { applyBumperImpulse, shouldSkipBumperHit } from "./bumperCollision"
-import { BUMPER_SCALE_FACTOR, BUMPER_SIZE_ARGS } from "./bumperConfig"
+import {
+  BUMPER_SCALE_FACTOR,
+  BUMPER_SIZE_ARGS,
+  BUMPER_RESTITUTION,
+  BUMPER_IMPULSE_STRENGTH,
+  BUMPER_STUCK_FRAMES,
+  BUMPER_STUCK_VELOCITY,
+  BUMPER_UNSTICK_IMPULSE,
+} from "./bumperConfig"
+import { BALL_MIN_NORMAL_SPEED, BALL_MAX_NORMAL_SPEED } from "../balls/ballConfig"
 import useScreenShakeStore from "@/stores/useScreenShakeStore"
 import { SHAKE_INTENSITY } from "@/components/screenShake/shakeIntensity"
 
@@ -28,11 +36,6 @@ const Bumper = ({ position, bumperId, meshOverride, rubberMesh }: BumperProps) =
   const rubberGroupRef = useRef<Group>(null)
   const isBouncing = useRef(false)
   const stuckBall = useRef<{ body: RapierRigidBody; frames: number } | null>(null)
-
-  const {
-    bumpers: { restitution, impulseStrength, stuckFrames, stuckVelocity, unstickImpulse },
-    ball: { minNormalSpeed, maxNormalSpeed },
-  } = usePhysicsDebugControls()
 
   const handleCollision = useCallback(
     ({ other }: CollisionEnterPayload) => {
@@ -61,11 +64,17 @@ const Bumper = ({ position, bumperId, meshOverride, rubberMesh }: BumperProps) =
 
       if (!dir) return
 
-      applyBumperImpulse(other.rigidBody, dir, impulseStrength, minNormalSpeed, maxNormalSpeed)
+      applyBumperImpulse(
+        other.rigidBody,
+        dir,
+        BUMPER_IMPULSE_STRENGTH,
+        BALL_MIN_NORMAL_SPEED,
+        BALL_MAX_NORMAL_SPEED,
+      )
 
       stuckBall.current = { body: other.rigidBody, frames: 0 }
     },
-    [impulseStrength, bumperId, minNormalSpeed, maxNormalSpeed],
+    [bumperId],
   )
 
   useFrame(() => {
@@ -86,20 +95,26 @@ const Bumper = ({ position, bumperId, meshOverride, rubberMesh }: BumperProps) =
     const vel = ball.linvel()
     const speed = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z)
 
-    if (speed > stuckVelocity) {
+    if (speed > BUMPER_STUCK_VELOCITY) {
       stuckBall.current = null
       return
     }
 
     stuckBall.current.frames++
 
-    if (stuckBall.current.frames >= stuckFrames) {
+    if (stuckBall.current.frames >= BUMPER_STUCK_FRAMES) {
       const angle = Math.random() * Math.PI * 2
       const dir = normalizedPlayfieldDirection({ x: Math.cos(angle), y: 0, z: Math.sin(angle) })
 
       if (!dir) return
 
-      applyBumperImpulse(ball, dir, unstickImpulse, minNormalSpeed, maxNormalSpeed)
+      applyBumperImpulse(
+        ball,
+        dir,
+        BUMPER_UNSTICK_IMPULSE,
+        BALL_MIN_NORMAL_SPEED,
+        BALL_MAX_NORMAL_SPEED,
+      )
       stuckBall.current = null
     }
   })
@@ -111,7 +126,7 @@ const Bumper = ({ position, bumperId, meshOverride, rubberMesh }: BumperProps) =
       colliders="hull"
       position={position}
       onCollisionEnter={handleCollision}
-      restitution={restitution}
+      restitution={BUMPER_RESTITUTION}
     >
       {meshOverride ? (
         <>
