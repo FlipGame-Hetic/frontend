@@ -13,7 +13,7 @@ interface BallStore {
   setBallPlaying: (id: string, isPlaying: boolean) => void
 }
 
-export interface BallDrainResult {
+interface BallDrainResult {
   wasTracked: boolean
   remainingBallCount: number
   remainingPlayingBallCount: number

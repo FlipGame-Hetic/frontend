@@ -1,6 +1,6 @@
 import { create } from "zustand"
 
-export interface TargetHit {
+interface TargetHit {
   id: string
   hitAt: number
 }

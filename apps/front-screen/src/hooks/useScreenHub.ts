@@ -50,7 +50,7 @@ const getStartGamePayload = (): StartGameEvent["payload"] => {
   }
 }
 
-export const dispatchFrontScreenEvent = (event: ScreenEvent): void => {
+const dispatchFrontScreenEvent = (event: ScreenEvent): void => {
   sendEventTo(SCREEN_ID, event)
   handleScreenEvent(makeEnvelope(SCREEN_ID, { kind: "screen", id: SCREEN_ID }, event))
 }

@@ -15,8 +15,8 @@ export const PLUNGER_LANE_GATE_HALF_EXTENTS: PositionType = [0.7, 0.6, 0.7]
 export const PLUNGER_LANE_GATE_ROTATION: PositionType = [0.2, 1.075, 0]
 
 export const PLUNGER_LANE_SENSOR_POSITION: PositionType = [3.55, 0.5, 3.3]
-export const PLUNGER_LANE_SENSOR_HALF_EXTENTS: PositionType = [0.6, 0.8, 5]
-export const PLUNGER_LANE_SENSOR_ROTATION: PositionType = [0.2, 0, 0]
+const PLUNGER_LANE_SENSOR_HALF_EXTENTS: PositionType = [0.6, 0.8, 5]
+const PLUNGER_LANE_SENSOR_ROTATION: PositionType = [0.2, 0, 0]
 
 export const PLUNGER_LANE_GATE_NORMAL: PositionType = [0, 0, -1]
 

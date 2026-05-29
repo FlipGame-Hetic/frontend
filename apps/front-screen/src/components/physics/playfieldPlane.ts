@@ -6,11 +6,11 @@ export interface VectorLike {
   z: number
 }
 
-export const PLAYFIELD_NORMAL: Vector3Tuple = [0, 1, 0.21]
+const PLAYFIELD_NORMAL: Vector3Tuple = [0, 1, 0.21]
 
 const normalLength = Math.hypot(PLAYFIELD_NORMAL[0], PLAYFIELD_NORMAL[1], PLAYFIELD_NORMAL[2])
 
-export const PLAYFIELD_UNIT_NORMAL: VectorLike = {
+const PLAYFIELD_UNIT_NORMAL: VectorLike = {
   x: PLAYFIELD_NORMAL[0] / normalLength,
   y: PLAYFIELD_NORMAL[1] / normalLength,
   z: PLAYFIELD_NORMAL[2] / normalLength,
@@ -44,26 +44,6 @@ export const normalizedPlayfieldDirection = (vector: VectorLike): VectorLike | n
     x: projected.x / length,
     y: projected.y / length,
     z: projected.z / length,
-  }
-}
-
-export const normalizedPlanarBounceDirection = (vector: VectorLike): VectorLike | null => {
-  const length = Math.hypot(vector.x, vector.z)
-
-  if (length < 0.001) return null
-
-  return {
-    x: vector.x / length,
-    y: 0,
-    z: vector.z / length,
-  }
-}
-
-export const removePositiveVerticalVelocity = (velocity: VectorLike): VectorLike => {
-  return {
-    x: velocity.x,
-    y: Math.min(0, velocity.y),
-    z: velocity.z,
   }
 }
 

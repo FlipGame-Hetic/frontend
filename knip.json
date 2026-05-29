@@ -1,0 +1,15 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "tags": ["-lintignore"],
+  "workspaces": {
+    ".": {},
+    "apps/back-screen": {
+      "ignoreBinaries": ["vite"]
+    },
+    "apps/dmd-screen": {
+      "ignoreBinaries": ["vite"]
+    },
+    "apps/front-screen": {},
+    "packages/*": {}
+  }
+}

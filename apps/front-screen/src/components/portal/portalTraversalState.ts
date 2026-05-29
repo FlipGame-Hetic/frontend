@@ -67,10 +67,3 @@ export const isCooldown = (ballId: string): boolean => {
 export const isPortalLocked = (portalId: PortalId): boolean => {
   return lockedPortals.has(portalId)
 }
-
-export const cleanupAll = (): void => {
-  activeTraversals.clear()
-  ghostRefs.clear()
-  cooldowns.clear()
-  lockedPortals.clear()
-}

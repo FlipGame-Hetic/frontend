@@ -38,7 +38,7 @@ function scale2x(rows5x7: number[]): number[] {
   return result
 }
 
-export function drawBigChar(
+function drawBigChar(
   buffer: DotBuffer,
   cols: number,
   char: string,

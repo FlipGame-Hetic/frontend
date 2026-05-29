@@ -157,10 +157,7 @@ export const addForwardImpulse = (
   impulse.addScaledVector(direction, accel * weight * delta * mass)
 }
 
-export const getSegmentZoneIndex = (
-  zone: TopTunnelAssistZoneId,
-  segments: RuntimeSegment[],
-): number => {
+const getSegmentZoneIndex = (zone: TopTunnelAssistZoneId, segments: RuntimeSegment[]): number => {
   return segments.findIndex((segment) => segment.config.id === zone)
 }
 

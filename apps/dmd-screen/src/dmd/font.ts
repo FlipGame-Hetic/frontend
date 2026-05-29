@@ -57,7 +57,7 @@ const FONT_5x7: Record<string, number[]> = {
   ")": [0b01000, 0b00100, 0b00010, 0b00010, 0b00010, 0b00100, 0b01000],
 }
 
-export function drawChar(
+function drawChar(
   buffer: DotBuffer,
   cols: number,
   char: string,

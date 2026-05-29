@@ -3,7 +3,7 @@ import { useMemo } from "react"
 import type { Object3D } from "three"
 import { Mesh, Quaternion, Vector3 } from "three"
 
-export const PLAYFIELD_OFFSET: [number, number, number] = [0, -12, 0]
+const PLAYFIELD_OFFSET: [number, number, number] = [0, -12, 0]
 
 export interface PlayfieldNodes {
   cabinet: Mesh[]
