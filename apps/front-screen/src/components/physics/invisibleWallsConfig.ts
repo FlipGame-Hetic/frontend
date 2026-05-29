@@ -47,16 +47,16 @@ export const INVISIBLE_WALLS: InvisibleWallConfig[] = [
     rotation: [-0.05, 1.2, 0],
   },
   {
-    id: "rail-right-guard-bottom",
-    halfExtents: [0.4, 0.224, 0.05],
-    position: [1.2, 1, -2.5],
-    rotation: [-0.05, 0.6, 0],
-  },
-  {
     id: "rail-right-guard-side",
     halfExtents: [0.4, 0.224, 0.05],
-    position: [1.5, 1, -3.085],
+    position: [1.49, 1, -3.36],
     rotation: [-0.05, 1.6, 0],
+  },
+  {
+    id: "rail-right-guard-bottom",
+    halfExtents: [0.45, 0.224, 0.05],
+    position: [1.23, 1, -2.65],
+    rotation: [-0.05, 0.9, 0],
   },
   {
     id: "rail-left-guard-entrance-left",
@@ -71,16 +71,16 @@ export const INVISIBLE_WALLS: InvisibleWallConfig[] = [
     rotation: [-0.05, 1.3, 0],
   },
   {
-    id: "rail-left-guard-bottom",
-    halfExtents: [0.3, 0.33, 0.05],
-    position: [-1.75, 1, -2.6],
-    rotation: [-0.1, -0.6, 0],
-  },
-  {
     id: "rail-left-guard-side",
     halfExtents: [0.3, 0.33, 0.2],
     position: [-1.86, 0.99, -3.055],
     rotation: [-0.1, 1.7, 0],
+  },
+  {
+    id: "rail-left-guard-bottom",
+    halfExtents: [0.3, 0.33, 0.05],
+    position: [-1.75, 1, -2.6],
+    rotation: [-0.1, -0.6, 0],
   },
   {
     id: "top-tunnel-exit",
