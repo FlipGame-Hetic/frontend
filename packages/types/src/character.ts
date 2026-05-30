@@ -11,7 +11,9 @@ export interface CharacterConfig {
   locked?: boolean
 }
 
-export const CHARACTER_OPTIONS: CharacterConfig[] = [
+type NonEmptyArray<T> = [T, ...T[]]
+
+export const CHARACTER_OPTIONS: NonEmptyArray<CharacterConfig> = [
   {
     id: "striker",
     label: "ATTAQUANT",
