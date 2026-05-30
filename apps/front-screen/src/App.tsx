@@ -17,6 +17,7 @@ import ScreenShakeController from "./components/screenShake/ScreenShakeControlle
 import SoundManager from "./components/sound/SoundManager"
 import World from "./components/World"
 import { useDebugKeys } from "./hooks/useDebugKeys"
+import { useFlipperButtonRelay } from "./hooks/useFlipperButtonRelay"
 import { useIoTInputs } from "./hooks/useIoTInputs"
 import { useScreenHub } from "./hooks/useScreenHub"
 import WebsocketTest from "./websocket-test/WebsocketTest"
@@ -28,6 +29,7 @@ const App = () => {
   useIoTInputs()
   useScreenHub()
   useDebugKeys()
+  useFlipperButtonRelay()
 
   const cameraSettings = { position: [0, 20, 25] as [number, number, number], fov: 35 }
 
@@ -45,7 +47,7 @@ const App = () => {
         <ambientLight intensity={0.5} />
         <directionalLight
           position={[0, 13, 12]}
-          intensity={0.4}
+          intensity={0.8}
           castShadow
           shadow-mapSize={[2048, 2048]}
           shadow-camera-near={0.5}
@@ -64,7 +66,7 @@ const App = () => {
         )}
         <ScreenShakeController />
 
-        <PhysicsManager isDebug={false}>
+        <PhysicsManager isDebug={true}>
           <BallsManager />
           <Drain />
           <InvisibleWallsManager />

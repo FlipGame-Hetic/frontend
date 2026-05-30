@@ -107,7 +107,7 @@ const Ball = ({
     >
       <mesh castShadow>
         <sphereGeometry args={[radius, 32, 32]} />
-        <meshStandardMaterial color={color} />
+        <meshStandardMaterial color={color} metalness={0.25} roughness={0.2} />
       </mesh>
     </RigidBody>
   )
