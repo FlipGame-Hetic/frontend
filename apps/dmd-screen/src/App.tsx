@@ -44,13 +44,12 @@ function App() {
         return
       }
 
-      if (isScreenEvent(envelope, "score_update")) {
-        scenes.playing.update({
-          score: envelope.payload.score,
-          player: envelope.payload.player,
-          ballNumber: envelope.payload.ball,
-        })
-        scenes.game_over.update(envelope.payload.score)
+      if (isScreenEvent(envelope, "ScoreUpdate")) {
+        const score = envelope.payload.score
+        const ball = envelope.payload.ball ?? 1
+        const player = envelope.payload.player !== undefined ? Number(envelope.payload.player) : 1
+        scenes.playing.update({ score, player, ballNumber: ball })
+        scenes.game_over.update(score)
         return
       }
 
@@ -64,8 +63,8 @@ function App() {
         return
       }
 
-      if (isScreenEvent(envelope, "life_update")) {
-        scenes.playing.update({ player: envelope.payload.player })
+      if (isScreenEvent(envelope, "LifeUpdate")) {
+        scenes.playing.update({ ballNumber: envelope.payload.lives_remaining })
       }
     },
     [scenes],

@@ -1,5 +1,12 @@
 import { create } from "zustand"
 import type { CharacterType, GameMode, GamePhase } from "@frontend/types"
+
+export const CHARACTER_ID_BY_TYPE: Record<CharacterType, number> = {
+  striker: 0,
+  defender: 1,
+  trickster: 2,
+  heavy: 3,
+}
 import { PLUNGER_BALL_SPAWN } from "@/components/plunger/plungerConfig"
 import useBallStore from "./useBallStore"
 import useMultiballStore from "./useMultiballStore"
@@ -32,7 +39,6 @@ interface GameStore {
   endGame: () => void
   pause: () => void
   resume: () => void
-  addScore: (points: number) => void
   setScore: (score: number) => void
   nextBall: () => void
   reset: () => void
@@ -107,10 +113,6 @@ const useGameStore = create<GameStore>()((set) => ({
 
   resume: () => {
     set({ phase: "playing" })
-  },
-
-  addScore: (points) => {
-    set((state) => ({ score: state.score + points }))
   },
 
   setScore: (score) => {

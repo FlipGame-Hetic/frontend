@@ -30,6 +30,7 @@ const ScorePopup = ({ id, amount, position }: ScorePopupProps) => {
   const groupRef = useRef<Group>(null)
   const startTime = useRef<number | null>(null)
   const color = getScorePopupColor(amount)
+  const amountText = amount.toString()
 
   useFrame(() => {
     if (!groupRef.current) return
@@ -81,7 +82,7 @@ const ScorePopup = ({ id, amount, position }: ScorePopupProps) => {
           fillOpacity={1}
           outlineOpacity={1}
         >
-          {`+${String(amount)}`}
+          {amount >= 0 ? `+${amountText}` : amountText}
         </Text>
       </Billboard>
     </group>

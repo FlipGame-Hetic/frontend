@@ -1,5 +1,6 @@
 import useTargetStore from "@/stores/useTargetStore"
 import { playSfx } from "@/audio/soundEngine"
+import { broadcastEvent } from "@frontend/ws"
 import type { PositionType } from "@/types/worldTypes"
 import { useFrame } from "@react-three/fiber"
 import {
@@ -122,6 +123,7 @@ const BallSaver = ({ mesh, side, worldPosition }: BallSaverProps) => {
         setCollidersEnabled(false)
         setPhase("rising")
         playSfx("ballsaver_up")
+        broadcastEvent({ event_type: "BallSaverReady", payload: {} })
       }
       return
     }

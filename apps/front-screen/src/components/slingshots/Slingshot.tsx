@@ -2,9 +2,7 @@ import type { PositionType } from "@/types/worldTypes"
 import { playRandomSfx, playSfx } from "@/audio/soundEngine"
 import { broadcastEvent } from "@frontend/ws"
 import { useFrame } from "@react-three/fiber"
-import useGameStore from "@/stores/useGameStore"
 import useScorePopupsStore from "@/stores/useScorePopupsStore"
-import { SLINGSHOT_SCORE } from "@/config/scoreConfig"
 import {
   CuboidCollider,
   MeshCollider,
@@ -41,7 +39,13 @@ interface SlingshotProps {
   rubberMesh?: Mesh
 }
 
-const Slingshot = ({ position, side, slingshotId, moduleMesh, rubberMesh }: SlingshotProps) => {
+const Slingshot = ({
+  position,
+  side,
+  slingshotId: _slingshotId,
+  moduleMesh,
+  rubberMesh,
+}: SlingshotProps) => {
   const bodyRef = useRef<RapierRigidBody>(null)
   const rubberGroupRef = useRef<Group>(null)
   const hitAt = useRef(-Infinity)
@@ -89,44 +93,38 @@ const Slingshot = ({ position, side, slingshotId, moduleMesh, rubberMesh }: Slin
     }
   }, [side])
 
-  const handleCollision = useCallback(
-    ({ other }: CollisionEnterPayload) => {
-      if (!bodyRef.current || !other.rigidBody) return
-      if (other.rigidBodyObject?.name !== "ball") return
-      broadcastEvent({ event_type: "slingshot_hit", payload: { slingshot_id: slingshotId } })
-      useGameStore.getState().addScore(SLINGSHOT_SCORE)
-      playRandomSfx("slingshots")
-      playSfx("score_event")
-      useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.slingshot)
-      hitAt.current = performance.now() / 1000
+  const handleCollision = useCallback(({ other }: CollisionEnterPayload) => {
+    if (!bodyRef.current || !other.rigidBody) return
+    if (other.rigidBodyObject?.name !== "ball") return
+    broadcastEvent({ event_type: "BumperTriangle", payload: {} })
+    playRandomSfx("slingshots")
+    playSfx("score_event")
+    useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.slingshot)
+    hitAt.current = performance.now() / 1000
 
-      const slingshotPos = bodyRef.current.translation()
-      const ballPos = other.rigidBody.translation()
-      useScorePopupsStore
-        .getState()
-        .addPopup(SLINGSHOT_SCORE, { x: ballPos.x, y: ballPos.y, z: ballPos.z })
-      const exitDir = normalizedPlayfieldDirection({
-        x: ballPos.x - slingshotPos.x,
-        y: ballPos.y - slingshotPos.y,
-        z: ballPos.z - slingshotPos.z,
-      })
+    const slingshotPos = bodyRef.current.translation()
+    const ballPos = other.rigidBody.translation()
+    useScorePopupsStore.getState().setLastHitPosition({ x: ballPos.x, y: ballPos.y, z: ballPos.z })
+    const exitDir = normalizedPlayfieldDirection({
+      x: ballPos.x - slingshotPos.x,
+      y: ballPos.y - slingshotPos.y,
+      z: ballPos.z - slingshotPos.z,
+    })
 
-      if (exitDir) {
-        const mass = other.rigidBody.mass()
-        other.rigidBody.applyImpulse(
-          {
-            x: exitDir.x * SLINGSHOT_IMPULSE_STRENGTH * mass,
-            y: exitDir.y * SLINGSHOT_IMPULSE_STRENGTH * mass,
-            z: exitDir.z * SLINGSHOT_IMPULSE_STRENGTH * mass,
-          },
-          true,
-        )
-      }
+    if (exitDir) {
+      const mass = other.rigidBody.mass()
+      other.rigidBody.applyImpulse(
+        {
+          x: exitDir.x * SLINGSHOT_IMPULSE_STRENGTH * mass,
+          y: exitDir.y * SLINGSHOT_IMPULSE_STRENGTH * mass,
+          z: exitDir.z * SLINGSHOT_IMPULSE_STRENGTH * mass,
+        },
+        true,
+      )
+    }
 
-      stuckTracker.current.arm(other.rigidBody)
-    },
-    [slingshotId],
-  )
+    stuckTracker.current.arm(other.rigidBody)
+  }, [])
 
   useFrame(() => {
     if (rubberGroupRef.current) {

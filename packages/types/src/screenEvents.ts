@@ -16,6 +16,18 @@ export const SCREEN_EVENT_TYPES = {
   BallLost: "ball_lost",
   TargetHit: "target_hit",
   MultiballTriggered: "multiball_triggered",
+  BackBumper: "Bumper",
+  BackBumperTriangle: "BumperTriangle",
+  BackPortalUsed: "PortalUsed",
+  BackFlipperLeft: "FlipperLeft",
+  BackFlipperRight: "FlipperRight",
+  BackBallSaverReady: "BallSaverReady",
+  BackBallLost: "BallLost",
+  BackEndGame: "EndGame",
+  BackStartGame: "StartGame",
+  BackScoreUpdate: "ScoreUpdate",
+  BackScoreDelta: "ScoreDelta",
+  BackLifeUpdate: "LifeUpdate",
 } as const
 
 export type ScreenEventType = (typeof SCREEN_EVENT_TYPES)[keyof typeof SCREEN_EVENT_TYPES]
@@ -100,6 +112,66 @@ export interface MultiballTriggeredEvent {
   payload: Record<string, never>
 }
 
+export interface BackBumperEvent {
+  event_type: "Bumper"
+  payload: Record<string, never>
+}
+
+export interface BackBumperTriangleEvent {
+  event_type: "BumperTriangle"
+  payload: Record<string, never>
+}
+
+export interface BackPortalUsedEvent {
+  event_type: "PortalUsed"
+  payload: Record<string, never>
+}
+
+export interface BackFlipperLeftEvent {
+  event_type: "FlipperLeft"
+  payload: Record<string, never>
+}
+
+export interface BackFlipperRightEvent {
+  event_type: "FlipperRight"
+  payload: Record<string, never>
+}
+
+export interface BackBallSaverReadyEvent {
+  event_type: "BallSaverReady"
+  payload: Record<string, never>
+}
+
+export interface BackBallLostEvent {
+  event_type: "BallLost"
+  payload: Record<string, never>
+}
+
+export interface BackEndGameEvent {
+  event_type: "EndGame"
+  payload: Record<string, never>
+}
+
+export interface BackStartGameEvent {
+  event_type: "StartGame"
+  payload: { player_id: string; character_id: number }
+}
+
+export interface BackScoreUpdateEvent {
+  event_type: "ScoreUpdate"
+  payload: { score: number; multiplier?: number; player?: string | number; ball?: number }
+}
+
+export interface BackScoreDeltaEvent {
+  event_type: "ScoreDelta"
+  payload: { delta: number; reason: string; total: number }
+}
+
+export interface BackLifeUpdateEvent {
+  event_type: "LifeUpdate"
+  payload: { lives_remaining: number }
+}
+
 export type ScreenEvent =
   | PhaseChangeEvent
   | ScoreUpdateEvent
@@ -115,6 +187,18 @@ export type ScreenEvent =
   | BallLostEvent
   | TargetHitEvent
   | MultiballTriggeredEvent
+  | BackBumperEvent
+  | BackBumperTriangleEvent
+  | BackPortalUsedEvent
+  | BackFlipperLeftEvent
+  | BackFlipperRightEvent
+  | BackBallSaverReadyEvent
+  | BackBallLostEvent
+  | BackEndGameEvent
+  | BackStartGameEvent
+  | BackScoreUpdateEvent
+  | BackScoreDeltaEvent
+  | BackLifeUpdateEvent
 
 export function makeEnvelope(from: ScreenId, to: ScreenTarget, event: ScreenEvent): ScreenEnvelope {
   return { from, to, event_type: event.event_type, payload: event.payload }

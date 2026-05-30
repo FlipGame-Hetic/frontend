@@ -1,6 +1,5 @@
 import useTargetStore from "@/stores/useTargetStore"
 import { playRandomSfx } from "@/audio/soundEngine"
-import { broadcastEvent } from "@frontend/ws"
 import { useFrame } from "@react-three/fiber"
 import { RigidBody, type CollisionEnterPayload, type RapierRigidBody } from "@react-three/rapier"
 import { useCallback, useEffect, useMemo, useRef } from "react"
@@ -104,7 +103,6 @@ const Target = ({ mesh, worldPosition }: TargetProps) => {
 
       if (isStandup) {
         useTargetStore.getState().recordTargetHit(mesh.name)
-        broadcastEvent({ event_type: "target_hit", payload: { target_id: mesh.name } })
         playRandomSfx("targets")
         useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.targetStandup)
         hitTime.current = performance.now()
@@ -115,7 +113,6 @@ const Target = ({ mesh, worldPosition }: TargetProps) => {
       if (targetStore.activatedTargetIds.includes(mesh.name)) return
 
       targetStore.recordTargetHit(mesh.name)
-      broadcastEvent({ event_type: "target_hit", payload: { target_id: mesh.name } })
       playRandomSfx("targets")
       useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.targetDrop)
       resetStartedAtRef.current = null

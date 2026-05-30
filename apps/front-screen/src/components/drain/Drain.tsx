@@ -37,7 +37,7 @@ const Drain = () => {
       if (!hasBallId(obj.userData)) return
 
       const ballId = obj.userData.ballId
-      const { ballNumber, currentPlayer, totalBalls, nextBall } = useGameStore.getState()
+      const { ballNumber, totalBalls, nextBall } = useGameStore.getState()
 
       const drainResult = useBallStore.getState().drainBall(ballId)
       if (!drainResult.wasTracked) return
@@ -46,10 +46,7 @@ const Drain = () => {
 
       if (!drainResult.isLifeLost) return
 
-      broadcastEvent({
-        event_type: "ball_lost",
-        payload: { ball: ballNumber, player: currentPlayer },
-      })
+      broadcastEvent({ event_type: "BallLost", payload: {} })
 
       if (ballNumber >= totalBalls) {
         nextBall()

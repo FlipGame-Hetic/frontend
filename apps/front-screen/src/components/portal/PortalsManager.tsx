@@ -1,8 +1,10 @@
 import useBallStore from "@/stores/useBallStore"
 import useGameStore from "@/stores/useGameStore"
 import usePortalTraversalStore from "@/stores/usePortalTraversalStore"
+import useScorePopupsStore from "@/stores/useScorePopupsStore"
 import { getBallColorForCharacter } from "@/config/characterColors"
 import { playRandomSfx } from "@/audio/soundEngine"
+import { broadcastEvent } from "@frontend/ws"
 import { useFrame } from "@react-three/fiber"
 import type { CollisionPayload } from "@react-three/rapier"
 import { CuboidCollider, RigidBody } from "@react-three/rapier"
@@ -121,6 +123,10 @@ const PortalsManager = () => {
 
         playRandomSfx("portal_exit")
         useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.portalExit)
+        useScorePopupsStore
+          .getState()
+          .setLastHitPosition({ x: ghostPos.x, y: ghostPos.y, z: ghostPos.z })
+        broadcastEvent({ event_type: "PortalUsed", payload: {} })
         setCooldown(ballId, PORTAL_REENTRY_COOLDOWN_MS)
         endTraversal(ballId)
         usePortalTraversalStore.getState().removeGhost(ballId)

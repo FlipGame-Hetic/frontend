@@ -1,24 +1,19 @@
 import { useEffect } from "react"
 import { broadcastEvent } from "@frontend/ws"
 import useGameStore from "@/stores/useGameStore"
-import { BUMPER_SCORE } from "@/config/scoreConfig"
 
 export const useDebugKeys = (): void => {
   useEffect(() => {
     if (!import.meta.env.DEV) return
     const handler = (e: KeyboardEvent) => {
-      const { addScore, nextBall, currentPlayer, ballNumber } = useGameStore.getState()
+      const { nextBall } = useGameStore.getState()
 
       switch (e.key.toLowerCase()) {
         case "b":
-          broadcastEvent({ event_type: "bumper_hit", payload: { bumper_id: 0 } })
-          addScore(BUMPER_SCORE)
+          broadcastEvent({ event_type: "Bumper", payload: {} })
           break
         case "k":
-          broadcastEvent({
-            event_type: "ball_lost",
-            payload: { ball: ballNumber, player: currentPlayer },
-          })
+          broadcastEvent({ event_type: "BallLost", payload: {} })
           nextBall()
           break
       }

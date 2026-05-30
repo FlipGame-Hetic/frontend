@@ -1,10 +1,8 @@
 import type { PositionType } from "@/types/worldTypes"
 import { broadcastEvent } from "@frontend/ws"
 import { useFrame } from "@react-three/fiber"
-import useGameStore from "@/stores/useGameStore"
 import useScorePopupsStore from "@/stores/useScorePopupsStore"
 import { playRandomSfx, playSfx } from "@/audio/soundEngine"
-import { BUMPER_SCORE } from "@/config/scoreConfig"
 import type { RapierRigidBody } from "@react-three/rapier"
 import { RigidBody, type CollisionEnterPayload } from "@react-three/rapier"
 import { useCallback, useEffect, useRef } from "react"
@@ -33,7 +31,7 @@ interface SlimBumperProps {
   meshOverride: Mesh
 }
 
-const SlimBumper = ({ position, bumperId, meshOverride }: SlimBumperProps) => {
+const SlimBumper = ({ position, bumperId: _bumperId, meshOverride }: SlimBumperProps) => {
   const bodyRef = useRef<RapierRigidBody>(null)
   const hitAt = useRef(-Infinity)
   const baseScale = useRef(new Vector3())
@@ -57,44 +55,38 @@ const SlimBumper = ({ position, bumperId, meshOverride }: SlimBumperProps) => {
     baseScale.current.copy(meshOverride.scale)
   }, [meshOverride])
 
-  const handleCollision = useCallback(
-    ({ other }: CollisionEnterPayload) => {
-      if (!bodyRef.current || !other.rigidBody) return
-      if (other.rigidBodyObject?.name !== "ball") return
-      if (shouldSkipBumperHit(other.rigidBody)) return
+  const handleCollision = useCallback(({ other }: CollisionEnterPayload) => {
+    if (!bodyRef.current || !other.rigidBody) return
+    if (other.rigidBodyObject?.name !== "ball") return
+    if (shouldSkipBumperHit(other.rigidBody)) return
 
-      broadcastEvent({ event_type: "bumper_hit", payload: { bumper_id: bumperId } })
-      useGameStore.getState().addScore(BUMPER_SCORE)
-      playRandomSfx("bumpers")
-      playSfx("score_event")
-      useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.slimBumper)
-      hitAt.current = performance.now() / 1000
+    broadcastEvent({ event_type: "Bumper", payload: {} })
+    playRandomSfx("bumpers")
+    playSfx("score_event")
+    useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.slimBumper)
+    hitAt.current = performance.now() / 1000
 
-      const bumperPos = bodyRef.current.translation()
-      const ballPos = other.rigidBody.translation()
-      useScorePopupsStore
-        .getState()
-        .addPopup(BUMPER_SCORE, { x: ballPos.x, y: ballPos.y, z: ballPos.z })
-      const dir = normalizedPlayfieldDirection({
-        x: ballPos.x - bumperPos.x,
-        y: ballPos.y - bumperPos.y,
-        z: ballPos.z - bumperPos.z,
-      })
+    const bumperPos = bodyRef.current.translation()
+    const ballPos = other.rigidBody.translation()
+    useScorePopupsStore.getState().setLastHitPosition({ x: ballPos.x, y: ballPos.y, z: ballPos.z })
+    const dir = normalizedPlayfieldDirection({
+      x: ballPos.x - bumperPos.x,
+      y: ballPos.y - bumperPos.y,
+      z: ballPos.z - bumperPos.z,
+    })
 
-      if (!dir) return
+    if (!dir) return
 
-      applyBumperImpulse(
-        other.rigidBody,
-        dir,
-        SLIM_BUMPER_IMPULSE_STRENGTH,
-        BALL_MIN_NORMAL_SPEED,
-        BALL_MAX_NORMAL_SPEED,
-      )
+    applyBumperImpulse(
+      other.rigidBody,
+      dir,
+      SLIM_BUMPER_IMPULSE_STRENGTH,
+      BALL_MIN_NORMAL_SPEED,
+      BALL_MAX_NORMAL_SPEED,
+    )
 
-      stuckTracker.current.arm(other.rigidBody)
-    },
-    [bumperId],
-  )
+    stuckTracker.current.arm(other.rigidBody)
+  }, [])
 
   useFrame(() => {
     const t = performance.now() / 1000 - hitAt.current

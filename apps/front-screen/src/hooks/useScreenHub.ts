@@ -1,5 +1,10 @@
 import { useEffect } from "react"
-import { registerScreenSender, sendEventTo, useScreenHub as useScreenHubBase } from "@frontend/ws"
+import {
+  broadcastEvent,
+  registerScreenSender,
+  sendEventTo,
+  useScreenHub as useScreenHubBase,
+} from "@frontend/ws"
 import { isScreenEvent, makeEnvelope } from "@frontend/types"
 import type {
   CharacterType,
@@ -8,7 +13,9 @@ import type {
   ScreenEvent,
   StartGameEvent,
 } from "@frontend/types"
-import useGameStore from "@/stores/useGameStore"
+import useGameStore, { CHARACTER_ID_BY_TYPE } from "@/stores/useGameStore"
+import useScorePopupsStore from "@/stores/useScorePopupsStore"
+import { playRandomSfx } from "@/audio/soundEngine"
 
 const SCREEN_ID = "front_screen" as const
 const DEFAULT_START_MODE: GameMode = "solo"
@@ -18,7 +25,25 @@ const TOKEN =
   (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_SCREEN_TOKEN ?? ""
 
 const handleScreenEvent = (envelope: ScreenEnvelope): void => {
-  const { selectMode, selectCharacter, startGame, setPhase, restartGame } = useGameStore.getState()
+  const { selectMode, selectCharacter, startGame, setPhase, restartGame, setScore } =
+    useGameStore.getState()
+
+  if (envelope.event_type === "ScoreUpdate") {
+    const payload = envelope.payload as { score: number }
+    setScore(payload.score)
+    return
+  }
+
+  if (envelope.event_type === "ScoreDelta") {
+    const payload = envelope.payload as { delta: number; reason: string; total: number }
+    if (payload.reason !== "timer_bonus") {
+      useScorePopupsStore.getState().spawnPopupFromDelta(payload.delta, payload.reason)
+    }
+    if (payload.delta >= 300) {
+      playRandomSfx("score_voice")
+    }
+    return
+  }
 
   if (isScreenEvent(envelope, "menu_confirm")) {
     if (envelope.payload.context === "idle") setPhase("mode_select")
@@ -35,6 +60,16 @@ const handleScreenEvent = (envelope: ScreenEnvelope): void => {
   }
   if (isScreenEvent(envelope, "start_game")) {
     startGame(envelope.payload)
+    const player = envelope.payload.players[0]
+    if (player) {
+      broadcastEvent({
+        event_type: "StartGame",
+        payload: {
+          player_id: String(player.player),
+          character_id: CHARACTER_ID_BY_TYPE[player.character],
+        },
+      })
+    }
   }
 }
 
@@ -85,14 +120,6 @@ export const useScreenHub = (): void => {
           to: { kind: "broadcast" },
           event_type: "phase_change",
           payload: { phase: state.phase, ball: state.ballNumber, player: state.currentPlayer },
-        })
-      }
-      if (state.score !== prev.score) {
-        send({
-          from: SCREEN_ID,
-          to: { kind: "broadcast" },
-          event_type: "score_update",
-          payload: { score: state.score, player: state.currentPlayer, ball: state.ballNumber },
         })
       }
     })

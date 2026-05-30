@@ -2,7 +2,6 @@ import { playSfx } from "@/audio/soundEngine"
 import { SHAKE_INTENSITY } from "@/components/screenShake/shakeIntensity"
 import useBallStore from "@/stores/useBallStore"
 import useScreenShakeStore from "@/stores/useScreenShakeStore"
-import { broadcastEvent } from "@frontend/ws"
 import type { Vector3Tuple } from "three"
 import { create } from "zustand"
 
@@ -71,8 +70,6 @@ const useMultiballStore = create<MultiballStore>()((set, get) => {
         }, i * spawnIntervalMs)
         spawnTimers.push(timer)
       }
-
-      broadcastEvent({ event_type: "multiball_triggered", payload: {} })
 
       if (cooldownTimer !== null) clearTimeout(cooldownTimer)
       cooldownTimer = setTimeout(() => {
