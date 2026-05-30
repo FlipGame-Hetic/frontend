@@ -29,6 +29,7 @@ interface BallProps {
   laneMaxTangentSpeed: number
   minNormalSpeed: number
   maxNormalSpeed: number
+  color?: string
 }
 
 const Ball = ({
@@ -44,6 +45,7 @@ const Ball = ({
   laneMaxTangentSpeed,
   minNormalSpeed,
   maxNormalSpeed,
+  color = "#FF8C00",
 }: BallProps) => {
   const { deleteBall } = useBallStore()
   const ballRef = useRef<RapierRigidBody>(null)
@@ -105,7 +107,7 @@ const Ball = ({
     >
       <mesh castShadow>
         <sphereGeometry args={[radius, 32, 32]} />
-        <meshStandardMaterial color="white" />
+        <meshStandardMaterial color={color} />
       </mesh>
     </RigidBody>
   )

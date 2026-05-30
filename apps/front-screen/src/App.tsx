@@ -64,7 +64,7 @@ const App = () => {
         )}
         <ScreenShakeController />
 
-        <PhysicsManager isDebug={true}>
+        <PhysicsManager isDebug={false}>
           <BallsManager />
           <Drain />
           <InvisibleWallsManager />

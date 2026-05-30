@@ -1,5 +1,7 @@
 import useBallStore from "@/stores/useBallStore"
+import useGameStore from "@/stores/useGameStore"
 import usePortalTraversalStore from "@/stores/usePortalTraversalStore"
+import { getBallColorForCharacter } from "@/config/characterColors"
 import { playRandomSfx } from "@/audio/soundEngine"
 import { useFrame } from "@react-three/fiber"
 import type { CollisionPayload } from "@react-three/rapier"
@@ -76,6 +78,10 @@ const handlePortalExit = (portalId: PortalId, payload: CollisionPayload): void =
 
 const PortalsManager = () => {
   const ghostBallIds = usePortalTraversalStore((s) => s.ghostBallIds)
+  const character = useGameStore(
+    (s) => s.selectedPlayers.find((p) => p.player === s.currentPlayer)?.character,
+  )
+  const ballColor = getBallColorForCharacter(character)
 
   useFrame(() => {
     const traversals = getAllTraversals()
@@ -163,7 +169,7 @@ const PortalsManager = () => {
       <PortalSurface portalId="B" />
 
       {ghostBallIds.map((ballId) => (
-        <PortalGhost key={ballId} ballId={ballId} />
+        <PortalGhost key={ballId} ballId={ballId} color={ballColor} />
       ))}
     </>
   )

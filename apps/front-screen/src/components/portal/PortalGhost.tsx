@@ -6,9 +6,10 @@ import { getTraversal, registerGhostRef, unregisterGhostRef } from "./portalTrav
 
 interface PortalGhostProps {
   ballId: string
+  color?: string
 }
 
-const PortalGhost = ({ ballId }: PortalGhostProps) => {
+const PortalGhost = ({ ballId, color = "#FF8C00" }: PortalGhostProps) => {
   const groupRef = useRef<Group>(null)
 
   useEffect(() => {
@@ -27,7 +28,7 @@ const PortalGhost = ({ ballId }: PortalGhostProps) => {
     <group ref={groupRef} position={initialPos}>
       <mesh>
         <sphereGeometry args={[BALL_RADIUS, 32, 32]} />
-        <meshStandardMaterial color="white" />
+        <meshStandardMaterial color={color} />
       </mesh>
     </group>
   )
