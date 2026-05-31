@@ -45,19 +45,22 @@ open_app_window() {
 open_and_arrange_with_retry() {
   local attempt=1
 
-  while [[ "${attempt}" -le "${BROWSER_RETRIES}" ]]; do
-    printf "Opening Chrome windows (attempt %s/%s)\n" "${attempt}" "${BROWSER_RETRIES}"
+  # Ouvrir une seule fois : un retry ne doit pas relancer Chrome (sinon doublons).
+  printf "Opening Chrome windows\n"
+  open_app_window "${FRONT_URL}"
+  open_app_window "${BACK_URL}"
+  open_app_window "${DMD_URL}"
 
-    if open_app_window "${FRONT_URL}" &&
-      open_app_window "${BACK_URL}" &&
-      open_app_window "${DMD_URL}" &&
-      arrange_chrome_windows; then
+  while [[ "${attempt}" -le "${BROWSER_RETRIES}" ]]; do
+    printf "Arranging Chrome windows (attempt %s/%s)\n" "${attempt}" "${BROWSER_RETRIES}"
+
+    if arrange_chrome_windows; then
       printf "Chrome windows ready\n"
       return 0
     fi
 
     if [[ "${attempt}" -lt "${BROWSER_RETRIES}" ]]; then
-      printf "Warning: Chrome automation failed, retrying in %ss\n" "${BROWSER_RETRY_DELAY}" >&2
+      printf "Warning: Chrome windows not ready yet, retrying arrangement in %ss\n" "${BROWSER_RETRY_DELAY}" >&2
       sleep "${BROWSER_RETRY_DELAY}"
     fi
 
@@ -82,7 +85,7 @@ set splitX to screenLeft + ((screenRight - screenLeft) div 2)
 
 tell application "Google Chrome"
   set finalArrangedCount to 0
-  repeat 30 times
+  repeat 75 times
     set arrangedCount to 0
     set frontWindowRef to missing value
     set backWindowRef to missing value
