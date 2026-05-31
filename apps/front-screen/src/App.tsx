@@ -31,7 +31,7 @@ const App = () => {
   useDebugKeys()
   useFlipperButtonRelay()
 
-  const cameraSettings = { position: [0, 20, 25] as [number, number, number], fov: 35 }
+  const cameraSettings = { position: [0, 13, 15] as [number, number, number], fov: 35 }
 
   if (isWsTest) return <WebsocketTest />
 
