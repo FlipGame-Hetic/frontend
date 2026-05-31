@@ -114,29 +114,25 @@ describe("Bumper — handleCollision", () => {
       expect(mockBroadcastEvent).toHaveBeenCalledOnce()
     })
 
-    it("broadcasts bumper_hit with the correct bumperId", () => {
+    it("broadcasts the back-screen bumper event", () => {
       render(<Bumper position={[0, 0, 0]} bumperId={3} />)
       callHandler(makeBallPayload())
       expect(mockBroadcastEvent).toHaveBeenCalledWith({
-        event_type: "bumper_hit",
-        payload: { bumper_id: 3 },
+        event_type: "Bumper",
+        payload: {},
       })
     })
 
-    it("passes each bumper's index as its bumper_id", () => {
+    it("does not include bumper id in payload", () => {
       render(<Bumper position={[0, 0, 0]} bumperId={0} />)
       callHandler(makeBallPayload())
-      expect(mockBroadcastEvent).toHaveBeenLastCalledWith(
-        expect.objectContaining({ payload: { bumper_id: 0 } }),
-      )
+      expect(mockBroadcastEvent).toHaveBeenLastCalledWith(expect.objectContaining({ payload: {} }))
 
       mockBroadcastEvent.mockReset()
 
       render(<Bumper position={[0, 0, 0]} bumperId={8} />)
       callHandler(makeBallPayload())
-      expect(mockBroadcastEvent).toHaveBeenLastCalledWith(
-        expect.objectContaining({ payload: { bumper_id: 8 } }),
-      )
+      expect(mockBroadcastEvent).toHaveBeenLastCalledWith(expect.objectContaining({ payload: {} }))
     })
 
     it("clamps the ball velocity immediately after applying the bumper impulse", () => {

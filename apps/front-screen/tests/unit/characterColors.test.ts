@@ -3,7 +3,7 @@ import { getBallColorForCharacter } from "@/config/characterColors"
 
 describe("getBallColorForCharacter", () => {
   it("returns orange for striker", () => {
-    expect(getBallColorForCharacter("striker")).toBe("#FF8C00")
+    expect(getBallColorForCharacter("striker")).toBe("#FFAA00")
   })
 
   it("returns blue for defender", () => {
@@ -19,6 +19,6 @@ describe("getBallColorForCharacter", () => {
   })
 
   it("returns striker color when character is undefined", () => {
-    expect(getBallColorForCharacter(undefined)).toBe("#FF8C00")
+    expect(getBallColorForCharacter(undefined)).toBe("#FFAA00")
   })
 })
