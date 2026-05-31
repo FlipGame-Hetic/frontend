@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useMemo, useRef, useState } from "react"
 import { useScreenHub } from "@frontend/ws"
 import { isScreenEvent } from "@frontend/types"
 import type { ScreenEnvelope, GamePhase } from "@frontend/types"
@@ -20,6 +20,7 @@ const TOKEN =
 function App() {
   const [config, _setConfig] = useState<DmdConfig>(DEFAULT_DMD_CONFIG)
   const [phase, setPhase] = useState<GamePhase>("idle")
+  const totalBallsRef = useRef(0)
 
   const scenes = useMemo(
     () => ({
@@ -36,6 +37,9 @@ function App() {
   const onEvent = useCallback(
     (envelope: ScreenEnvelope) => {
       if (isScreenEvent(envelope, "phase_change")) {
+        if (envelope.payload.phase === "playing") {
+          totalBallsRef.current = 0
+        }
         scenes.playing.update({
           player: envelope.payload.player ?? 1,
           ballNumber: envelope.payload.ball ?? 1,
@@ -64,7 +68,8 @@ function App() {
       }
 
       if (isScreenEvent(envelope, "LifeUpdate")) {
-        scenes.playing.update({ ballNumber: envelope.payload.lives_remaining })
+        const lives = envelope.payload.lives_remaining
+        if (lives > totalBallsRef.current) totalBallsRef.current = lives
       }
     },
     [scenes],
