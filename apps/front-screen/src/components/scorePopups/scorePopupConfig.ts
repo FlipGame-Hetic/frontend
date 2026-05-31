@@ -10,8 +10,9 @@ export const SCORE_POPUP_FONT = "/fonts/orbitron/static/Orbitron-Black.ttf"
 
 export const getScorePopupColor = (amount: number): string => {
   if (amount < 0) return "#FF3333"
-  if (amount >= 1000) return "#FFD700"
+  if (amount >= 5000) return "#FFD700"
+  if (amount >= 1500) return "#FF2D00"
   if (amount >= 500) return "#FF6600"
-  if (amount >= 100) return "#FFA500"
+  if (amount >= 200) return "#FFA500"
   return "#FFE070"
 }

@@ -1,7 +1,6 @@
 import { createContext, useContext } from "react"
 
 export interface DebugControls {
-  testBench: boolean
   enabled: boolean
   autoMode: boolean
   bounceThreshold: number

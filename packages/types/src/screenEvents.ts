@@ -15,7 +15,9 @@ export const SCREEN_EVENT_TYPES = {
   SlingshotHit: "slingshot_hit",
   BallLost: "ball_lost",
   TargetHit: "target_hit",
-  MultiballTriggered: "multiball_triggered",
+  MultiballTriggered: "MultiballTriggered",
+  ComboActivated: "ComboActivated",
+  MultiplierUpdate: "MultiplierUpdate",
   BackBumper: "Bumper",
   BackBumperTriangle: "BumperTriangle",
   BackPortalUsed: "PortalUsed",
@@ -108,8 +110,18 @@ export interface TargetHitEvent {
 }
 
 export interface MultiballTriggeredEvent {
-  event_type: "multiball_triggered"
+  event_type: "MultiballTriggered"
   payload: Record<string, never>
+}
+
+export interface ComboActivatedEvent {
+  event_type: "ComboActivated"
+  payload: { combo_id: number; bonus_pts: number; multiplier: number; duration_ms: number }
+}
+
+export interface MultiplierUpdateEvent {
+  event_type: "MultiplierUpdate"
+  payload: { multiplier: number; duration_ms?: number }
 }
 
 export interface BackBumperEvent {
@@ -187,6 +199,8 @@ export type ScreenEvent =
   | BallLostEvent
   | TargetHitEvent
   | MultiballTriggeredEvent
+  | ComboActivatedEvent
+  | MultiplierUpdateEvent
   | BackBumperEvent
   | BackBumperTriangleEvent
   | BackPortalUsedEvent

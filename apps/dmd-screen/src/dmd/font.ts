@@ -78,6 +78,54 @@ function drawChar(
   }
 }
 
+function drawCharScaled(
+  buffer: DotBuffer,
+  cols: number,
+  char: string,
+  x: number,
+  y: number,
+  scale: number,
+  brightness = 1.0,
+): void {
+  const data = FONT_5x7[char.toUpperCase()]
+  if (!data) return
+
+  for (let row = 0; row < CHAR_HEIGHT; row++) {
+    const bits = data[row] ?? 0
+    for (let col = 0; col < CHAR_WIDTH; col++) {
+      if (bits & (1 << (CHAR_WIDTH - 1 - col))) {
+        for (let dy = 0; dy < scale; dy++) {
+          for (let dx = 0; dx < scale; dx++) {
+            setPixel(buffer, cols, x + col * scale + dx, y + row * scale + dy, brightness)
+          }
+        }
+      }
+    }
+  }
+}
+
+export function drawStringScaled(
+  buffer: DotBuffer,
+  cols: number,
+  text: string,
+  x: number,
+  y: number,
+  scale: number,
+  spacing = 1,
+  brightness = 1.0,
+): void {
+  let cursorX = x
+  for (const char of text) {
+    drawCharScaled(buffer, cols, char, cursorX, y, scale, brightness)
+    cursorX += CHAR_WIDTH * scale + spacing
+  }
+}
+
+export function measureStringScaled(text: string, scale: number, spacing = 1): number {
+  if (text.length === 0) return 0
+  return text.length * CHAR_WIDTH * scale + (text.length - 1) * spacing
+}
+
 export function drawString(
   buffer: DotBuffer,
   cols: number,

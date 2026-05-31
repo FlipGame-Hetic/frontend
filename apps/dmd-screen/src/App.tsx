@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useScreenHub } from "@frontend/ws"
 import { isScreenEvent } from "@frontend/types"
 import type { ScreenEnvelope, GamePhase } from "@frontend/types"
@@ -11,15 +11,20 @@ import { PausedScene } from "@/dmd/scenes/PausedScene"
 import { ModeSelectScene } from "@/dmd/scenes/ModeSelectScene"
 import { CharacterSelectScene } from "@/dmd/scenes/CharacterSelectScene"
 import { GameOverScene } from "@/dmd/scenes/GameOverScene"
+import { ComboScene } from "@/dmd/scenes/ComboScene"
 import { DevOverlay as _DevOverlay } from "@/components/DevOverlay"
 
 const SCREEN_ID = "dmd_screen" as const
 const TOKEN =
   (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_SCREEN_TOKEN ?? ""
 
+const COMBO_FLASH_MS = 1800
+
 function App() {
   const [config, _setConfig] = useState<DmdConfig>(DEFAULT_DMD_CONFIG)
   const [phase, setPhase] = useState<GamePhase>("idle")
+  const [comboActive, setComboActive] = useState(false)
+  const comboTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const totalBallsRef = useRef(0)
 
   const scenes = useMemo(
@@ -30,9 +35,16 @@ function App() {
       playing: new ScoreScene(),
       paused: new PausedScene(),
       game_over: new GameOverScene(),
+      combo: new ComboScene(),
     }),
     [],
   )
+
+  useEffect(() => {
+    return () => {
+      if (comboTimerRef.current !== null) clearTimeout(comboTimerRef.current)
+    }
+  }, [])
 
   const onEvent = useCallback(
     (envelope: ScreenEnvelope) => {
@@ -52,8 +64,36 @@ function App() {
         const score = envelope.payload.score
         const ball = envelope.payload.ball ?? 1
         const player = envelope.payload.player !== undefined ? Number(envelope.payload.player) : 1
-        scenes.playing.update({ score, player, ballNumber: ball })
+        const multiplier = envelope.payload.multiplier ?? 1
+        scenes.playing.update({ score, player, ballNumber: ball, multiplier })
         scenes.game_over.update(score)
+        return
+      }
+
+      if (isScreenEvent(envelope, "ComboActivated")) {
+        const { combo_id, multiplier, duration_ms } = envelope.payload
+        scenes.playing.update({
+          multiplier,
+          multiplierDurationMs: duration_ms,
+          multiplierStartedAt: performance.now(),
+        })
+        scenes.combo.update({ comboId: combo_id })
+        if (comboTimerRef.current !== null) clearTimeout(comboTimerRef.current)
+        setComboActive(true)
+        comboTimerRef.current = setTimeout(() => {
+          setComboActive(false)
+          comboTimerRef.current = null
+        }, COMBO_FLASH_MS)
+        return
+      }
+
+      if (isScreenEvent(envelope, "MultiplierUpdate")) {
+        const { multiplier, duration_ms } = envelope.payload
+        scenes.playing.update({
+          multiplier,
+          multiplierDurationMs: duration_ms ?? 0,
+          multiplierStartedAt: duration_ms !== undefined ? performance.now() : 0,
+        })
         return
       }
 
@@ -77,9 +117,11 @@ function App() {
 
   useScreenHub({ screenId: SCREEN_ID, token: TOKEN, onEvent })
 
+  const activeScene = comboActive && phase === "playing" ? scenes.combo : scenes[phase]
+
   return (
     <>
-      <DmdCanvas config={config} scene={scenes[phase]} />
+      <DmdCanvas config={config} scene={activeScene} />
       {/* {import.meta.env.DEV && <DevOverlay config={config} onChange={setConfig} />} */}
     </>
   )

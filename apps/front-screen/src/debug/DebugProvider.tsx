@@ -6,6 +6,7 @@ import useBallStore from "@/stores/useBallStore"
 import useScreenShakeStore from "@/stores/useScreenShakeStore"
 import { SHAKE_INTENSITY } from "@/components/screenShake/shakeIntensity"
 import { playSfx } from "@/audio/soundEngine"
+import { broadcastEvent } from "@frontend/ws"
 import {
   BONUS_ZONE_BOUNCE_THRESHOLD,
   BONUS_ZONE_SPAWN_INTERVAL_MS,
@@ -21,7 +22,6 @@ const DebugProvider = ({ children }: { children: ReactNode }) => {
   const mainControls = useControls(
     "Main",
     {
-      testBench: false,
       enabled: { value: true, label: "Orbit controls" },
       autoMode: false,
       "Start Game": button(requestFrontScreenStartGame),
@@ -48,6 +48,7 @@ const DebugProvider = ({ children }: { children: ReactNode }) => {
       },
       "Trigger Multiball": button(() => {
         playSfx("multiball_triggered")
+        broadcastEvent({ event_type: "MultiballTriggered", payload: {} })
         useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.multiballTrigger)
         useMultiballStore.getState().reset()
         const count = ballCountRef.current

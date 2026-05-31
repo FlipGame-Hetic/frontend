@@ -2,6 +2,7 @@ import { playSfx } from "@/audio/soundEngine"
 import { SHAKE_INTENSITY } from "@/components/screenShake/shakeIntensity"
 import useBallStore from "@/stores/useBallStore"
 import useScreenShakeStore from "@/stores/useScreenShakeStore"
+import { broadcastEvent } from "@frontend/ws"
 import type { Vector3Tuple } from "three"
 import { create } from "zustand"
 
@@ -59,6 +60,7 @@ const useMultiballStore = create<MultiballStore>()((set, get) => {
       }
 
       playSfx("multiball_triggered")
+      broadcastEvent({ event_type: "MultiballTriggered", payload: {} })
       useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.multiballTrigger)
       set({ bounceCount: 0, cooldownActive: true })
 
