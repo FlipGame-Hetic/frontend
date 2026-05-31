@@ -2,7 +2,7 @@ import type { PositionType } from "@/types/worldTypes"
 import { broadcastEvent } from "@frontend/ws"
 import { useFrame } from "@react-three/fiber"
 import useScorePopupsStore from "@/stores/useScorePopupsStore"
-import { playRandomSfx, playSfx } from "@/audio/soundEngine"
+import { playRandomSfx } from "@/audio/soundEngine"
 import type { RapierRigidBody } from "@react-three/rapier"
 import { RigidBody, type CollisionEnterPayload } from "@react-three/rapier"
 import { useCallback, useEffect, useRef } from "react"
@@ -62,7 +62,6 @@ const SlimBumper = ({ position, bumperId: _bumperId, meshOverride }: SlimBumperP
 
     broadcastEvent({ event_type: "Bumper", payload: {} })
     playRandomSfx("bumpers")
-    playSfx("score_event")
     useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.slimBumper)
     hitAt.current = performance.now() / 1000
 

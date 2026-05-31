@@ -1,5 +1,5 @@
 import type { PositionType } from "@/types/worldTypes"
-import { playRandomSfx, playSfx } from "@/audio/soundEngine"
+import { playRandomSfx } from "@/audio/soundEngine"
 import { broadcastEvent } from "@frontend/ws"
 import { useFrame } from "@react-three/fiber"
 import useScorePopupsStore from "@/stores/useScorePopupsStore"
@@ -98,7 +98,6 @@ const Slingshot = ({
     if (other.rigidBodyObject?.name !== "ball") return
     broadcastEvent({ event_type: "BumperTriangle", payload: {} })
     playRandomSfx("slingshots")
-    playSfx("score_event")
     useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.slingshot)
     hitAt.current = performance.now() / 1000
 

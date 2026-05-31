@@ -1,5 +1,5 @@
 import type { PositionType } from "@/types/worldTypes"
-import { playRandomSfx, playSfx } from "@/audio/soundEngine"
+import { playRandomSfx } from "@/audio/soundEngine"
 import { broadcastEvent } from "@frontend/ws"
 import { useFrame } from "@react-three/fiber"
 import useScorePopupsStore from "@/stores/useScorePopupsStore"
@@ -63,7 +63,6 @@ const Bumper = ({ position, bumperId: _bumperId, meshOverride, rubberMesh }: Bum
 
     broadcastEvent({ event_type: "Bumper", payload: {} })
     playRandomSfx("bumpers")
-    playSfx("score_event")
     useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.bumper)
 
     const bumperPos = bodyRef.current.translation()

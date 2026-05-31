@@ -33,6 +33,7 @@ const useScorePopupsStore = create<ScorePopupsState>((set, get) => ({
     set({ lastHitPosition: position })
   },
   spawnPopupFromDelta: (amount, reason) => {
+    if (amount === 0) return
     const balls = useBallStore.getState().balls
     const { lastHitPosition } = get()
     const position = balls.length > 1 && reason === "combo" ? { x: 0, y: 0, z: 0 } : lastHitPosition

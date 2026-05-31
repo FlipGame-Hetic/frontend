@@ -15,7 +15,6 @@ import type {
 } from "@frontend/types"
 import useGameStore, { CHARACTER_ID_BY_TYPE } from "@/stores/useGameStore"
 import useScorePopupsStore from "@/stores/useScorePopupsStore"
-import { playRandomSfx } from "@/audio/soundEngine"
 
 const SCREEN_ID = "front_screen" as const
 const DEFAULT_START_MODE: GameMode = "solo"
@@ -38,9 +37,6 @@ const handleScreenEvent = (envelope: ScreenEnvelope): void => {
     const payload = envelope.payload as { delta: number; reason: string; total: number }
     if (payload.reason !== "timer_bonus") {
       useScorePopupsStore.getState().spawnPopupFromDelta(payload.delta, payload.reason)
-    }
-    if (payload.delta >= 300) {
-      playRandomSfx("score_voice")
     }
     return
   }
