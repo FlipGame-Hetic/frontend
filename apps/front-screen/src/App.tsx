@@ -12,6 +12,8 @@ import TopTunnelAssistManager from "./components/playfield/TopTunnelAssistManage
 import PlungerLaneGate from "./components/plunger/PlungerLaneGate"
 import PortalsManager from "./components/portal/PortalsManager"
 import ProductionCamera from "./components/ProductionCamera"
+import DirectionalAccelerationSensorsManager from "./components/sensors/DirectionalAccelerationSensorsManager"
+import { GUTTER_DRAIN_ASSIST_SENSORS } from "./components/sensors/directionalAccelerationSensorsConfig"
 import ScorePopupsManager from "./components/scorePopups/ScorePopupsManager"
 import ScreenShakeController from "./components/screenShake/ScreenShakeController"
 import SoundManager from "./components/sound/SoundManager"
@@ -69,6 +71,7 @@ const App = () => {
         <PhysicsManager isDebug={true}>
           <BallsManager />
           <Drain />
+          <DirectionalAccelerationSensorsManager sensors={GUTTER_DRAIN_ASSIST_SENSORS} />
           <InvisibleWallsManager />
           <TopTunnelAssistManager />
           <PortalsManager />
