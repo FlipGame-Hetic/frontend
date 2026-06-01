@@ -12,7 +12,7 @@ import { ModeSelectScene } from "@/dmd/scenes/ModeSelectScene"
 import { CharacterSelectScene } from "@/dmd/scenes/CharacterSelectScene"
 import { GameOverScene } from "@/dmd/scenes/GameOverScene"
 import { ComboScene } from "@/dmd/scenes/ComboScene"
-import { DevOverlay as _DevOverlay } from "@/components/DevOverlay"
+import { DevOverlay } from "@/components/DevOverlay"
 
 const SCREEN_ID = "dmd_screen" as const
 const TOKEN =
@@ -21,8 +21,9 @@ const TOKEN =
 const COMBO_FLASH_MS = 1800
 
 function App() {
-  const [config, _setConfig] = useState<DmdConfig>(DEFAULT_DMD_CONFIG)
+  const [config, setConfig] = useState<DmdConfig>(DEFAULT_DMD_CONFIG)
   const [phase, setPhase] = useState<GamePhase>("idle")
+  const [devPhase, setDevPhase] = useState<GamePhase | null>(null)
   const [comboActive, setComboActive] = useState(false)
   const comboTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const totalBallsRef = useRef(0)
@@ -110,6 +111,7 @@ function App() {
       if (isScreenEvent(envelope, "LifeUpdate")) {
         const lives = envelope.payload.lives_remaining
         if (lives > totalBallsRef.current) totalBallsRef.current = lives
+        scenes.playing.update({ lives, maxLives: totalBallsRef.current })
       }
     },
     [scenes],
@@ -117,12 +119,21 @@ function App() {
 
   useScreenHub({ screenId: SCREEN_ID, token: TOKEN, onEvent })
 
-  const activeScene = comboActive && phase === "playing" ? scenes.combo : scenes[phase]
+  const effectivePhase = devPhase ?? phase
+  const activeScene =
+    comboActive && effectivePhase === "playing" ? scenes.combo : scenes[effectivePhase]
 
   return (
     <>
       <DmdCanvas config={config} scene={activeScene} />
-      {/* {import.meta.env.DEV && <DevOverlay config={config} onChange={setConfig} />} */}
+      {import.meta.env.DEV && (
+        <DevOverlay
+          config={config}
+          onChange={setConfig}
+          phase={effectivePhase}
+          onPhaseChange={setDevPhase}
+        />
+      )}
     </>
   )
 }

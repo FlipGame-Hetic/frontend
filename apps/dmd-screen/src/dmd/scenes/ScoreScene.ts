@@ -2,6 +2,8 @@ import type { RenderContext, Scene } from "../types"
 import { setPixel } from "../buffer"
 import { drawString, measureString } from "../font"
 import { drawBigString, measureBigString } from "../font-big"
+import { drawHearts } from "../icons"
+import { MAX_BALLS, heartsWidth } from "../constants"
 
 const BAR_WIDTH = 60
 const BAR_Y = 14
@@ -9,6 +11,7 @@ const MULT_Y = 4
 const SCORE_Y_RATIO = 0.38
 const JITTER_THRESHOLD = 2.0
 const JITTER_MAX_INTENSITY = 2
+const HEARTS_MARGIN = 4
 
 export interface ScoreData {
   score: number
@@ -19,6 +22,8 @@ export interface ScoreData {
   multiplier: number
   multiplierStartedAt: number
   multiplierDurationMs: number
+  lives: number
+  maxLives: number
 }
 
 export class ScoreScene implements Scene {
@@ -31,6 +36,8 @@ export class ScoreScene implements Scene {
     multiplier: 1,
     multiplierStartedAt: 0,
     multiplierDurationMs: 0,
+    lives: MAX_BALLS,
+    maxLives: MAX_BALLS,
   }
 
   update(data: Partial<ScoreData>): void {
@@ -39,8 +46,7 @@ export class ScoreScene implements Scene {
 
   render(ctx: RenderContext): void {
     const { buffer, cols, rows, elapsedMs } = ctx
-    const { score, player, ballNumber, multiplier, multiplierStartedAt, multiplierDurationMs } =
-      this.data
+    const { score, player, multiplier, multiplierStartedAt, multiplierDurationMs } = this.data
 
     const now = performance.now()
     const elapsed = now - multiplierStartedAt
@@ -84,14 +90,14 @@ export class ScoreScene implements Scene {
     const scoreY = Math.floor(rows * SCORE_Y_RATIO)
     drawBigString(buffer, cols, scoreText, scoreX, scoreY)
 
+    const { lives, maxLives } = this.data
     const playerText = "PLAYER " + String(player)
-    const ballText = "BALL " + String(ballNumber)
     const playerX = Math.floor(cols * 0.1)
-    const ballWidth = measureString(ballText)
-    const ballX = Math.floor(cols * 0.9) - ballWidth
     const infoY = rows - 9
     drawString(buffer, cols, playerText, playerX, infoY)
-    drawString(buffer, cols, ballText, ballX, infoY)
+
+    const hx = cols - HEARTS_MARGIN - heartsWidth(maxLives)
+    drawHearts(buffer, cols, hx, infoY, lives, maxLives)
 
     for (let i = 0; i < 3; i++) {
       setPixel(buffer, cols, i, 0, 0.3)
