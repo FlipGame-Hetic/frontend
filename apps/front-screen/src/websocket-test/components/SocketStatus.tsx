@@ -22,7 +22,7 @@ interface Props {
   status: ConnectionStatus
 }
 
-export function SocketStatus({ status }: Props) {
+const SocketStatus = ({ status }: Props) => {
   const { dot, label, subtitle } = statusConfig[status]
   return (
     <div className="text-right">
@@ -34,3 +34,5 @@ export function SocketStatus({ status }: Props) {
     </div>
   )
 }
+
+export default SocketStatus

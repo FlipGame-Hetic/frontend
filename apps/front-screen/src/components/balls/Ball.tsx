@@ -1,52 +1,92 @@
 import useBallStore from "@/stores/useBallStore"
+import { isPointInPlungerLaneSensor } from "@/components/plunger/plungerConfig"
 import type { PositionType } from "@/types/worldTypes"
 import { useFrame } from "@react-three/fiber"
 import type { RapierRigidBody } from "@react-three/rapier"
 import { RigidBody } from "@react-three/rapier"
-import { useRef } from "react"
-import { REAL_GRAVITY_Y } from "../physics/physicsConfig"
-import { BALL_MASS, BALL_MAX_SPEED, BALL_RADIUS, BALL_RESTITUTION } from "./ballConfig"
+import { useEffect, useRef } from "react"
+import { DRAIN_SAFETY_FALLBACK_Y } from "../drain/drainConfig"
+import { clampVelocityToPlayfield } from "../physics/playfieldPlane"
+import { isOnRail, cleanupRailBall } from "../playfield/railState"
+import {
+  RAIL_BASE_ACCEL,
+  RAIL_BOOST_PER_SECOND,
+  RAIL_MAX_ACCEL,
+  RAIL_MIN_VEL,
+} from "../playfield/railConfig"
+import { BALL_RADIUS } from "./ballConfig"
 
 interface BallProps {
   id: string
   position: PositionType
   radius?: number
+  mass: number
+  restitution: number
+  friction: number
+  linearDamping: number
+  angularDamping: number
+  maxTangentSpeed: number
+  laneMaxTangentSpeed: number
+  minNormalSpeed: number
+  maxNormalSpeed: number
+  color?: string
 }
 
-const Ball = ({ id, position, radius = BALL_RADIUS }: BallProps) => {
+const Ball = ({
+  id,
+  position,
+  radius = BALL_RADIUS,
+  mass,
+  restitution,
+  friction,
+  linearDamping,
+  angularDamping,
+  maxTangentSpeed,
+  laneMaxTangentSpeed,
+  minNormalSpeed,
+  maxNormalSpeed,
+  color = "#FF8C00",
+}: BallProps) => {
   const { deleteBall } = useBallStore()
-  const isPlaying = useBallStore((state) => state.playingBallIds.includes(id))
   const ballRef = useRef<RapierRigidBody>(null)
-  const groundThreshold = radius + 0.1
+  const timeOnRailRef = useRef(0)
 
-  useFrame(() => {
+  useEffect(() => {
+    return () => {
+      cleanupRailBall(id)
+    }
+  }, [id])
+
+  useFrame((_, delta) => {
     const body = ballRef.current
     if (!body) return
 
     const pos = body.translation()
 
-    if (pos.y <= -2) {
+    if (pos.y <= DRAIN_SAFETY_FALLBACK_Y) {
       deleteBall(id)
       return
     }
 
-    const isAirborne = pos.y > groundThreshold
-
-    if (isAirborne) {
-      body.setGravityScale(0, true)
-      const mass = body.mass()
-      body.addForce({ x: 0, y: REAL_GRAVITY_Y * mass, z: 0 }, true)
-    } else {
-      body.setGravityScale(1, true)
-    }
-
-    if (!isPlaying) return
-
+    const inLane = isPointInPlungerLaneSensor(pos)
     const vel = body.linvel()
-    const speed = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z)
-    if (speed > BALL_MAX_SPEED) {
-      const ratio = BALL_MAX_SPEED / speed
-      body.setLinvel({ x: vel.x * ratio, y: vel.y * ratio, z: vel.z * ratio }, true)
+    const clampedVelocity = clampVelocityToPlayfield(
+      vel,
+      inLane ? laneMaxTangentSpeed : maxTangentSpeed,
+      minNormalSpeed,
+      maxNormalSpeed,
+    )
+    body.setLinvel(clampedVelocity, true)
+
+    if (isOnRail(id) && vel.z > RAIL_MIN_VEL) {
+      timeOnRailRef.current += delta
+      const accel = Math.min(
+        RAIL_BASE_ACCEL + timeOnRailRef.current * RAIL_BOOST_PER_SECOND,
+        RAIL_MAX_ACCEL,
+      )
+      body.applyImpulse({ x: 0, y: 0, z: accel * delta * mass }, true)
+    } else {
+      timeOnRailRef.current = 0
     }
   })
 
@@ -56,16 +96,18 @@ const Ball = ({ id, position, radius = BALL_RADIUS }: BallProps) => {
       type="dynamic"
       position={position}
       colliders="ball"
-      gravityScale={0}
       ccd
       name="ball"
       userData={{ ballId: id }}
-      mass={BALL_MASS}
-      restitution={BALL_RESTITUTION}
+      mass={mass}
+      restitution={restitution}
+      friction={friction}
+      linearDamping={linearDamping}
+      angularDamping={angularDamping}
     >
-      <mesh>
+      <mesh castShadow>
         <sphereGeometry args={[radius, 32, 32]} />
-        <meshStandardMaterial color="white" />
+        <meshStandardMaterial color={color} metalness={0.25} roughness={0.2} />
       </mesh>
     </RigidBody>
   )

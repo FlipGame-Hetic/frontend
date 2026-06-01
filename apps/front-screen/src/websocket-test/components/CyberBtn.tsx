@@ -11,7 +11,7 @@ interface Props {
   onDispatch: Dispatcher
 }
 
-export function CyberBtn({ label, event, payload = {}, color, onDispatch }: Props) {
+const CyberBtn = ({ label, event, payload = {}, color, onDispatch }: Props) => {
   const c = colors[color]
   return (
     <button
@@ -33,3 +33,5 @@ export function CyberBtn({ label, event, payload = {}, color, onDispatch }: Prop
     </button>
   )
 }
+
+export default CyberBtn

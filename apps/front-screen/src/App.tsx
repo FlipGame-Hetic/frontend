@@ -1,52 +1,89 @@
+import DebugProvider from "@/debug/DebugProvider"
 import type { CameraProps } from "@react-three/fiber"
 import { Leva } from "leva"
+import { Suspense } from "react"
 import BallsManager from "./components/balls/BallsManager"
 import DebugCamera from "./components/DebugCamera"
+import Drain from "./components/drain/Drain"
+import InvisibleWallsManager from "./components/physics/InvisibleWallsManager"
 import PhysicsManager from "./components/physics/PhysicsManager"
-import FlipperJoints from "./components/flipperJoints/FlipperJoints"
-import { LEFT_POSITION, RIGHT_POSITION } from "./components/flipperJoints/jointsConfig"
-import Gutters from "./components/Gutters"
-import Walls from "./components/Walls"
+import PlayfieldScene from "./components/playfield/PlayfieldScene"
+import TopTunnelAssistManager from "./components/playfield/TopTunnelAssistManager"
+import PlungerLaneGate from "./components/plunger/PlungerLaneGate"
+import PortalsManager from "./components/portal/PortalsManager"
+import ProductionCamera from "./components/ProductionCamera"
+import DirectionalAccelerationSensorsManager from "./components/sensors/DirectionalAccelerationSensorsManager"
+import { GUTTER_DRAIN_ASSIST_SENSORS } from "./components/sensors/directionalAccelerationSensorsConfig"
+import ScorePopupsManager from "./components/scorePopups/ScorePopupsManager"
+import ScreenShakeController from "./components/screenShake/ScreenShakeController"
+import SoundManager from "./components/sound/SoundManager"
 import World from "./components/World"
-import BumpersManager from "./components/bumbers/BumpersManager"
-import Plunger from "./components/plunger/Plunger"
+import { useDebugKeys } from "./hooks/useDebugKeys"
+import { useFlipperButtonRelay } from "./hooks/useFlipperButtonRelay"
 import { useIoTInputs } from "./hooks/useIoTInputs"
 import { useScreenHub } from "./hooks/useScreenHub"
-import { WebsocketTest } from "./websocket-test/WebsocketTest"
+import WebsocketTest from "./websocket-test/WebsocketTest"
 
-const isDebug = import.meta.env.MODE === "development"
-const isWsTest = isDebug && new URLSearchParams(window.location.search).has("wstest")
+const isProduction = import.meta.env.VITE_ENVIRONMENT === "production"
+const isWsTest = !isProduction && new URLSearchParams(window.location.search).has("wstest")
 
-export default function App() {
-  const cameraSettings = { position: [0, 20, 25] as [number, number, number], fov: 35 }
-
+const App = () => {
   useIoTInputs()
   useScreenHub()
+  useDebugKeys()
+  useFlipperButtonRelay()
+
+  const cameraSettings = { position: [0, 13, 15] as [number, number, number], fov: 35 }
 
   if (isWsTest) return <WebsocketTest />
 
   return (
-    <>
+    <DebugProvider>
+      <SoundManager />
       <Leva
-        hidden={!isDebug}
+        hidden={false}
         titleBar={{ title: "Tweaks GUI" }}
         theme={{ sizes: { rootWidth: "350px" } }}
       />
       <World cameraSettings={cameraSettings as CameraProps}>
         <ambientLight intensity={0.5} />
-        <directionalLight position={[5, 5, 5]} intensity={1} />
-        <DebugCamera cameraPosition={cameraSettings.position} cameraFov={cameraSettings.fov} />
+        <directionalLight
+          position={[0, 13, 12]}
+          intensity={0.8}
+          castShadow
+          shadow-mapSize={[2048, 2048]}
+          shadow-camera-near={0.5}
+          shadow-camera-far={60}
+          shadow-camera-left={-20}
+          shadow-camera-right={20}
+          shadow-camera-top={20}
+          shadow-camera-bottom={-20}
+          shadow-bias={-0.001}
+          shadow-normalBias={0.1}
+        />
+        {isProduction ? (
+          <ProductionCamera />
+        ) : (
+          <DebugCamera cameraPosition={cameraSettings.position} cameraFov={cameraSettings.fov} />
+        )}
+        <ScreenShakeController />
 
-        <PhysicsManager isDebug={isDebug}>
+        <PhysicsManager isDebug={true}>
           <BallsManager />
-          <Walls />
-          <Gutters />
-          <BumpersManager />
-          <FlipperJoints position={LEFT_POSITION} side="left" />
-          <FlipperJoints position={RIGHT_POSITION} side="right" />
-          <Plunger />
+          <Drain />
+          <DirectionalAccelerationSensorsManager sensors={GUTTER_DRAIN_ASSIST_SENSORS} />
+          <InvisibleWallsManager />
+          <TopTunnelAssistManager />
+          <PortalsManager />
+          <PlungerLaneGate />
+          <ScorePopupsManager />
+          <Suspense fallback={null}>
+            <PlayfieldScene />
+          </Suspense>
         </PhysicsManager>
       </World>
-    </>
+    </DebugProvider>
   )
 }
+
+export default App

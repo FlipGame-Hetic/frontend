@@ -1,69 +1,139 @@
-import { useCallback, useMemo, useRef, useState } from "react"
-import type { ScreenEnvelope } from "@frontend/types"
-import { useScreenSocket } from "@frontend/ws"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useScreenHub } from "@frontend/ws"
+import { isScreenEvent } from "@frontend/types"
+import type { ScreenEnvelope, GamePhase } from "@frontend/types"
 import { DEFAULT_DMD_CONFIG } from "@/dmd/config"
 import type { DmdConfig } from "@/dmd/config"
 import { DmdCanvas } from "@/dmd/DmdCanvas"
+import { ScoreScene } from "@/dmd/scenes/ScoreScene"
+import { IdleScene } from "@/dmd/scenes/IdleScene"
+import { PausedScene } from "@/dmd/scenes/PausedScene"
+import { ModeSelectScene } from "@/dmd/scenes/ModeSelectScene"
+import { CharacterSelectScene } from "@/dmd/scenes/CharacterSelectScene"
+import { GameOverScene } from "@/dmd/scenes/GameOverScene"
+import { ComboScene } from "@/dmd/scenes/ComboScene"
 import { DevOverlay } from "@/components/DevOverlay"
-import { SceneManager } from "@/dmd/SceneManager"
-import type { GameData } from "@/dmd/SceneManager"
-import type { Scene } from "@/dmd/types"
 
 const SCREEN_ID = "dmd_screen" as const
 const TOKEN =
-  (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_SCREEN_TOKEN ?? "dev"
+  (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_SCREEN_TOKEN ?? ""
+
+const COMBO_FLASH_MS = 1800
 
 function App() {
   const [config, setConfig] = useState<DmdConfig>(DEFAULT_DMD_CONFIG)
-  const sceneManager = useMemo(() => new SceneManager(), [])
-  const [activeScene, setActiveScene] = useState<Scene>(() => sceneManager.activeScene)
+  const [phase, setPhase] = useState<GamePhase>("idle")
+  const [devPhase, setDevPhase] = useState<GamePhase | null>(null)
+  const [comboActive, setComboActive] = useState(false)
+  const comboTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const totalBallsRef = useRef(0)
 
-  // Merged game state — updated incrementally from score_update and phase_change envelopes
-  const gameData = useRef<GameData>({
-    state: "idle",
-    ball_number: 1,
-    score: 0,
-    player: 1,
-    total_players: 1,
-  })
+  const scenes = useMemo(
+    () => ({
+      idle: new IdleScene(),
+      mode_select: new ModeSelectScene(),
+      character_select: new CharacterSelectScene(),
+      playing: new ScoreScene(),
+      paused: new PausedScene(),
+      game_over: new GameOverScene(),
+      combo: new ComboScene(),
+    }),
+    [],
+  )
 
-  const onMessage = useCallback(
+  useEffect(() => {
+    return () => {
+      if (comboTimerRef.current !== null) clearTimeout(comboTimerRef.current)
+    }
+  }, [])
+
+  const onEvent = useCallback(
     (envelope: ScreenEnvelope) => {
-      const payload = envelope.payload as Record<string, unknown>
-
-      if (envelope.event_type === "score_update") {
-        gameData.current = {
-          ...gameData.current,
-          score: (payload.score as number | undefined) ?? gameData.current.score,
-          player: (payload.player as number | undefined) ?? gameData.current.player,
-          ball_number: (payload.ball as number | undefined) ?? gameData.current.ball_number,
+      if (isScreenEvent(envelope, "phase_change")) {
+        if (envelope.payload.phase === "playing") {
+          totalBallsRef.current = 0
         }
-      } else if (envelope.event_type === "phase_change") {
-        gameData.current = {
-          ...gameData.current,
-          state: (payload.phase as string | undefined) ?? gameData.current.state,
-          ball_number: (payload.ball as number | undefined) ?? gameData.current.ball_number,
-          player: (payload.player as number | undefined) ?? gameData.current.player,
-        }
-      } else {
+        scenes.playing.update({
+          player: envelope.payload.player ?? 1,
+          ballNumber: envelope.payload.ball ?? 1,
+        })
+        setPhase(envelope.payload.phase)
         return
       }
 
-      const prev = sceneManager.activeScene
-      sceneManager.update(gameData.current)
-      if (sceneManager.activeScene !== prev) {
-        setActiveScene(sceneManager.activeScene)
+      if (isScreenEvent(envelope, "ScoreUpdate")) {
+        const score = envelope.payload.score
+        const ball = envelope.payload.ball ?? 1
+        const player = envelope.payload.player !== undefined ? Number(envelope.payload.player) : 1
+        const multiplier = envelope.payload.multiplier ?? 1
+        scenes.playing.update({ score, player, ballNumber: ball, multiplier })
+        scenes.game_over.update(score)
+        return
+      }
+
+      if (isScreenEvent(envelope, "ComboActivated")) {
+        const { combo_id, multiplier, duration_ms } = envelope.payload
+        scenes.playing.update({
+          multiplier,
+          multiplierDurationMs: duration_ms,
+          multiplierStartedAt: performance.now(),
+        })
+        scenes.combo.update({ comboId: combo_id })
+        if (comboTimerRef.current !== null) clearTimeout(comboTimerRef.current)
+        setComboActive(true)
+        comboTimerRef.current = setTimeout(() => {
+          setComboActive(false)
+          comboTimerRef.current = null
+        }, COMBO_FLASH_MS)
+        return
+      }
+
+      if (isScreenEvent(envelope, "MultiplierUpdate")) {
+        const { multiplier, duration_ms } = envelope.payload
+        scenes.playing.update({
+          multiplier,
+          multiplierDurationMs: duration_ms ?? 0,
+          multiplierStartedAt: duration_ms !== undefined ? performance.now() : 0,
+        })
+        return
+      }
+
+      if (isScreenEvent(envelope, "mode_selected")) {
+        scenes.mode_select.update(envelope.payload.mode)
+        return
+      }
+
+      if (isScreenEvent(envelope, "character_selected")) {
+        scenes.character_select.update(envelope.payload.character)
+        return
+      }
+
+      if (isScreenEvent(envelope, "LifeUpdate")) {
+        const lives = envelope.payload.lives_remaining
+        if (lives > totalBallsRef.current) totalBallsRef.current = lives
+        scenes.playing.update({ lives, maxLives: totalBallsRef.current })
       }
     },
-    [sceneManager],
+    [scenes],
   )
 
-  useScreenSocket({ screenId: SCREEN_ID, token: TOKEN, onMessage })
+  useScreenHub({ screenId: SCREEN_ID, token: TOKEN, onEvent })
+
+  const effectivePhase = devPhase ?? phase
+  const activeScene =
+    comboActive && effectivePhase === "playing" ? scenes.combo : scenes[effectivePhase]
 
   return (
     <>
       <DmdCanvas config={config} scene={activeScene} />
-      {import.meta.env.DEV && <DevOverlay config={config} onChange={setConfig} />}
+      {import.meta.env.DEV && (
+        <DevOverlay
+          config={config}
+          onChange={setConfig}
+          phase={effectivePhase}
+          onPhaseChange={setDevPhase}
+        />
+      )}
     </>
   )
 }

@@ -7,8 +7,7 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@frontend/types": "workspace:*",
-    "zustand": "^5.0.11"
+    "@frontend/types": "workspace:*"
   },
   "peerDependencies": {
     "react": ">=19"

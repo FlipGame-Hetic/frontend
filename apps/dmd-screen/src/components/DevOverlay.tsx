@@ -1,11 +1,23 @@
+import type { GamePhase } from "@frontend/types"
 import type { DmdConfig } from "@/dmd/config"
+
+const PHASES: GamePhase[] = [
+  "idle",
+  "mode_select",
+  "character_select",
+  "playing",
+  "paused",
+  "game_over",
+]
 
 interface DevOverlayProps {
   config: DmdConfig
   onChange: (config: DmdConfig) => void
+  phase: GamePhase
+  onPhaseChange: (phase: GamePhase | null) => void
 }
 
-export function DevOverlay({ config, onChange }: DevOverlayProps) {
+export function DevOverlay({ config, onChange, phase, onPhaseChange }: DevOverlayProps) {
   const dotCount = config.cols * config.rows
 
   return (
@@ -26,6 +38,25 @@ export function DevOverlay({ config, onChange }: DevOverlayProps) {
       }}
     >
       <div style={{ marginBottom: 8, fontWeight: "bold", color: "#fff" }}>DMD Dev</div>
+
+      <label style={{ display: "block", marginBottom: 6 }}>
+        Scene:
+        <select
+          value={phase}
+          onChange={(e) => {
+            const val = e.target.value
+            onPhaseChange(val === "" ? null : (val as GamePhase))
+          }}
+          style={{ marginLeft: 8, background: "#222", color: "#ccc", border: "1px solid #555" }}
+        >
+          <option value="">— live —</option>
+          {PHASES.map((p) => (
+            <option key={p} value={p}>
+              {p}
+            </option>
+          ))}
+        </select>
+      </label>
 
       <label style={{ display: "block", marginBottom: 6 }}>
         Cols: {config.cols}

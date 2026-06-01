@@ -1,9 +1,9 @@
-import type { FC } from "react";
-import { formatScore } from "@flipper/utils";
+import type { FC } from "react"
+import { formatScore } from "@frontend/utils"
 
 interface ScoreDisplayProps {
-  score: number;
-  label: string;
+  score: number
+  label: string
 }
 
 export const ScoreDisplay: FC<ScoreDisplayProps> = ({ score, label }) => (
@@ -11,4 +11,4 @@ export const ScoreDisplay: FC<ScoreDisplayProps> = ({ score, label }) => (
     <span className="text-neon-cyan text-xs tracking-widest uppercase">{label}</span>
     <span className="text-4xl text-white tabular-nums">{formatScore(score)}</span>
   </div>
-);
+)

@@ -1,8 +1,16 @@
-import { useEffect, useRef } from "react"
-import { getPressedKeys, pressKey, releaseKey } from "@/stores/inputStore"
+import { useEffect, useRef, useSyncExternalStore } from "react"
+import {
+  getPressedKeys,
+  getPressedKeysSnapshot,
+  pressKey,
+  releaseKey,
+  subscribePressedKeys,
+} from "@/stores/inputStore"
 
 const useKeyboard = () => {
-  const pressedKeys = useRef<Set<string>>(getPressedKeys())
+  useSyncExternalStore(subscribePressedKeys, getPressedKeysSnapshot, getPressedKeysSnapshot)
+
+  const pressedKeys = useRef(getPressedKeys())
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

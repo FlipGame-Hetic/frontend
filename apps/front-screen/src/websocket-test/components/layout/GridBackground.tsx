@@ -1,4 +1,4 @@
-export function GridBackground() {
+const GridBackground = () => {
   return (
     <div
       className="pointer-events-none fixed inset-0"
@@ -10,3 +10,5 @@ export function GridBackground() {
     />
   )
 }
+
+export default GridBackground

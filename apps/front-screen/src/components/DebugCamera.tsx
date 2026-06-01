@@ -1,6 +1,6 @@
 import { OrbitControls } from "@react-three/drei"
 import { useThree } from "@react-three/fiber"
-import { useControls } from "leva"
+import { useDebugControls } from "@/debug/debugContext"
 import { useEffect, useRef, type ComponentRef } from "react"
 import type { Vector3Tuple } from "three"
 
@@ -13,9 +13,7 @@ const DebugCamera = ({ cameraPosition, cameraFov }: DebugCameraProps) => {
   const controlsRef = useRef<ComponentRef<typeof OrbitControls>>(null)
   const getState = useThree((s) => s.get)
 
-  const { enabled } = useControls("Main", {
-    enabled: { value: false, label: "Orbit controls" },
-  })
+  const { enabled } = useDebugControls()
 
   useEffect(() => {
     if (enabled) return

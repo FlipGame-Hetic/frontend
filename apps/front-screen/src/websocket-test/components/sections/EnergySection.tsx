@@ -1,14 +1,14 @@
 import { useState } from "react"
 
-import { CyberBtn } from "@/websocket-test/components/CyberBtn"
-import { Section } from "@/websocket-test/components/Section"
+import CyberBtn from "@/websocket-test/components/CyberBtn"
+import Section from "@/websocket-test/components/Section"
 import type { Dispatcher } from "@/websocket-test/types"
 
 interface Props {
   onDispatch: Dispatcher
 }
 
-export function EnergySection({ onDispatch }: Props) {
+const EnergySection = ({ onDispatch }: Props) => {
   const [energy, setEnergy] = useState(50)
 
   return (
@@ -51,3 +51,5 @@ export function EnergySection({ onDispatch }: Props) {
     </Section>
   )
 }
+
+export default EnergySection
