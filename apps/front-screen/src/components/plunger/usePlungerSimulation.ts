@@ -138,17 +138,25 @@ export const usePlungerSimulation = ({
     ) {
       lastPlungerReleaseToken.current = plungerInput.releaseToken
       plungerPositionRef.current = clampPlungerPosition(plungerInput.position)
+      ballInLaneRef.current?.wakeUp()
       releaseFromPosition(plungerPositionRef.current)
     } else if (isExternallyHeld && !releasingRef.current && !pendingReleaseRef.current) {
+      ballInLaneRef.current?.wakeUp()
       plungerPositionRef.current = clampPlungerPosition(plungerInput.position)
     } else if (!releasingRef.current && !pendingReleaseRef.current) {
       if (isSpacePressed) {
+        if (!wasSpacePressed.current) {
+          ballInLaneRef.current?.wakeUp()
+        }
         plungerPositionRef.current = clampPlungerPosition(
           plungerPositionRef.current + delta / PLUNGER_MAX_CHARGE_TIME,
         )
       }
 
       if (isPullPressed) {
+        if (!wasArrowPressed.current) {
+          ballInLaneRef.current?.wakeUp()
+        }
         plungerPositionRef.current = clampPlungerPosition(
           plungerPositionRef.current + delta * PLUNGER_ARROW_PULL_SPEED,
         )
