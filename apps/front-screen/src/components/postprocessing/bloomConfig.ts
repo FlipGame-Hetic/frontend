@@ -1,0 +1,4 @@
+export const BLOOM_INTENSITY = 1.2
+export const BLOOM_LUMINANCE_THRESHOLD = 1.0
+export const BLOOM_LUMINANCE_SMOOTHING = 0.025
+export const BLOOM_RADIUS = 0.85

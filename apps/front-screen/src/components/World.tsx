@@ -1,3 +1,4 @@
+import PostProcessing from "./postprocessing/PostProcessing"
 import { Canvas, type CameraProps } from "@react-three/fiber"
 import type { ReactNode } from "react"
 
@@ -11,6 +12,7 @@ const World = ({ cameraSettings, children }: WorldProps) => {
     <div className="h-dvh w-full">
       <Canvas shadows camera={cameraSettings}>
         <color attach="background" args={["#0a0a12"]} />
+        <PostProcessing />
         {children}
       </Canvas>
     </div>
