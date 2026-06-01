@@ -2,7 +2,7 @@ import { render, act } from "@testing-library/react"
 import { BoxGeometry, Mesh } from "three"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
-const { handlers, mockBody, mockBroadcastEvent, mockSetEnabled } = vi.hoisted(() => {
+const { handlers, mockBody, mockSetEnabled } = vi.hoisted(() => {
   const mockSetEnabled = vi.fn()
   const mockCollider = { setEnabled: mockSetEnabled }
   const mockBody = {
@@ -19,15 +19,9 @@ const { handlers, mockBody, mockBroadcastEvent, mockSetEnabled } = vi.hoisted(()
       rigidBodyProps: null as Record<string, unknown> | null,
     },
     mockBody,
-    mockBroadcastEvent: vi.fn(),
     mockSetEnabled,
   }
 })
-
-vi.mock("@frontend/ws", () => ({
-  broadcastEvent: mockBroadcastEvent,
-  registerScreenSender: vi.fn(),
-}))
 
 vi.mock("@react-three/fiber", () => ({
   useFrame: vi.fn((callback: () => void) => {
@@ -102,7 +96,6 @@ describe("Target — drop target collisions", () => {
     currentTime = 1000
     nowSpy = vi.spyOn(performance, "now").mockImplementation(() => currentTime)
 
-    mockBroadcastEvent.mockReset()
     mockSetEnabled.mockReset()
     mockBody.numColliders.mockClear()
     mockBody.collider.mockClear()
@@ -125,28 +118,22 @@ describe("Target — drop target collisions", () => {
     expect(handlers.rigidBodyProps?.colliders).toBe("hull")
   })
 
-  it("broadcasts target_hit and keeps the collider enabled immediately after a raised target is hit", () => {
+  it("activates the target and keeps collider enabled immediately after hit", () => {
     renderTarget()
     mockSetEnabled.mockClear()
 
     callCollision()
 
-    expect(mockBroadcastEvent).toHaveBeenCalledOnce()
-    expect(mockBroadcastEvent).toHaveBeenCalledWith({
-      event_type: "target_hit",
-      payload: { target_id: "l_target_02" },
-    })
     expect(useTargetStore.getState().activatedTargetIds).toContain("l_target_02")
     expect(mockSetEnabled).not.toHaveBeenCalledWith(false)
   })
 
-  it("does not rebroadcast while the drop target is already activated", () => {
+  it("does not re-record a hit while the drop target is already activated", () => {
     renderTarget()
 
     callCollision()
     callCollision()
 
-    expect(mockBroadcastEvent).toHaveBeenCalledOnce()
     expect(useTargetStore.getState().targetHits).toHaveLength(1)
   })
 

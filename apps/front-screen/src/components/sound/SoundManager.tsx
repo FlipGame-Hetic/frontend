@@ -26,7 +26,7 @@ const SoundManager = () => {
         label: "Music volume",
       },
     }),
-    { order: 3 },
+    { order: 1 },
   )
 
   const sfxMutedRef = useRef(sound.sfxMuted)

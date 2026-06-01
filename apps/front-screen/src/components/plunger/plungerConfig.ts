@@ -15,22 +15,22 @@ export const PLUNGER_LANE_GATE_HALF_EXTENTS: PositionType = [0.7, 0.6, 0.7]
 export const PLUNGER_LANE_GATE_ROTATION: PositionType = [0.2, 1.075, 0]
 
 export const PLUNGER_LANE_SENSOR_POSITION: PositionType = [3.55, 0.5, 3.3]
-export const PLUNGER_LANE_SENSOR_HALF_EXTENTS: PositionType = [0.6, 0.8, 5]
-export const PLUNGER_LANE_SENSOR_ROTATION: PositionType = [0.2, 0, 0]
+const PLUNGER_LANE_SENSOR_HALF_EXTENTS: PositionType = [0.6, 0.8, 5]
+const PLUNGER_LANE_SENSOR_ROTATION: PositionType = [0.2, 0, 0]
 
 export const PLUNGER_LANE_GATE_NORMAL: PositionType = [0, 0, -1]
 
-export function isPastPlungerLaneGate(
+export const isPastPlungerLaneGate = (
   point: PlungerLanePoint,
   gatePosition: PositionType,
   gateNormal: PositionType,
-): boolean {
+): boolean => {
   const [px, py, pz] = gatePosition
   const [nx, ny, nz] = gateNormal
   return (point.x - px) * nx + (point.y - py) * ny + (point.z - pz) * nz > 0
 }
 
-export function isPointInPlungerLaneSensor(point: PlungerLanePoint): boolean {
+export const isPointInPlungerLaneSensor = (point: PlungerLanePoint): boolean => {
   const [px, py, pz] = PLUNGER_LANE_SENSOR_POSITION
   const [hx, hy, hz] = PLUNGER_LANE_SENSOR_HALF_EXTENTS
   const [rx, ry, rz] = PLUNGER_LANE_SENSOR_ROTATION
@@ -71,20 +71,17 @@ export const PLUNGER_RELEASE_SPEED = 25
 export const PLUNGER_CHARGE_FACTOR = 1
 
 export const PLUNGER_MIN_CHARGE = 0.05
+export const PLUNGER_MIN_LAUNCH_CHARGE = 0.1
 
 export const PLUNGER_RELEASE_DELAY = 0.05
 export const PLUNGER_BALL_CLEAR_TIMEOUT = 0.35
 
-export const PLUNGER_CEILING_POSITION: PositionType = [3.25, 0.45, 4]
-export const PLUNGER_CEILING_HALF_EXTENTS: PositionType = [0.2, 0.05, 3]
-export const PLUNGER_CEILING_ROTATION_X = 0.15
-
-export function clampPlungerPosition(position: number): number {
+export const clampPlungerPosition = (position: number): number => {
   if (!Number.isFinite(position)) return 0
   return Math.min(Math.max(position, 0), 1)
 }
 
-export function getPlungerImpulse(position: number): number {
+export const getPlungerImpulse = (position: number): number => {
   const charge = clampPlungerPosition(position)
   const scaledCharge = Math.pow(charge, PLUNGER_CHARGE_FACTOR)
   return (

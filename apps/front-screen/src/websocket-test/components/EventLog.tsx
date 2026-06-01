@@ -7,7 +7,7 @@ interface Props {
   onClear: () => void
 }
 
-export function EventLog({ log, onClear }: Props) {
+const EventLog = ({ log, onClear }: Props) => {
   return (
     <div className="flex flex-col border border-cyan-400/20 p-4 shadow-[0_0_12px_#22d3ee11]">
       <div className="mb-3 flex items-center justify-between">
@@ -58,3 +58,5 @@ export function EventLog({ log, onClear }: Props) {
     </div>
   )
 }
+
+export default EventLog

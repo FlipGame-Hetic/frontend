@@ -9,7 +9,7 @@ import GlbPlunger from "./GlbPlunger"
 import GlbSpinnerManager from "./GlbSpinnerManager"
 import GlbBallSaversManager from "./GlbBallSaversManager"
 
-export default function PlayfieldScene() {
+const PlayfieldScene = () => {
   const nodes = usePlayfieldModel()
   return (
     <>
@@ -25,3 +25,5 @@ export default function PlayfieldScene() {
     </>
   )
 }
+
+export default PlayfieldScene

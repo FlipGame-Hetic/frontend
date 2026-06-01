@@ -3,11 +3,12 @@ import { useMemo } from "react"
 import type { Object3D } from "three"
 import { Mesh, Quaternion, Vector3 } from "three"
 
-export const PLAYFIELD_OFFSET: [number, number, number] = [0, -12, 0]
+const PLAYFIELD_OFFSET: [number, number, number] = [0, -12, 0]
 
 export interface PlayfieldNodes {
   cabinet: Mesh[]
   playfield: Mesh[]
+  bonusZone: Mesh[]
   flippers: Mesh[]
   bumpers: Mesh[]
   bumperRubbers: Mesh[]
@@ -21,12 +22,15 @@ export interface PlayfieldNodes {
   tunnels: Mesh[]
   lockedBall: Mesh[]
   spinner: Mesh[]
+  rails: Mesh[]
 }
 
-export function classifyMesh(name: string): keyof PlayfieldNodes | null {
+export const classifyMesh = (name: string): keyof PlayfieldNodes | null => {
+  if (name === "central_bonus_zone_inter") return "bonusZone"
   if (name === "spinner") return "spinner"
   if (name === "tip" || /^ring_\d+$/.test(name)) return "plunger"
   if (name.includes("_ball_saver")) return "ballSavers"
+  if (name === "l_rail" || name === "r_rail") return "rails"
   if (name.includes("rail") || name.includes("tunnel")) return "overhead"
   if (name === "l_flipper_arm" || name === "r_flipper_arm") return "cabinet"
   if (name.startsWith("l_flipper") || name.startsWith("r_flipper")) return "flippers"
@@ -41,7 +45,7 @@ export function classifyMesh(name: string): keyof PlayfieldNodes | null {
   return "cabinet"
 }
 
-function isVisibleInHierarchy(mesh: Mesh): boolean {
+const isVisibleInHierarchy = (mesh: Mesh): boolean => {
   let current: Object3D | null = mesh
   while (current) {
     if (!current.visible) return false
@@ -50,21 +54,21 @@ function isVisibleInHierarchy(mesh: Mesh): boolean {
   return true
 }
 
-function isMesh(node: Object3D): node is Mesh {
+const isMesh = (node: Object3D): node is Mesh => {
   return node instanceof Mesh
 }
 
-function applyWorldOffset(v: Vector3): [number, number, number] {
+const applyWorldOffset = (v: Vector3): [number, number, number] => {
   return [v.x + PLAYFIELD_OFFSET[0], v.y + PLAYFIELD_OFFSET[1], v.z + PLAYFIELD_OFFSET[2]]
 }
 
-export function getWorldPosition(mesh: Mesh): [number, number, number] {
+export const getWorldPosition = (mesh: Mesh): [number, number, number] => {
   mesh.updateWorldMatrix(true, false)
   const pos = new Vector3().setFromMatrixPosition(mesh.matrixWorld)
   return applyWorldOffset(pos)
 }
 
-export function cloneAtWorldTransform(mesh: Mesh): Mesh {
+export const cloneAtWorldTransform = (mesh: Mesh): Mesh => {
   mesh.updateWorldMatrix(true, false)
   const clone = mesh.clone()
   const pos = new Vector3()
@@ -78,7 +82,7 @@ export function cloneAtWorldTransform(mesh: Mesh): Mesh {
   return clone
 }
 
-export function cloneWithWorldOrientation(mesh: Mesh): Mesh {
+export const cloneWithWorldOrientation = (mesh: Mesh): Mesh => {
   mesh.updateWorldMatrix(true, false)
   const clone = mesh.clone()
   const _pos = new Vector3()
@@ -91,12 +95,34 @@ export function cloneWithWorldOrientation(mesh: Mesh): Mesh {
   return clone
 }
 
-export function usePlayfieldModel(): PlayfieldNodes {
+export const buildModuleWithRubber = (
+  base: Mesh,
+  rubbers: Mesh[],
+  rubberNameFn: (name: string) => string,
+): { position: [number, number, number]; baseClone: Mesh; rubberClone: Mesh | undefined } => {
+  const position = getWorldPosition(base)
+  const rubberName = rubberNameFn(base.name)
+  const rubber = rubbers.find((m) => m.name === rubberName)
+  let rubberClone: Mesh | undefined
+  if (rubber) {
+    rubberClone = cloneWithWorldOrientation(rubber)
+    const rubberPos = getWorldPosition(rubber)
+    rubberClone.position.set(
+      rubberPos[0] - position[0],
+      rubberPos[1] - position[1],
+      rubberPos[2] - position[2],
+    )
+  }
+  return { position, baseClone: cloneWithWorldOrientation(base), rubberClone }
+}
+
+export const usePlayfieldModel = (): PlayfieldNodes => {
   const { scene } = useGLTF("/models/playfield_x15.glb")
   return useMemo(() => {
     const result: PlayfieldNodes = {
       cabinet: [],
       playfield: [],
+      bonusZone: [],
       flippers: [],
       bumpers: [],
       bumperRubbers: [],
@@ -110,6 +136,7 @@ export function usePlayfieldModel(): PlayfieldNodes {
       tunnels: [],
       lockedBall: [],
       spinner: [],
+      rails: [],
     }
     scene.traverse((node) => {
       if (!isMesh(node)) return

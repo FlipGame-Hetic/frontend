@@ -20,11 +20,6 @@ export function setPixel(
   buffer[y * cols + x] = brightness
 }
 
-export function getPixel(buffer: DotBuffer, cols: number, x: number, y: number): number {
-  if (x < 0 || y < 0 || x >= cols || y >= buffer.length / cols) return 0
-  return buffer[y * cols + x] ?? 0
-}
-
 function hexToRgb(hex: string): [number, number, number] {
   const n = parseInt(hex.slice(1), 16)
   return [(n >> 16) & 0xff, (n >> 8) & 0xff, n & 0xff]

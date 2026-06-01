@@ -1,5 +1,6 @@
 import useTargetStore from "@/stores/useTargetStore"
 import { playSfx } from "@/audio/soundEngine"
+import { broadcastEvent } from "@frontend/ws"
 import type { PositionType } from "@/types/worldTypes"
 import { useFrame } from "@react-three/fiber"
 import {
@@ -10,10 +11,12 @@ import {
 } from "@react-three/rapier"
 import { useCallback, useEffect, useMemo, useRef } from "react"
 import { Box3, MathUtils, type Mesh, Vector3 } from "three"
+import { hasBallId } from "@/components/balls/ballUserData"
 import { cloneWithWorldOrientation } from "../playfield/usePlayfieldModel"
 import {
   areBallSaverTargetsDown,
   BALL_SAVER_COOLDOWN_MS,
+  BALL_SAVER_MIN_CONTACT_DURATION_MS,
   BALL_SAVER_MIN_DROP_RATIO,
   BALL_SAVER_POST_EXIT_DELAY_MS,
   BALL_SAVER_RAISE_DURATION_MS,
@@ -32,27 +35,18 @@ interface BallSaverProps {
 type BallSaverPhase = "down" | "rising" | "active" | "retracting" | "cooldown"
 type BallCollisionTarget = CollisionEnterPayload["other"]
 
-function easeOutCubic(t: number) {
+const easeOutCubic = (t: number) => {
   return 1 - (1 - t) ** 3
 }
 
-function setBodyCollidersEnabled(body: RapierRigidBody | null, enabled: boolean) {
+const setBodyCollidersEnabled = (body: RapierRigidBody | null, enabled: boolean) => {
   if (!body) return
   for (let i = 0; i < body.numColliders(); i += 1) {
     body.collider(i).setEnabled(enabled)
   }
 }
 
-function hasBallId(value: unknown): value is { ballId: string } {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    "ballId" in value &&
-    typeof (value as Record<string, unknown>).ballId === "string"
-  )
-}
-
-function getBallCollisionKey(other: BallCollisionTarget): string | null {
+const getBallCollisionKey = (other: BallCollisionTarget): string | null => {
   if (other.rigidBodyObject?.name !== "ball") return null
 
   if (hasBallId(other.rigidBodyObject.userData)) {
@@ -72,6 +66,8 @@ const BallSaver = ({ mesh, side, worldPosition }: BallSaverProps) => {
   const collidersEnabledRef = useRef<boolean | null>(null)
   const activeContactsRef = useRef(new Set<string>())
   const pendingConsumeAtRef = useRef<number | null>(null)
+  const firstContactAtRef = useRef<number | null>(null)
+  const lastExitAtRef = useRef<number | null>(null)
   const currentYOffsetRef = useRef(0)
   const retractStartYOffsetRef = useRef(0)
   const phaseStartedAtRef = useRef(0)
@@ -111,6 +107,8 @@ const BallSaver = ({ mesh, side, worldPosition }: BallSaverProps) => {
       if (phaseRef.current !== "active") return
 
       pendingConsumeAtRef.current = null
+      firstContactAtRef.current = null
+      lastExitAtRef.current = null
       activeContactsRef.current.clear()
       retractStartYOffsetRef.current = currentYOffsetRef.current
       setCollidersEnabled(false)
@@ -125,6 +123,7 @@ const BallSaver = ({ mesh, side, worldPosition }: BallSaverProps) => {
         setCollidersEnabled(false)
         setPhase("rising")
         playSfx("ballsaver_up")
+        broadcastEvent({ event_type: "BallSaverReady", payload: {} })
       }
       return
     }
@@ -132,6 +131,8 @@ const BallSaver = ({ mesh, side, worldPosition }: BallSaverProps) => {
     if (phaseRef.current !== "down") {
       activeContactsRef.current.clear()
       pendingConsumeAtRef.current = null
+      firstContactAtRef.current = null
+      lastExitAtRef.current = null
       setCollidersEnabled(false)
       setPhase("down")
     } else {
@@ -143,6 +144,9 @@ const BallSaver = ({ mesh, side, worldPosition }: BallSaverProps) => {
     const key = getBallCollisionKey(other)
     if (!key || phaseRef.current !== "active") return
 
+    if (activeContactsRef.current.size === 0) {
+      firstContactAtRef.current = performance.now()
+    }
     activeContactsRef.current.add(key)
     pendingConsumeAtRef.current = null
   }, [])
@@ -153,6 +157,7 @@ const BallSaver = ({ mesh, side, worldPosition }: BallSaverProps) => {
     if (!activeContactsRef.current.delete(key)) return
 
     if (activeContactsRef.current.size === 0) {
+      lastExitAtRef.current = performance.now()
       pendingConsumeAtRef.current = performance.now() + BALL_SAVER_POST_EXIT_DELAY_MS
     }
   }, [])
@@ -168,7 +173,14 @@ const BallSaver = ({ mesh, side, worldPosition }: BallSaverProps) => {
       pendingConsumeAtRef.current !== null &&
       now >= pendingConsumeAtRef.current
     ) {
-      consumeProtection(now)
+      const contactDuration = (lastExitAtRef.current ?? now) - (firstContactAtRef.current ?? now)
+      if (contactDuration >= BALL_SAVER_MIN_CONTACT_DURATION_MS) {
+        consumeProtection(now)
+      } else {
+        pendingConsumeAtRef.current = null
+        firstContactAtRef.current = null
+        lastExitAtRef.current = null
+      }
     }
 
     let yOffset = dropDistance

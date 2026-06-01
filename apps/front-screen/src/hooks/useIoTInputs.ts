@@ -11,7 +11,7 @@ const BUTTON_KEY_MAP: Record<string, string[]> = {
   right_flipper: RIGHT_KEYS,
 }
 
-export function useIoTInputs(): void {
+export const useIoTInputs = (): void => {
   const setPhase = useGameStore((s) => s.setPhase)
 
   const onMessage = useCallback(

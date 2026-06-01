@@ -1,11 +1,11 @@
-import { GridBackground } from "@/websocket-test/components/layout/GridBackground"
-import { Scanlines } from "@/websocket-test/components/layout/Scanlines"
+import GridBackground from "@/websocket-test/components/layout/GridBackground"
+import Scanlines from "@/websocket-test/components/layout/Scanlines"
 
 interface Props {
   children: React.ReactNode
 }
 
-export function CyberLayout({ children }: Props) {
+const CyberLayout = ({ children }: Props) => {
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#020208] p-6 font-mono text-white">
       <Scanlines />
@@ -14,3 +14,5 @@ export function CyberLayout({ children }: Props) {
     </div>
   )
 }
+
+export default CyberLayout

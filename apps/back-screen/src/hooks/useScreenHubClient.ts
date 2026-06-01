@@ -21,9 +21,9 @@ export function useScreenHubClient(): void {
         setPhase(envelope.payload.phase)
         return
       }
-      if (isScreenEvent(envelope, "score_update")) {
+      if (isScreenEvent(envelope, "ScoreUpdate")) {
         setScore(envelope.payload.score)
-        setBallNumber(envelope.payload.ball)
+        if (envelope.payload.ball !== undefined) setBallNumber(envelope.payload.ball)
       }
     },
   })

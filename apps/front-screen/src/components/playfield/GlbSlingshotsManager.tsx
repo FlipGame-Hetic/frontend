@@ -6,7 +6,7 @@ import {
   type PlayfieldNodes,
 } from "./usePlayfieldModel"
 
-export default function GlbSlingshotsManager({ nodes }: { nodes: PlayfieldNodes }) {
+const GlbSlingshotsManager = ({ nodes }: { nodes: PlayfieldNodes }) => {
   const slingshots = useMemo(
     () =>
       nodes.slingshots.map((mod, i) => {
@@ -39,3 +39,5 @@ export default function GlbSlingshotsManager({ nodes }: { nodes: PlayfieldNodes 
     </>
   )
 }
+
+export default GlbSlingshotsManager

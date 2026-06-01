@@ -2,16 +2,26 @@ import type { PositionType } from "@/types/worldTypes"
 import { playRandomSfx } from "@/audio/soundEngine"
 import { broadcastEvent } from "@frontend/ws"
 import { useFrame } from "@react-three/fiber"
-import useGameStore from "@/stores/useGameStore"
-import { BUMPER_SCORE } from "@/config/scoreConfig"
+import useScorePopupsStore from "@/stores/useScorePopupsStore"
 import type { RapierRigidBody } from "@react-three/rapier"
 import { RigidBody, type CollisionEnterPayload } from "@react-three/rapier"
-import { usePhysicsDebugControls } from "@/debug/physicsDebugContext"
 import { useCallback, useRef } from "react"
 import type { Group, Mesh } from "three"
 import { normalizedPlayfieldDirection } from "../physics/playfieldPlane"
+import { createStuckBallTracker } from "../physics/stuckBallTracker"
 import { applyBumperImpulse, shouldSkipBumperHit } from "./bumperCollision"
-import { BUMPER_SCALE_FACTOR, BUMPER_SIZE_ARGS } from "./bumperConfig"
+import {
+  BUMPER_SCALE_FACTOR,
+  BUMPER_SIZE_ARGS,
+  BUMPER_RESTITUTION,
+  BUMPER_IMPULSE_STRENGTH,
+  BUMPER_STUCK_FRAMES,
+  BUMPER_STUCK_VELOCITY,
+  BUMPER_UNSTICK_IMPULSE,
+} from "./bumperConfig"
+import { BALL_MIN_NORMAL_SPEED, BALL_MAX_NORMAL_SPEED } from "../balls/ballConfig"
+import useScreenShakeStore from "@/stores/useScreenShakeStore"
+import { SHAKE_INTENSITY } from "@/components/screenShake/shakeIntensity"
 
 interface BumperProps {
   position: PositionType
@@ -20,50 +30,63 @@ interface BumperProps {
   rubberMesh?: Mesh
 }
 
-const Bumper = ({ position, bumperId, meshOverride, rubberMesh }: BumperProps) => {
+const Bumper = ({ position, bumperId: _bumperId, meshOverride, rubberMesh }: BumperProps) => {
   const bodyRef = useRef<RapierRigidBody>(null)
   const meshRef = useRef<Mesh>(null)
   const rubberGroupRef = useRef<Group>(null)
   const isBouncing = useRef(false)
-  const stuckBall = useRef<{ body: RapierRigidBody; frames: number } | null>(null)
-
-  const {
-    bumpers: { restitution, impulseStrength, stuckFrames, stuckVelocity, unstickImpulse },
-    ball: { minNormalSpeed, maxNormalSpeed },
-  } = usePhysicsDebugControls()
-
-  const handleCollision = useCallback(
-    ({ other }: CollisionEnterPayload) => {
-      isBouncing.current = true
-      setTimeout(() => {
-        isBouncing.current = false
-      }, 150)
-
-      if (!bodyRef.current || !other.rigidBody) return
-      if (other.rigidBodyObject?.name !== "ball") return
-      if (shouldSkipBumperHit(other.rigidBody)) return
-
-      broadcastEvent({ event_type: "bumper_hit", payload: { bumper_id: bumperId } })
-      useGameStore.getState().addScore(BUMPER_SCORE)
-      playRandomSfx("bumpers")
-
-      const bumperPos = bodyRef.current.translation()
-      const ballPos = other.rigidBody.translation()
-
-      const dir = normalizedPlayfieldDirection({
-        x: ballPos.x - bumperPos.x,
-        y: ballPos.y - bumperPos.y,
-        z: ballPos.z - bumperPos.z,
-      })
-
-      if (!dir) return
-
-      applyBumperImpulse(other.rigidBody, dir, impulseStrength, minNormalSpeed, maxNormalSpeed)
-
-      stuckBall.current = { body: other.rigidBody, frames: 0 }
-    },
-    [impulseStrength, bumperId, minNormalSpeed, maxNormalSpeed],
+  const stuckTracker = useRef(
+    createStuckBallTracker({
+      stuckVelocity: BUMPER_STUCK_VELOCITY,
+      stuckFrames: BUMPER_STUCK_FRAMES,
+      unstick: (body, dir) => {
+        applyBumperImpulse(
+          body,
+          dir,
+          BUMPER_UNSTICK_IMPULSE,
+          BALL_MIN_NORMAL_SPEED,
+          BALL_MAX_NORMAL_SPEED,
+        )
+      },
+    }),
   )
+
+  const handleCollision = useCallback(({ other }: CollisionEnterPayload) => {
+    isBouncing.current = true
+    setTimeout(() => {
+      isBouncing.current = false
+    }, 150)
+
+    if (!bodyRef.current || !other.rigidBody) return
+    if (other.rigidBodyObject?.name !== "ball") return
+    if (shouldSkipBumperHit(other.rigidBody)) return
+
+    broadcastEvent({ event_type: "Bumper", payload: {} })
+    playRandomSfx("bumpers")
+    useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.bumper)
+
+    const bumperPos = bodyRef.current.translation()
+    const ballPos = other.rigidBody.translation()
+    useScorePopupsStore.getState().setLastHitPosition({ x: ballPos.x, y: ballPos.y, z: ballPos.z })
+
+    const dir = normalizedPlayfieldDirection({
+      x: ballPos.x - bumperPos.x,
+      y: ballPos.y - bumperPos.y,
+      z: ballPos.z - bumperPos.z,
+    })
+
+    if (!dir) return
+
+    applyBumperImpulse(
+      other.rigidBody,
+      dir,
+      BUMPER_IMPULSE_STRENGTH,
+      BALL_MIN_NORMAL_SPEED,
+      BALL_MAX_NORMAL_SPEED,
+    )
+
+    stuckTracker.current.arm(other.rigidBody)
+  }, [])
 
   useFrame(() => {
     const animTarget = rubberGroupRef.current ?? meshRef.current
@@ -77,28 +100,7 @@ const Bumper = ({ position, bumperId, meshOverride, rubberMesh }: BumperProps) =
       }
     }
 
-    if (!stuckBall.current || !bodyRef.current) return
-    const ball = stuckBall.current.body
-
-    const vel = ball.linvel()
-    const speed = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z)
-
-    if (speed > stuckVelocity) {
-      stuckBall.current = null
-      return
-    }
-
-    stuckBall.current.frames++
-
-    if (stuckBall.current.frames >= stuckFrames) {
-      const angle = Math.random() * Math.PI * 2
-      const dir = normalizedPlayfieldDirection({ x: Math.cos(angle), y: 0, z: Math.sin(angle) })
-
-      if (!dir) return
-
-      applyBumperImpulse(ball, dir, unstickImpulse, minNormalSpeed, maxNormalSpeed)
-      stuckBall.current = null
-    }
+    stuckTracker.current.tick()
   })
 
   return (
@@ -108,7 +110,7 @@ const Bumper = ({ position, bumperId, meshOverride, rubberMesh }: BumperProps) =
       colliders="hull"
       position={position}
       onCollisionEnter={handleCollision}
-      restitution={restitution}
+      restitution={BUMPER_RESTITUTION}
     >
       {meshOverride ? (
         <>

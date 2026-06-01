@@ -6,7 +6,3 @@ function playOnce(path: string): void {
 export function playMenuForward(): void {
   playOnce("/sounds/menu_forward.wav")
 }
-
-export function playMenuBackward(): void {
-  playOnce("/sounds/menu_backward.wav")
-}

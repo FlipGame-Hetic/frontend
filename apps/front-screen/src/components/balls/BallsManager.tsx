@@ -2,20 +2,36 @@ import useBallStore from "@/stores/useBallStore"
 import useGameStore from "@/stores/useGameStore"
 import type { PositionType } from "@/types/worldTypes"
 import { isPointInPlungerLaneSensor, PLUNGER_BALL_SPAWN } from "@/components/plunger/plungerConfig"
-import { usePhysicsDebugControls } from "@/debug/physicsDebugContext"
+import { getBallColorForCharacter } from "@/config/characterColors"
 import { useControls, button } from "leva"
-import { useCallback, useEffect } from "react"
+import { useCallback, useEffect, useState } from "react"
 import Ball from "./Ball"
-import { DEFAULT_BALL_SPAWN } from "./ballConfig"
-
-let _spawnX = DEFAULT_BALL_SPAWN[0]
-let _spawnY = DEFAULT_BALL_SPAWN[1]
-let _spawnZ = DEFAULT_BALL_SPAWN[2]
+import {
+  DEFAULT_BALL_SPAWN,
+  BALL_MASS,
+  BALL_RESTITUTION,
+  BALL_FRICTION,
+  BALL_LINEAR_DAMPING,
+  BALL_ANGULAR_DAMPING,
+  BALL_MAX_TANGENT_SPEED,
+  BALL_LANE_MAX_TANGENT_SPEED,
+  BALL_MIN_NORMAL_SPEED,
+  BALL_MAX_NORMAL_SPEED,
+} from "./ballConfig"
 
 const BallsManager = () => {
   const { balls, spawnBall } = useBallStore()
   const phase = useGameStore((s) => s.phase)
   const ballNumber = useGameStore((s) => s.ballNumber)
+  const character = useGameStore(
+    (s) => s.selectedPlayers.find((p) => p.player === s.currentPlayer)?.character,
+  )
+  const ballColor = getBallColorForCharacter(character)
+  const [spawnPos, setSpawnPos] = useState<[number, number, number]>([
+    DEFAULT_BALL_SPAWN[0],
+    DEFAULT_BALL_SPAWN[1],
+    DEFAULT_BALL_SPAWN[2],
+  ])
 
   useEffect(() => {
     if (phase !== "playing") return
@@ -24,11 +40,11 @@ const BallsManager = () => {
   }, [phase, ballNumber, spawnBall])
 
   const handleSpawn = useCallback(() => {
-    const position: PositionType = [_spawnX, _spawnY, _spawnZ]
-    const isPlaying = !isPointInPlungerLaneSensor({ x: _spawnX, y: _spawnY, z: _spawnZ })
-
+    const [x, y, z] = spawnPos
+    const position: PositionType = [x, y, z]
+    const isPlaying = !isPointInPlungerLaneSensor({ x, y, z })
     spawnBall(position, { isPlaying })
-  }, [spawnBall])
+  }, [spawnPos, spawnBall])
 
   const handleSpawnInPlunger = useCallback(() => {
     spawnBall(PLUNGER_BALL_SPAWN, { isPlaying: false })
@@ -52,18 +68,6 @@ const BallsManager = () => {
     }
   }, [handleSpawn, handleSpawnInPlunger])
 
-  const {
-    mass,
-    restitution,
-    friction,
-    linearDamping,
-    angularDamping,
-    maxTangentSpeed,
-    laneMaxTangentSpeed,
-    minNormalSpeed,
-    maxNormalSpeed,
-  } = usePhysicsDebugControls().ball
-
   useControls("Ball Spawner", {
     spawnX: {
       value: DEFAULT_BALL_SPAWN[0],
@@ -71,7 +75,7 @@ const BallsManager = () => {
       max: 3.3,
       step: 0.05,
       onChange: (v: number) => {
-        _spawnX = v
+        setSpawnPos((prev) => [v, prev[1], prev[2]])
       },
     },
     spawnY: {
@@ -80,7 +84,7 @@ const BallsManager = () => {
       max: 3.5,
       step: 0.05,
       onChange: (v: number) => {
-        _spawnY = v
+        setSpawnPos((prev) => [prev[0], v, prev[2]])
       },
     },
     spawnZ: {
@@ -89,7 +93,7 @@ const BallsManager = () => {
       max: 7,
       step: 0.05,
       onChange: (v: number) => {
-        _spawnZ = v
+        setSpawnPos((prev) => [prev[0], prev[1], v])
       },
     },
     "Spawn Ball": button(handleSpawn),
@@ -103,15 +107,16 @@ const BallsManager = () => {
           key={ball.id}
           id={ball.id}
           position={ball.position}
-          mass={mass}
-          restitution={restitution}
-          friction={friction}
-          linearDamping={linearDamping}
-          angularDamping={angularDamping}
-          maxTangentSpeed={maxTangentSpeed}
-          laneMaxTangentSpeed={laneMaxTangentSpeed}
-          minNormalSpeed={minNormalSpeed}
-          maxNormalSpeed={maxNormalSpeed}
+          mass={BALL_MASS}
+          restitution={BALL_RESTITUTION}
+          friction={BALL_FRICTION}
+          linearDamping={BALL_LINEAR_DAMPING}
+          angularDamping={BALL_ANGULAR_DAMPING}
+          maxTangentSpeed={BALL_MAX_TANGENT_SPEED}
+          laneMaxTangentSpeed={BALL_LANE_MAX_TANGENT_SPEED}
+          minNormalSpeed={BALL_MIN_NORMAL_SPEED}
+          maxNormalSpeed={BALL_MAX_NORMAL_SPEED}
+          color={ballColor}
         />
       ))}
     </>

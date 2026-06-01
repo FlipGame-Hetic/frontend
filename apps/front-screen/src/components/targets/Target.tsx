@@ -1,11 +1,12 @@
 import useTargetStore from "@/stores/useTargetStore"
 import { playRandomSfx } from "@/audio/soundEngine"
-import { broadcastEvent } from "@frontend/ws"
 import { useFrame } from "@react-three/fiber"
 import { RigidBody, type CollisionEnterPayload, type RapierRigidBody } from "@react-three/rapier"
 import { useCallback, useEffect, useMemo, useRef } from "react"
 import { Box3, MathUtils, Quaternion, Vector3, type Mesh } from "three"
 import { cloneWithWorldOrientation } from "../playfield/usePlayfieldModel"
+import useScreenShakeStore from "@/stores/useScreenShakeStore"
+import { SHAKE_INTENSITY } from "@/components/screenShake/shakeIntensity"
 
 interface TargetProps {
   mesh: Mesh
@@ -20,11 +21,11 @@ export const DROP_TARGET_RETURN_DURATION = 220
 const DROP_TARGET_VISIBLE_HEIGHT = 0.08
 const DROP_TARGET_MIN_DROP_RATIO = 0.75
 
-function easeOutCubic(t: number) {
+const easeOutCubic = (t: number) => {
   return 1 - (1 - t) ** 3
 }
 
-function hashName(name: string) {
+const hashName = (name: string) => {
   let hash = 0
   for (let i = 0; i < name.length; i += 1) {
     hash = (hash * 31 + name.charCodeAt(i)) | 0
@@ -32,7 +33,7 @@ function hashName(name: string) {
   return Math.abs(hash)
 }
 
-function getTiltAxis(name: string) {
+const getTiltAxis = (name: string) => {
   const hash = hashName(name)
   const xAmount = 0.35 + ((hash % 100) / 100) * 0.65
   const zAmount = 0.25 + (((hash >> 8) % 100) / 100) * 0.75
@@ -40,7 +41,7 @@ function getTiltAxis(name: string) {
   return new Vector3(xAmount, 0, zAmount * zSign).normalize()
 }
 
-function setTargetCollidersEnabled(body: RapierRigidBody | null, enabled: boolean) {
+const setTargetCollidersEnabled = (body: RapierRigidBody | null, enabled: boolean) => {
   if (!body) return
   for (let i = 0; i < body.numColliders(); i += 1) {
     body.collider(i).setEnabled(enabled)
@@ -102,8 +103,8 @@ const Target = ({ mesh, worldPosition }: TargetProps) => {
 
       if (isStandup) {
         useTargetStore.getState().recordTargetHit(mesh.name)
-        broadcastEvent({ event_type: "target_hit", payload: { target_id: mesh.name } })
         playRandomSfx("targets")
+        useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.targetStandup)
         hitTime.current = performance.now()
         return
       }
@@ -112,8 +113,8 @@ const Target = ({ mesh, worldPosition }: TargetProps) => {
       if (targetStore.activatedTargetIds.includes(mesh.name)) return
 
       targetStore.recordTargetHit(mesh.name)
-      broadcastEvent({ event_type: "target_hit", payload: { target_id: mesh.name } })
       playRandomSfx("targets")
+      useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.targetDrop)
       resetStartedAtRef.current = null
       hitTime.current = performance.now()
       targetStore.activateTarget(mesh.name)

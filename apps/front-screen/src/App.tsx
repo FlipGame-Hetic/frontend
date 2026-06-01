@@ -1,35 +1,44 @@
+import DebugProvider from "@/debug/DebugProvider"
 import type { CameraProps } from "@react-three/fiber"
-import { MainDebugProvider, useMainDebugControls } from "@/debug/mainDebugContext"
 import { Leva } from "leva"
 import { Suspense } from "react"
 import BallsManager from "./components/balls/BallsManager"
-import Drain from "./components/drain/Drain"
 import DebugCamera from "./components/DebugCamera"
-import ProductionCamera from "./components/ProductionCamera"
-import Ceiling from "./components/physics/Ceiling"
-import TopTunnelCollider from "./components/physics/TopTunnelCollider"
+import Drain from "./components/drain/Drain"
+import InvisibleWallsManager from "./components/physics/InvisibleWallsManager"
 import PhysicsManager from "./components/physics/PhysicsManager"
 import PlayfieldScene from "./components/playfield/PlayfieldScene"
+import TopTunnelAssistManager from "./components/playfield/TopTunnelAssistManager"
 import PlungerLaneGate from "./components/plunger/PlungerLaneGate"
-import PlungerLaneCeiling from "./components/plunger/PlungerLaneCeiling"
-import PlungerLaneGateDebug from "./components/plunger/PlungerLaneGateDebug"
+import PortalsManager from "./components/portal/PortalsManager"
+import ProductionCamera from "./components/ProductionCamera"
+import DirectionalAccelerationSensorsManager from "./components/sensors/DirectionalAccelerationSensorsManager"
+import { GUTTER_DRAIN_ASSIST_SENSORS } from "./components/sensors/directionalAccelerationSensorsConfig"
+import ScorePopupsManager from "./components/scorePopups/ScorePopupsManager"
+import ScreenShakeController from "./components/screenShake/ScreenShakeController"
 import SoundManager from "./components/sound/SoundManager"
-import TestBench from "./components/playfield/TestBench"
 import World from "./components/World"
 import { useDebugKeys } from "./hooks/useDebugKeys"
+import { useFlipperButtonRelay } from "./hooks/useFlipperButtonRelay"
 import { useIoTInputs } from "./hooks/useIoTInputs"
 import { useScreenHub } from "./hooks/useScreenHub"
-import { WebsocketTest } from "./websocket-test/WebsocketTest"
+import WebsocketTest from "./websocket-test/WebsocketTest"
 
 const isProduction = import.meta.env.VITE_ENVIRONMENT === "production"
 const isWsTest = !isProduction && new URLSearchParams(window.location.search).has("wstest")
 
-function AppContent() {
-  const cameraSettings = { position: [0, 20, 25] as [number, number, number], fov: 35 }
-  const { testBench } = useMainDebugControls()
+const App = () => {
+  useIoTInputs()
+  useScreenHub()
+  useDebugKeys()
+  useFlipperButtonRelay()
+
+  const cameraSettings = { position: [0, 13, 15] as [number, number, number], fov: 35 }
+
+  if (isWsTest) return <WebsocketTest />
 
   return (
-    <>
+    <DebugProvider>
       <SoundManager />
       <Leva
         hidden={false}
@@ -40,7 +49,7 @@ function AppContent() {
         <ambientLight intensity={0.5} />
         <directionalLight
           position={[0, 13, 12]}
-          intensity={0.4}
+          intensity={0.8}
           castShadow
           shadow-mapSize={[2048, 2048]}
           shadow-camera-near={0.5}
@@ -57,39 +66,24 @@ function AppContent() {
         ) : (
           <DebugCamera cameraPosition={cameraSettings.position} cameraFov={cameraSettings.fov} />
         )}
+        <ScreenShakeController />
 
         <PhysicsManager isDebug={true}>
           <BallsManager />
           <Drain />
-          <Ceiling />
-          <TopTunnelCollider />
+          <DirectionalAccelerationSensorsManager sensors={GUTTER_DRAIN_ASSIST_SENSORS} />
+          <InvisibleWallsManager />
+          <TopTunnelAssistManager />
+          <PortalsManager />
           <PlungerLaneGate />
-          <PlungerLaneCeiling />
-          <PlungerLaneGateDebug />
-          {testBench ? (
-            <TestBench />
-          ) : (
-            <Suspense fallback={null}>
-              <PlayfieldScene />
-            </Suspense>
-          )}
-          {/* <Plunger /> */}
+          <ScorePopupsManager />
+          <Suspense fallback={null}>
+            <PlayfieldScene />
+          </Suspense>
         </PhysicsManager>
       </World>
-    </>
+    </DebugProvider>
   )
 }
 
-export default function App() {
-  useIoTInputs()
-  useScreenHub()
-  useDebugKeys()
-
-  if (isWsTest) return <WebsocketTest />
-
-  return (
-    <MainDebugProvider>
-      <AppContent />
-    </MainDebugProvider>
-  )
-}
+export default App

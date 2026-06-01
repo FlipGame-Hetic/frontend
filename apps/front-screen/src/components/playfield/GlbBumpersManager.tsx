@@ -1,35 +1,16 @@
 import { useMemo } from "react"
 import Bumper from "../bumbers/Bumper"
-import {
-  cloneWithWorldOrientation,
-  getWorldPosition,
-  type PlayfieldNodes,
-} from "./usePlayfieldModel"
+import { buildModuleWithRubber, type PlayfieldNodes } from "./usePlayfieldModel"
 
-export default function GlbBumpersManager({ nodes }: { nodes: PlayfieldNodes }) {
+const GlbBumpersManager = ({ nodes }: { nodes: PlayfieldNodes }) => {
   const bumpers = useMemo(
     () =>
-      nodes.bumpers.map((base, i) => {
-        const rubberName = base.name.replace("_base", "_rubber")
-        const rubber = nodes.bumperRubbers.find((m) => m.name === rubberName)
-        const position = getWorldPosition(base)
-        let rubberClone: ReturnType<typeof cloneWithWorldOrientation> | undefined
-        if (rubber) {
-          rubberClone = cloneWithWorldOrientation(rubber)
-          const rubberPos = getWorldPosition(rubber)
-          rubberClone.position.set(
-            rubberPos[0] - position[0],
-            rubberPos[1] - position[1],
-            rubberPos[2] - position[2],
-          )
-        }
-        return {
-          id: i,
-          position,
-          baseClone: cloneWithWorldOrientation(base),
-          rubberClone,
-        }
-      }),
+      nodes.bumpers.map((base, i) => ({
+        id: i,
+        ...buildModuleWithRubber(base, nodes.bumperRubbers, (name) =>
+          name.replace("_base", "_rubber"),
+        ),
+      })),
     [nodes],
   )
 
@@ -47,3 +28,5 @@ export default function GlbBumpersManager({ nodes }: { nodes: PlayfieldNodes }) 
     </>
   )
 }
+
+export default GlbBumpersManager

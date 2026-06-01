@@ -9,7 +9,7 @@ interface Props {
   children: React.ReactNode
 }
 
-export function Section({ title, color, children }: Props) {
+const Section = ({ title, color, children }: Props) => {
   const c = colors[color]
   return (
     <div className={cn("border p-4", c.border, c.sectionShadow)}>
@@ -27,3 +27,5 @@ export function Section({ title, color, children }: Props) {
     </div>
   )
 }
+
+export default Section

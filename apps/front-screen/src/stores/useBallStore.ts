@@ -13,18 +13,18 @@ interface BallStore {
   setBallPlaying: (id: string, isPlaying: boolean) => void
 }
 
-export interface BallDrainResult {
+interface BallDrainResult {
   wasTracked: boolean
   remainingBallCount: number
   remainingPlayingBallCount: number
   isLifeLost: boolean
 }
 
-function getDrainResult(
+const getDrainResult = (
   balls: BallState[],
   playingBallIds: string[],
   wasTracked: boolean,
-): BallDrainResult {
+): BallDrainResult => {
   return {
     wasTracked,
     remainingBallCount: balls.length,

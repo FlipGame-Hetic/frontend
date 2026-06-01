@@ -3,6 +3,7 @@ import { BoxGeometry, Mesh } from "three"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import {
   BALL_SAVER_COOLDOWN_MS,
+  BALL_SAVER_MIN_CONTACT_DURATION_MS,
   BALL_SAVER_POST_EXIT_DELAY_MS,
   BALL_SAVER_RAISE_DURATION_MS,
   BALL_SAVER_RETRACT_DURATION_MS,
@@ -134,6 +135,13 @@ function callCollisionExit(ballId = "a") {
   })
 }
 
+/** Ball saver ignores saves shorter than BALL_SAVER_MIN_CONTACT_DURATION_MS. */
+function holdBallContact(ballId = "a") {
+  callCollisionEnter(ballId)
+  currentTime += BALL_SAVER_MIN_CONTACT_DURATION_MS
+  callCollisionExit(ballId)
+}
+
 function activateSaver(side: BallSaverSide = "left") {
   renderSaver(side)
   activateSide(side)
@@ -212,8 +220,7 @@ describe("BallSaver — target-linked cycle", () => {
   it("consumes protection after collision exit plus the safety delay", () => {
     activateSaver("left")
 
-    callCollisionEnter("a")
-    callCollisionExit("a")
+    holdBallContact("a")
 
     currentTime += BALL_SAVER_POST_EXIT_DELAY_MS - 1
     runFrame()
@@ -227,8 +234,7 @@ describe("BallSaver — target-linked cycle", () => {
   it("cancels the pending consume delay when the ball touches the saver again", () => {
     activateSaver("left")
 
-    callCollisionEnter("a")
-    callCollisionExit("a")
+    holdBallContact("a")
 
     currentTime += BALL_SAVER_POST_EXIT_DELAY_MS - 10
     callCollisionEnter("b")
@@ -237,8 +243,13 @@ describe("BallSaver — target-linked cycle", () => {
     runFrame()
     expect(mockSetEnabled).not.toHaveBeenCalledWith(false)
 
+    currentTime += BALL_SAVER_MIN_CONTACT_DURATION_MS
     callCollisionExit("b")
-    currentTime += BALL_SAVER_POST_EXIT_DELAY_MS
+    currentTime += BALL_SAVER_POST_EXIT_DELAY_MS - 1
+    runFrame()
+    expect(mockSetEnabled).not.toHaveBeenCalledWith(false)
+
+    currentTime += 1
     runFrame()
     expect(mockSetEnabled).toHaveBeenCalledTimes(1)
     expect(mockSetEnabled).toHaveBeenCalledWith(false)
@@ -266,8 +277,7 @@ describe("BallSaver — target-linked cycle", () => {
     activateSaver("left")
     activateSide("right")
 
-    callCollisionEnter("a")
-    callCollisionExit("a")
+    holdBallContact("a")
     currentTime += BALL_SAVER_POST_EXIT_DELAY_MS
     runFrame()
 

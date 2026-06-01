@@ -4,9 +4,16 @@ import type { PositionType } from "@/types/worldTypes"
 import { useFrame } from "@react-three/fiber"
 import type { RapierRigidBody } from "@react-three/rapier"
 import { RigidBody } from "@react-three/rapier"
-import { useRef } from "react"
+import { useEffect, useRef } from "react"
 import { DRAIN_SAFETY_FALLBACK_Y } from "../drain/drainConfig"
 import { clampVelocityToPlayfield } from "../physics/playfieldPlane"
+import { isOnRail, cleanupRailBall } from "../playfield/railState"
+import {
+  RAIL_BASE_ACCEL,
+  RAIL_BOOST_PER_SECOND,
+  RAIL_MAX_ACCEL,
+  RAIL_MIN_VEL,
+} from "../playfield/railConfig"
 import { BALL_RADIUS } from "./ballConfig"
 
 interface BallProps {
@@ -22,6 +29,7 @@ interface BallProps {
   laneMaxTangentSpeed: number
   minNormalSpeed: number
   maxNormalSpeed: number
+  color?: string
 }
 
 const Ball = ({
@@ -37,11 +45,19 @@ const Ball = ({
   laneMaxTangentSpeed,
   minNormalSpeed,
   maxNormalSpeed,
+  color = "#FF8C00",
 }: BallProps) => {
   const { deleteBall } = useBallStore()
   const ballRef = useRef<RapierRigidBody>(null)
+  const timeOnRailRef = useRef(0)
 
-  useFrame(() => {
+  useEffect(() => {
+    return () => {
+      cleanupRailBall(id)
+    }
+  }, [id])
+
+  useFrame((_, delta) => {
     const body = ballRef.current
     if (!body) return
 
@@ -61,6 +77,17 @@ const Ball = ({
       maxNormalSpeed,
     )
     body.setLinvel(clampedVelocity, true)
+
+    if (isOnRail(id) && vel.z > RAIL_MIN_VEL) {
+      timeOnRailRef.current += delta
+      const accel = Math.min(
+        RAIL_BASE_ACCEL + timeOnRailRef.current * RAIL_BOOST_PER_SECOND,
+        RAIL_MAX_ACCEL,
+      )
+      body.applyImpulse({ x: 0, y: 0, z: accel * delta * mass }, true)
+    } else {
+      timeOnRailRef.current = 0
+    }
   })
 
   return (
@@ -80,7 +107,7 @@ const Ball = ({
     >
       <mesh castShadow>
         <sphereGeometry args={[radius, 32, 32]} />
-        <meshStandardMaterial color="white" />
+        <meshStandardMaterial color={color} metalness={0.25} roughness={0.2} />
       </mesh>
     </RigidBody>
   )

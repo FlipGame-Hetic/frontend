@@ -1,7 +1,15 @@
 import { create } from "zustand"
 import type { CharacterType, GameMode, GamePhase } from "@frontend/types"
+
+export const CHARACTER_ID_BY_TYPE: Record<CharacterType, number> = {
+  striker: 0,
+  defender: 1,
+  trickster: 2,
+  heavy: 3,
+}
 import { PLUNGER_BALL_SPAWN } from "@/components/plunger/plungerConfig"
 import useBallStore from "./useBallStore"
+import useMultiballStore from "./useMultiballStore"
 import useTargetStore from "./useTargetStore"
 
 interface SelectedPlayer {
@@ -31,7 +39,6 @@ interface GameStore {
   endGame: () => void
   pause: () => void
   resume: () => void
-  addScore: (points: number) => void
   setScore: (score: number) => void
   nextBall: () => void
   reset: () => void
@@ -76,6 +83,7 @@ const useGameStore = create<GameStore>()((set) => ({
   startGame: (options) => {
     useTargetStore.getState().resetTargets()
     useBallStore.getState().resetBalls()
+    useMultiballStore.getState().reset()
     useBallStore.getState().spawnBall(PLUNGER_BALL_SPAWN, { isPlaying: false })
 
     set((state) => {
@@ -107,10 +115,6 @@ const useGameStore = create<GameStore>()((set) => ({
     set({ phase: "playing" })
   },
 
-  addScore: (points) => {
-    set((state) => ({ score: state.score + points }))
-  },
-
   setScore: (score) => {
     set({ score })
   },
@@ -127,12 +131,14 @@ const useGameStore = create<GameStore>()((set) => ({
   reset: () => {
     useTargetStore.getState().resetTargets()
     useBallStore.getState().resetBalls()
+    useMultiballStore.getState().reset()
     set(INITIAL_STATE)
   },
 
   restartGame: () => {
     useTargetStore.getState().resetTargets()
     useBallStore.getState().resetBalls()
+    useMultiballStore.getState().reset()
     set({ ...INITIAL_STATE, phase: "mode_select" as GamePhase })
   },
 }))
