@@ -53,15 +53,22 @@ const FRAGMENT_SHADER = `
   }
 `
 
+interface BallShaderUniforms {
+  lineColor: { value: THREE.Color }
+}
+
+const createUniforms = (color: string): BallShaderUniforms => ({
+  lineColor: { value: new THREE.Color(color).multiplyScalar(HDR_FACTOR) },
+})
+
 export const createBallMaterial = (color: string): THREE.ShaderMaterial =>
   new THREE.ShaderMaterial({
-    uniforms: {
-      lineColor: { value: new THREE.Color(color).multiplyScalar(HDR_FACTOR) },
-    },
+    uniforms: createUniforms(color),
     vertexShader: VERTEX_SHADER,
     fragmentShader: FRAGMENT_SHADER,
   })
 
 export const updateBallMaterialColor = (mat: THREE.ShaderMaterial, color: string) => {
-  ;(mat.uniforms.lineColor.value as THREE.Color).set(color).multiplyScalar(HDR_FACTOR)
+  const { lineColor } = mat.uniforms as BallShaderUniforms
+  lineColor.value.set(color).multiplyScalar(HDR_FACTOR)
 }
