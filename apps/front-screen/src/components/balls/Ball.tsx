@@ -10,6 +10,7 @@ import { DRAIN_SAFETY_FALLBACK_Y } from "../drain/drainConfig"
 import { registerBallFade, unregisterBallFade } from "./ballFadeRegistry"
 import useBallMaterial from "./useBallMaterial"
 import { clampVelocityToPlayfield } from "../physics/playfieldPlane"
+import { BALL_COLLISION_GROUPS_WITH_RAILS } from "../playfield/railCollisionGroups"
 import { isOnRail, cleanupRailBall } from "../playfield/railState"
 import {
   RAIL_BASE_ACCEL,
@@ -117,6 +118,7 @@ const Ball = ({
         friction={friction}
         linearDamping={linearDamping}
         angularDamping={angularDamping}
+        collisionGroups={BALL_COLLISION_GROUPS_WITH_RAILS}
       >
         <mesh ref={meshRef} castShadow>
           <sphereGeometry args={[radius, 32, 32]} />

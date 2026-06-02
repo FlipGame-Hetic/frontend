@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from "react"
 import type { CollisionPayload } from "@react-three/rapier"
 import { RigidBody } from "@react-three/rapier"
+import { RAIL_COLLISION_GROUPS } from "./railCollisionGroups"
 import { useDebugControls } from "@/debug/debugContext"
 import useMultiballStore from "@/stores/useMultiballStore"
 import type { Vector3Tuple } from "three"
@@ -105,6 +106,7 @@ const StaticPlayfield = ({ nodes }: { nodes: PlayfieldNodes }) => {
         <RigidBody
           type="fixed"
           colliders="trimesh"
+          collisionGroups={RAIL_COLLISION_GROUPS}
           onCollisionEnter={handleRailEnter}
           onCollisionExit={handleRailExit}
         >

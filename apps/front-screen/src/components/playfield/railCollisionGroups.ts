@@ -1,0 +1,21 @@
+import type { RapierRigidBody } from "@react-three/rapier"
+
+export const BALL_COLLISION_MEMBERSHIP = 0x0001
+export const RAIL_COLLISION_MEMBERSHIP = 0x0002
+
+export const RAIL_COLLISION_GROUPS = (BALL_COLLISION_MEMBERSHIP << 16) | RAIL_COLLISION_MEMBERSHIP
+
+export const BALL_COLLISION_GROUPS_WITH_RAILS = (0xffff << 16) | BALL_COLLISION_MEMBERSHIP
+
+const BALL_FILTER_WITHOUT_RAILS = 0xffff & ~RAIL_COLLISION_MEMBERSHIP
+
+export const BALL_COLLISION_GROUPS_IGNORE_RAILS =
+  (BALL_FILTER_WITHOUT_RAILS << 16) | BALL_COLLISION_MEMBERSHIP
+
+export const setBallRailCollision = (body: RapierRigidBody, ignoreRails: boolean): void => {
+  const groups = ignoreRails ? BALL_COLLISION_GROUPS_IGNORE_RAILS : BALL_COLLISION_GROUPS_WITH_RAILS
+
+  for (let i = 0; i < body.numColliders(); i++) {
+    body.collider(i).setCollisionGroups(groups)
+  }
+}
