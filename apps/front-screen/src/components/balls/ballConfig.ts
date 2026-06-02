@@ -12,3 +12,4 @@ export const BALL_MAX_TANGENT_SPEED = 35
 export const BALL_LANE_MAX_TANGENT_SPEED = 100
 export const BALL_MIN_NORMAL_SPEED = -4
 export const BALL_MAX_NORMAL_SPEED = 0
+export const BALL_EMISSIVE_INTENSITY = 2.5

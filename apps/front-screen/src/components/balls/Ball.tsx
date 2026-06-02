@@ -1,3 +1,4 @@
+import BallTrail from "./BallTrail"
 import useBallStore from "@/stores/useBallStore"
 import { isPointInPlungerLaneSensor } from "@/components/plunger/plungerConfig"
 import type { PositionType } from "@/types/worldTypes"
@@ -6,6 +7,8 @@ import type { RapierRigidBody } from "@react-three/rapier"
 import { RigidBody } from "@react-three/rapier"
 import { useEffect, useRef } from "react"
 import { DRAIN_SAFETY_FALLBACK_Y } from "../drain/drainConfig"
+import { registerBallFade, unregisterBallFade } from "./ballFadeRegistry"
+import useBallMaterial from "./useBallMaterial"
 import { clampVelocityToPlayfield } from "../physics/playfieldPlane"
 import { isOnRail, cleanupRailBall } from "../playfield/railState"
 import {
@@ -50,9 +53,18 @@ const Ball = ({
   const { deleteBall } = useBallStore()
   const ballRef = useRef<RapierRigidBody>(null)
   const timeOnRailRef = useRef(0)
+  const fadingRef = useRef(false)
+  const drainedRef = useRef(false)
+
+  const meshRef = useBallMaterial(color)
 
   useEffect(() => {
+    registerBallFade(id, () => {
+      fadingRef.current = true
+      drainedRef.current = true
+    })
     return () => {
+      unregisterBallFade(id)
       cleanupRailBall(id)
     }
   }, [id])
@@ -64,7 +76,7 @@ const Ball = ({
     const pos = body.translation()
 
     if (pos.y <= DRAIN_SAFETY_FALLBACK_Y) {
-      deleteBall(id)
+      fadingRef.current = true
       return
     }
 
@@ -91,25 +103,34 @@ const Ball = ({
   })
 
   return (
-    <RigidBody
-      ref={ballRef}
-      type="dynamic"
-      position={position}
-      colliders="ball"
-      ccd
-      name="ball"
-      userData={{ ballId: id }}
-      mass={mass}
-      restitution={restitution}
-      friction={friction}
-      linearDamping={linearDamping}
-      angularDamping={angularDamping}
-    >
-      <mesh castShadow>
-        <sphereGeometry args={[radius, 32, 32]} />
-        <meshStandardMaterial color={color} metalness={0.25} roughness={0.2} />
-      </mesh>
-    </RigidBody>
+    <>
+      <RigidBody
+        ref={ballRef}
+        type="dynamic"
+        position={position}
+        colliders="ball"
+        ccd
+        name="ball"
+        userData={{ ballId: id }}
+        mass={mass}
+        restitution={restitution}
+        friction={friction}
+        linearDamping={linearDamping}
+        angularDamping={angularDamping}
+      >
+        <mesh ref={meshRef} castShadow>
+          <sphereGeometry args={[radius, 32, 32]} />
+        </mesh>
+      </RigidBody>
+      <BallTrail
+        ballRef={ballRef}
+        color={color}
+        fadingRef={fadingRef}
+        onFadeComplete={() => {
+          if (!drainedRef.current) deleteBall(id)
+        }}
+      />
+    </>
   )
 }
 

@@ -7,6 +7,8 @@ import { CuboidCollider, RigidBody } from "@react-three/rapier"
 import { useControls } from "leva"
 import { useCallback, useEffect, useRef } from "react"
 import { hasBallId } from "@/components/balls/ballUserData"
+import { triggerBallFade } from "@/components/balls/ballFadeRegistry"
+import { TRAIL_FADE_DURATION } from "@/components/balls/ballTrailConfig"
 import {
   DRAIN_RESPAWN_DELAY_MS,
   DRAIN_SENSOR_HALF_EXTENTS,
@@ -15,10 +17,12 @@ import {
 
 const Drain = () => {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const drainFadeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     return () => {
       if (timeoutRef.current !== null) clearTimeout(timeoutRef.current)
+      if (drainFadeTimeoutRef.current !== null) clearTimeout(drainFadeTimeoutRef.current)
     }
   }, [])
 
@@ -37,25 +41,29 @@ const Drain = () => {
       if (!hasBallId(obj.userData)) return
 
       const ballId = obj.userData.ballId
-      const { ballNumber, totalBalls, nextBall } = useGameStore.getState()
 
-      const drainResult = useBallStore.getState().drainBall(ballId)
-      if (!drainResult.wasTracked) return
+      triggerBallFade(ballId)
 
-      playSfx("ball_lost")
+      drainFadeTimeoutRef.current = setTimeout(() => {
+        const { ballNumber, totalBalls, nextBall } = useGameStore.getState()
+        const drainResult = useBallStore.getState().drainBall(ballId)
+        if (!drainResult.wasTracked) return
 
-      if (!drainResult.isLifeLost) return
+        playSfx("ball_lost")
 
-      broadcastEvent({ event_type: "BallLost", payload: {} })
+        if (!drainResult.isLifeLost) return
 
-      if (ballNumber >= totalBalls) {
-        nextBall()
-        return
-      }
+        broadcastEvent({ event_type: "BallLost", payload: {} })
 
-      timeoutRef.current = setTimeout(() => {
-        useGameStore.getState().nextBall()
-      }, respawnDelay)
+        if (ballNumber >= totalBalls) {
+          nextBall()
+          return
+        }
+
+        timeoutRef.current = setTimeout(() => {
+          useGameStore.getState().nextBall()
+        }, respawnDelay)
+      }, TRAIL_FADE_DURATION * 1000)
     },
     [respawnDelay],
   )
