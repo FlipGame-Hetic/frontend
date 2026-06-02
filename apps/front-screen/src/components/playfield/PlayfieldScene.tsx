@@ -8,11 +8,13 @@ import GlbTargetsManager from "./GlbTargetsManager"
 import GlbPlunger from "./GlbPlunger"
 import GlbSpinnerManager from "./GlbSpinnerManager"
 import GlbBallSaversManager from "./GlbBallSaversManager"
+import GroundRailZoneSensor from "./GroundRailZoneSensor"
 
 const PlayfieldScene = () => {
   const nodes = usePlayfieldModel()
   return (
     <>
+      <GroundRailZoneSensor />
       <StaticPlayfield nodes={nodes} />
       <GlbBumpersManager nodes={nodes} />
       <GlbSlimBumpersManager nodes={nodes} />
