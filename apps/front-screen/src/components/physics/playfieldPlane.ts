@@ -82,3 +82,20 @@ export const clampBallVelocityToPlayfield = (
     Math.min(0, maxNormalSpeed),
   )
 }
+
+export const clampNormalToPlayfield = (
+  velocity: VectorLike,
+  minNormalSpeed: number,
+  maxNormalSpeed: number,
+): VectorLike => {
+  const normalSpeed = Math.min(
+    maxNormalSpeed,
+    Math.max(minNormalSpeed, dotPlayfieldNormal(velocity)),
+  )
+  const tangentVelocity = projectOnPlayfield(velocity)
+  return {
+    x: tangentVelocity.x + PLAYFIELD_UNIT_NORMAL.x * normalSpeed,
+    y: tangentVelocity.y + PLAYFIELD_UNIT_NORMAL.y * normalSpeed,
+    z: tangentVelocity.z + PLAYFIELD_UNIT_NORMAL.z * normalSpeed,
+  }
+}
