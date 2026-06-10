@@ -17,6 +17,7 @@ import { GUTTER_DRAIN_ASSIST_SENSORS } from "./components/sensors/directionalAcc
 import ScorePopupsManager from "./components/scorePopups/ScorePopupsManager"
 import ScreenShakeController from "./components/screenShake/ScreenShakeController"
 import SoundManager from "./components/sound/SoundManager"
+import TronGridFloor from "./components/environment/TronGridFloor"
 import World from "./components/World"
 import { useDebugKeys } from "./hooks/useDebugKeys"
 import { useFlipperButtonRelay } from "./hooks/useFlipperButtonRelay"
@@ -67,6 +68,7 @@ const App = () => {
           <DebugCamera cameraPosition={cameraSettings.position} cameraFov={cameraSettings.fov} />
         )}
         <ScreenShakeController />
+        <TronGridFloor />
 
         <PhysicsManager isDebug={true}>
           <BallsManager />

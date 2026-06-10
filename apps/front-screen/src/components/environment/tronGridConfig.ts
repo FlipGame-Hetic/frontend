@@ -1,0 +1,11 @@
+export const TRON_GRID_SIZE = 60
+export const TRON_GRID_POSITION_Y = -1.5
+export const TRON_CELL_SIZE = 1
+export const TRON_SECTION_SIZE = 5
+export const TRON_CELL_THICKNESS = 0.5
+export const TRON_SECTION_THICKNESS = 1.5
+export const TRON_CELL_COLOR = "#0088FF"
+export const TRON_SECTION_COLOR = "#00D9E8"
+export const TRON_FADE_DISTANCE = 30
+export const TRON_FADE_STRENGTH = 1.5
+export const TRON_HDR_FACTOR = 1.4
