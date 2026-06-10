@@ -8,22 +8,17 @@ import {
   TRAIL_HALF_HEIGHT,
   TRAIL_HALF_WIDTH,
   TRAIL_HDR_FACTOR,
+  TRAIL_IDLE_ALPHA,
+  TRAIL_IDLE_LERP_SPEED,
+  TRAIL_IDLE_THRESHOLD_SQ,
   TRAIL_POINTS,
   TRAIL_TAIL_FADE_POINTS,
   TRAIL_TELEPORT_THRESHOLD_SQ,
 } from "./ballTrailConfig"
 
-// Playfield unit normal — height ribbon stands perpendicular to the playfield surface
 const PF_NL = Math.hypot(0, 1, 0.21)
 const PF_NY = 1 / PF_NL
 const PF_NZ = 0.21 / PF_NL
-
-// Cross-section: 4 vertices per point (+ shape)
-// v0 = center - normal * hh  (height ribbon, bottom)
-// v1 = center + normal * hh  (height ribbon, top)
-// v2 = center - X * hw       (width ribbon, left)
-// v3 = center + X * hw       (width ribbon, right)
-// UV: u=0 for v0/v2, u=1 for v1/v3 → sin(u*π) lateral fade applies to both ribbons
 
 const VERTEX_SHADER = `
   varying vec2 vUv;
@@ -54,7 +49,6 @@ interface BallTrailProps {
 const BallTrail = ({ ballRef, fadingRef, onFadeComplete, color }: BallTrailProps) => {
   const geoRef = useRef<THREE.BufferGeometry>(null)
 
-  // 4 vertices per point
   const centerPos = useRef(new Float32Array(TRAIL_POINTS * 3))
   const ribPos = useRef(new Float32Array(TRAIL_POINTS * 4 * 3))
   const ribUv = useRef(new Float32Array(TRAIL_POINTS * 4 * 2))
@@ -63,6 +57,7 @@ const BallTrail = ({ ballRef, fadingRef, onFadeComplete, color }: BallTrailProps
   const initialized = useRef(false)
   const fadeProgress = useRef(0)
   const fadeCompleted = useRef(false)
+  const isIdleRef = useRef(false)
   const onFadeCompleteRef = useRef(onFadeComplete)
   onFadeCompleteRef.current = onFadeComplete
   const positionAttrRef = useRef<THREE.BufferAttribute | null>(null)
@@ -99,7 +94,6 @@ const BallTrail = ({ ballRef, fadingRef, onFadeComplete, color }: BallTrailProps
     const geo = geoRef.current
     if (!geo) return
 
-    // 4 triangles per segment (2 per ribbon × 2 ribbons), 3 indices each
     const indices = new Uint16Array((TRAIL_POINTS - 1) * 12)
     for (let i = 0; i < TRAIL_POINTS - 1; i++) {
       const b = i * 12
@@ -121,13 +115,12 @@ const BallTrail = ({ ballRef, fadingRef, onFadeComplete, color }: BallTrailProps
       indices[b + 11] = n + 2
     }
 
-    // Static UV u-values: 0 for v0/v2, 1 for v1/v3
     for (let i = 0; i < TRAIL_POINTS; i++) {
       const base = i * 8
-      ribUv.current[base] = 0 // v0 u
-      ribUv.current[base + 2] = 1 // v1 u
-      ribUv.current[base + 4] = 0 // v2 u
-      ribUv.current[base + 6] = 1 // v3 u
+      ribUv.current[base] = 0
+      ribUv.current[base + 2] = 1
+      ribUv.current[base + 4] = 0
+      ribUv.current[base + 6] = 1
     }
 
     const posAttr = new THREE.BufferAttribute(ribPos.current, 3)
@@ -183,8 +176,13 @@ const BallTrail = ({ ballRef, fadingRef, onFadeComplete, color }: BallTrailProps
           centerPos.current[i * 3 + 2] = pos.z
         }
       }
+      isIdleRef.current = dsq < TRAIL_IDLE_THRESHOLD_SQ
     }
     prevPos.current = { x: pos.x, y: pos.y, z: pos.z }
+
+    const targetAlpha = isIdleRef.current ? TRAIL_IDLE_ALPHA : 1.0
+    uniforms.fadeAlpha.value +=
+      (targetAlpha - uniforms.fadeAlpha.value) * Math.min(1, TRAIL_IDLE_LERP_SPEED * delta)
 
     centerPos.current.copyWithin(0, 3)
 
@@ -206,26 +204,20 @@ const BallTrail = ({ ballRef, fadingRef, onFadeComplete, color }: BallTrailProps
       const tailSoftener = i < TRAIL_TAIL_FADE_POINTS ? (i / TRAIL_TAIL_FADE_POINTS) ** 2 : 1
       const v = linearFade * tailSoftener
 
-      // 4 vertices × 3 floats per point
       const pi = i * 12
-      // v0: center - normal * TRAIL_HALF_HEIGHT
       rp[pi] = cx
       rp[pi + 1] = cy - PF_NY * TRAIL_HALF_HEIGHT
       rp[pi + 2] = cz - PF_NZ * TRAIL_HALF_HEIGHT
-      // v1: center + normal * TRAIL_HALF_HEIGHT
       rp[pi + 3] = cx
       rp[pi + 4] = cy + PF_NY * TRAIL_HALF_HEIGHT
       rp[pi + 5] = cz + PF_NZ * TRAIL_HALF_HEIGHT
-      // v2: center - X * TRAIL_HALF_WIDTH
       rp[pi + 6] = cx - TRAIL_HALF_WIDTH
       rp[pi + 7] = cy
       rp[pi + 8] = cz
-      // v3: center + X * TRAIL_HALF_WIDTH
       rp[pi + 9] = cx + TRAIL_HALF_WIDTH
       rp[pi + 10] = cy
       rp[pi + 11] = cz
 
-      // UV v-values for all 4 vertices (u is static)
       const ui = i * 8
       ru[ui + 1] = v
       ru[ui + 3] = v

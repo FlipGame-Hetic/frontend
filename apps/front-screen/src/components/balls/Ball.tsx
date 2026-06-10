@@ -4,12 +4,12 @@ import { isPointInPlungerLaneSensor } from "@/components/plunger/plungerConfig"
 import type { PositionType } from "@/types/worldTypes"
 import { useFrame } from "@react-three/fiber"
 import type { RapierRigidBody } from "@react-three/rapier"
-import { RigidBody } from "@react-three/rapier"
+import { RigidBody, useAfterPhysicsStep } from "@react-three/rapier"
 import { useEffect, useRef } from "react"
 import { DRAIN_SAFETY_FALLBACK_Y } from "../drain/drainConfig"
 import { registerBallFade, unregisterBallFade } from "./ballFadeRegistry"
 import useBallMaterial from "./useBallMaterial"
-import { clampVelocityToPlayfield } from "../physics/playfieldPlane"
+import { clampVelocityToPlayfield, clampNormalToPlayfield } from "../physics/playfieldPlane"
 import { BALL_COLLISION_GROUPS_WITH_RAILS } from "../playfield/railCollisionGroups"
 import { isOnRail, cleanupRailBall } from "../playfield/railState"
 import {
@@ -69,6 +69,15 @@ const Ball = ({
       cleanupRailBall(id)
     }
   }, [id])
+
+  useAfterPhysicsStep(() => {
+    const body = ballRef.current
+    if (!body || fadingRef.current) return
+
+    const vel = body.linvel()
+    const clamped = clampNormalToPlayfield(vel, minNormalSpeed, maxNormalSpeed)
+    body.setLinvel(clamped, true)
+  })
 
   useFrame((_, delta) => {
     const body = ballRef.current

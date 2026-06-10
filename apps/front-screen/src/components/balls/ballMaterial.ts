@@ -21,8 +21,10 @@ const FRAGMENT_SHADER = `
   varying vec3 vNormal;
   varying vec3 vViewDir;
 
-  float band(float x, float center, float hw) {
-    return 1.0 - smoothstep(hw - 0.006, hw + 0.006, abs(x - center));
+  float band(float x, float center, float hw, float aa) {
+    float d = abs(x - center);
+    float ehw = max(hw, aa);
+    return 1.0 - smoothstep(ehw - aa, ehw + aa, d);
   }
 
   void main() {
@@ -31,17 +33,20 @@ const FRAGMENT_SHADER = `
 
     vec3 base = vec3(0.03, 0.03, 0.06);
 
-    float NdotV = max(dot(vNormal, vViewDir), 0.0);
+    float NdotV = max(dot(normalize(vNormal), normalize(vViewDir)), 0.0);
     float fresnel = pow(1.0 - NdotV, 4.0);
 
-    float h1 = band(v, 0.27, 0.012);
-    float h2 = band(v, 0.73, 0.012);
+    float aaV = fwidth(v) * 0.75;
+    float aaU = fwidth(u) * 0.75;
+
+    float h1 = band(v, 0.27, 0.012, aaV);
+    float h2 = band(v, 0.73, 0.012, aaV);
 
     float inBand = smoothstep(0.25, 0.27, v) * smoothstep(0.75, 0.73, v);
 
     float pu = fract(u);
-    float conn1 = max(band(pu, 0.0, 0.012), band(pu, 1.0, 0.012)) * inBand;
-    float conn2 = band(pu, 0.5, 0.012) * inBand;
+    float conn1 = max(band(pu, 0.0, 0.012, aaU), band(pu, 1.0, 0.012, aaU)) * inBand;
+    float conn2 = band(pu, 0.5, 0.012, aaU) * inBand;
 
     float circuit = clamp(h1 + h2 + conn1 + conn2, 0.0, 1.0);
 
