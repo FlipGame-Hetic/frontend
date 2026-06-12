@@ -11,5 +11,9 @@ export const FLIPPER_FRICTION = 0.02
 
 export const FLIPPER_MESH_OFFSET_X = 0.45
 
+export const FLIPPER_IMPULSE_BOOST = 0.7
+export const FLIPPER_BOOST_MIN_ANGULAR_SPEED = 5
+export const FLIPPER_BOOST_COOLDOWN_MS = 120
+
 export const LEFT_KEYS = ["ShiftLeft", "ArrowLeft", "KeyA"]
 export const RIGHT_KEYS = ["ShiftRight", "ArrowRight", "KeyD"]

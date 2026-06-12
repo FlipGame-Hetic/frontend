@@ -10,10 +10,16 @@ export const PLAYFIELD_NORMAL: Vector3Tuple = [0, 1, 0.21]
 
 const normalLength = Math.hypot(PLAYFIELD_NORMAL[0], PLAYFIELD_NORMAL[1], PLAYFIELD_NORMAL[2])
 
-const PLAYFIELD_UNIT_NORMAL: VectorLike = {
+export const PLAYFIELD_UNIT_NORMAL: VectorLike = {
   x: PLAYFIELD_NORMAL[0] / normalLength,
   y: PLAYFIELD_NORMAL[1] / normalLength,
   z: PLAYFIELD_NORMAL[2] / normalLength,
+}
+
+export const PLAYFIELD_DOWN: VectorLike = {
+  x: -PLAYFIELD_UNIT_NORMAL.x,
+  y: -PLAYFIELD_UNIT_NORMAL.y,
+  z: -PLAYFIELD_UNIT_NORMAL.z,
 }
 
 export const dotPlayfieldNormal = (vector: VectorLike) => {

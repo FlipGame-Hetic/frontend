@@ -4,13 +4,23 @@ import { isPointInPlungerLaneSensor } from "@/components/plunger/plungerConfig"
 import type { PositionType } from "@/types/worldTypes"
 import { useFrame } from "@react-three/fiber"
 import type { RapierRigidBody } from "@react-three/rapier"
-import { RigidBody, useAfterPhysicsStep } from "@react-three/rapier"
+import { RigidBody, useAfterPhysicsStep, useRapier } from "@react-three/rapier"
 import { useEffect, useRef } from "react"
 import { DRAIN_SAFETY_FALLBACK_Y } from "../drain/drainConfig"
 import { registerBallFade, unregisterBallFade } from "./ballFadeRegistry"
 import useBallMaterial from "./useBallMaterial"
-import { clampVelocityToPlayfield, clampNormalToPlayfield } from "../physics/playfieldPlane"
-import { BALL_COLLISION_GROUPS_WITH_RAILS } from "../playfield/railCollisionGroups"
+import {
+  clampVelocityToPlayfield,
+  clampNormalToPlayfield,
+  projectOnPlayfield,
+  PLAYFIELD_DOWN,
+  PLAYFIELD_UNIT_NORMAL,
+} from "../physics/playfieldPlane"
+import { isPointInSnapExemptZone } from "../physics/snapExemptZones"
+import {
+  BALL_COLLISION_GROUPS_WITH_RAILS,
+  BALL_COLLISION_GROUPS_IGNORE_RAILS,
+} from "../playfield/railCollisionGroups"
 import { isOnRail, cleanupRailBall } from "../playfield/railState"
 import {
   RAIL_BASE_ACCEL,
@@ -18,7 +28,7 @@ import {
   RAIL_MAX_ACCEL,
   RAIL_MIN_VEL,
 } from "../playfield/railConfig"
-import { BALL_RADIUS } from "./ballConfig"
+import { BALL_RADIUS, BALL_SNAP_MAX_GAP, BALL_SNAP_EPSILON } from "./ballConfig"
 
 interface BallProps {
   id: string
@@ -58,6 +68,7 @@ const Ball = ({
   const drainedRef = useRef(false)
 
   const meshRef = useBallMaterial(color)
+  const { rapier } = useRapier()
 
   useEffect(() => {
     registerBallFade(id, () => {
@@ -70,13 +81,48 @@ const Ball = ({
     }
   }, [id])
 
-  useAfterPhysicsStep(() => {
+  useAfterPhysicsStep((world) => {
     const body = ballRef.current
     if (!body || fadingRef.current) return
 
+    const pos = body.translation()
     const vel = body.linvel()
-    const clamped = clampNormalToPlayfield(vel, minNormalSpeed, maxNormalSpeed)
-    body.setLinvel(clamped, true)
+
+    if (isOnRail(id) || isPointInSnapExemptZone(pos)) {
+      body.setLinvel(clampNormalToPlayfield(vel, minNormalSpeed, maxNormalSpeed), true)
+      return
+    }
+
+    const groundRay = new rapier.Ray({ x: pos.x, y: pos.y, z: pos.z }, PLAYFIELD_DOWN)
+
+    const hit = world.castRay(
+      groundRay,
+      radius + BALL_SNAP_MAX_GAP,
+      true,
+      undefined,
+      BALL_COLLISION_GROUPS_IGNORE_RAILS,
+      undefined,
+      body,
+      (collider) => !collider.isSensor() && (collider.parent()?.isFixed() ?? false),
+    )
+
+    if (!hit) {
+      body.setLinvel(clampNormalToPlayfield(vel, minNormalSpeed, maxNormalSpeed), true)
+      return
+    }
+
+    const gap = hit.timeOfImpact - radius
+    if (Math.abs(gap) > BALL_SNAP_EPSILON) {
+      body.setTranslation(
+        {
+          x: pos.x - PLAYFIELD_UNIT_NORMAL.x * gap,
+          y: pos.y - PLAYFIELD_UNIT_NORMAL.y * gap,
+          z: pos.z - PLAYFIELD_UNIT_NORMAL.z * gap,
+        },
+        true,
+      )
+    }
+    body.setLinvel(projectOnPlayfield(vel), true)
   })
 
   useFrame((_, delta) => {
