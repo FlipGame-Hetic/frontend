@@ -1,6 +1,6 @@
 import { useEffect } from "react"
 import { sendEventTo } from "@frontend/ws"
-import { playMenuForward } from "@/audio/menuSound"
+import { playNavigationBackward, playNavigationForward } from "@/audio/menuSound"
 import { useBackScreenStore } from "@/stores/useBackScreenStore"
 import { MODE_OPTIONS, CHARACTER_OPTIONS } from "@/scenes/scene.types"
 
@@ -24,7 +24,7 @@ export function useKeyboardInput(): void {
       switch (phase) {
         case "idle": {
           if (e.key === "Enter") {
-            playMenuForward()
+            playNavigationForward()
             sendEventTo("front_screen", {
               event_type: "menu_confirm",
               payload: { context: "idle" },
@@ -35,13 +35,15 @@ export function useKeyboardInput(): void {
 
         case "mode_select": {
           if (e.key === "ArrowLeft") {
+            playNavigationBackward()
             setMenuIndex(skipLocked(MODE_OPTIONS, menuIndex, -1))
           } else if (e.key === "ArrowRight") {
+            playNavigationForward()
             setMenuIndex(skipLocked(MODE_OPTIONS, menuIndex, 1))
           } else if (e.key === "Enter") {
             const option = MODE_OPTIONS[menuIndex]
             if (!option || option.locked) return
-            playMenuForward()
+            playNavigationForward()
             const mode = option.id
             setSelectedMode(mode)
             sendEventTo("front_screen", {
@@ -54,7 +56,7 @@ export function useKeyboardInput(): void {
 
         case "game_over": {
           if (e.key === "Enter") {
-            playMenuForward()
+            playNavigationForward()
             sendEventTo("front_screen", {
               event_type: "menu_confirm",
               payload: { context: "game_over" },
@@ -65,13 +67,15 @@ export function useKeyboardInput(): void {
 
         case "character_select": {
           if (e.key === "ArrowLeft") {
+            playNavigationBackward()
             setMenuIndex(skipLocked(CHARACTER_OPTIONS, menuIndex, -1))
           } else if (e.key === "ArrowRight") {
+            playNavigationForward()
             setMenuIndex(skipLocked(CHARACTER_OPTIONS, menuIndex, 1))
           } else if (e.key === "Enter") {
             const charOption = CHARACTER_OPTIONS[menuIndex]
             if (!charOption || charOption.locked) return
-            playMenuForward()
+            playNavigationForward()
             const character = charOption.id
             setSelectedCharacter(character)
             sendEventTo("front_screen", {

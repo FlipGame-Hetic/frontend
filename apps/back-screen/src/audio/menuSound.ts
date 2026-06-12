@@ -3,6 +3,10 @@ function playOnce(path: string): void {
   audio.play().catch(() => undefined)
 }
 
-export function playMenuForward(): void {
-  playOnce("/sounds/menu_forward.wav")
+export function playNavigationForward(): void {
+  playOnce("/sounds/navigation_forward.wav")
+}
+
+export function playNavigationBackward(): void {
+  playOnce("/sounds/navigation_backward.wav")
 }
