@@ -142,9 +142,6 @@ importers:
       '@frontend/types':
         specifier: workspace:*
         version: link:../../packages/types
-      '@frontend/utils':
-        specifier: workspace:*
-        version: link:../../packages/utils
       '@frontend/ws':
         specifier: workspace:*
         version: link:../../packages/ws

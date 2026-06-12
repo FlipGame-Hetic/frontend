@@ -14,4 +14,3 @@ export const BALL_MIN_NORMAL_SPEED = -30
 export const BALL_MAX_NORMAL_SPEED = 0
 export const BALL_SNAP_MAX_GAP = 0.3
 export const BALL_SNAP_EPSILON = 0.005
-export const BALL_EMISSIVE_INTENSITY = 2.5
