@@ -239,7 +239,15 @@ The visual theme is defined once in `packages/tailwind-config/theme.css` and imp
 
 **Music**
 
-- _Only a Dream_ — [DANCE WITH THE DEAD](https://dancewiththedead.bandcamp.com) — used with permission / for non-commercial purposes
+- _Invader_, _Diabolic_, _Only a Dream_, _That House_, _Blind_, _Thrasher_, _Cobra_
+  — [DANCE WITH THE DEAD](https://dancewiththedead.bandcamp.com) — used with the
+  band's written permission, with attribution and for non-commercial purposes only.
+
+**Sound effects**
+
+- Pinball sound effects courtesy of [Merci-Michel](https://merci-michel.com) and
+  Ludovic Jokiel (sound designer on the _Ouigo Let's Play_) — used with their written permission, with attribution and for
+  non-commercial purposes only.
 
 **Shaders**
 
@@ -249,6 +257,10 @@ The visual theme is defined once in `packages/tailwind-config/theme.css` and imp
 
 ## Team
 
-Arnaud Fischer · Louis Dondey · Arthur Jenck · Alexis Gontier · Maxime Bidan
+- **Maxime Bidan** — front-end developer; worked on the front screen, led the DMD screen, handled 3D modelling in Blender, co-assembled the Linux arcade cabinet hardware, and contributed significantly to game design thinking.
+- **Arthur Jenck** — front-end developer; front screen (Rapier physics implementation & calibration), back screen, and co-assembled the hardware with Maxime.
+- **Arnaud Fischer** — back-end developer; built the WebSocket server, wired the data flow between all three screens, handled DevOps infrastructure, deployment pipeline, and Docker configuration; also drove a significant part of the game logic design and overall project management.
+- **Louis Dondey** — IoT & hardware engineer; handled MQTT integration and wired the physical pinball machine (soldering, buttons, potentiometer) to the software stack.
+- **Alexis Gontier** — produced UML diagrams during the early design phase.
 
-v1.0.0- 03/03/26
+v1.1.0 — 12/06/26
