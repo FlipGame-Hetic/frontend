@@ -52,7 +52,6 @@ export const PLUNGER_ROD_RADIUS = 0.1
 export const PLUNGER_ROD_LENGTH = 0.6
 
 export const PLUNGER_SPRING_TORUS_COUNT = 5
-export const PLUNGER_SPRING_TUBE_RADIUS = 0.03
 export const PLUNGER_SPRING_RADIUS = 0.12
 export const PLUNGER_SPRING_SPACING = 0.18
 
@@ -71,7 +70,7 @@ export const PLUNGER_RELEASE_SPEED = 25
 export const PLUNGER_CHARGE_FACTOR = 1
 
 export const PLUNGER_MIN_CHARGE = 0.05
-export const PLUNGER_MIN_LAUNCH_CHARGE = 0.1
+export const PLUNGER_MIN_LAUNCH_CHARGE = 0.18
 
 export const PLUNGER_RELEASE_DELAY = 0.05
 export const PLUNGER_BALL_CLEAR_TIMEOUT = 0.35

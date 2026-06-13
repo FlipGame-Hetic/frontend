@@ -1,11 +1,13 @@
 import { playSfx } from "@/audio/soundEngine"
 import { getPlungerInputSnapshot } from "@/stores/inputStore"
+import useScreenShakeStore from "@/stores/useScreenShakeStore"
 import type { PositionType } from "@/types/worldTypes"
 import { useFrame } from "@react-three/fiber"
 import type { CollisionPayload, RapierRigidBody } from "@react-three/rapier"
 import { useCallback, useRef } from "react"
 import type { Group, Mesh, Vector3 } from "three"
 import { normalizedPlayfieldDirection } from "../physics/playfieldPlane"
+import { SHAKE_INTENSITY } from "../screenShake/shakeIntensity"
 import {
   clampPlungerPosition,
   PLUNGER_KEY,
@@ -23,8 +25,6 @@ import {
   PLUNGER_ARROW_PULL_SPEED,
   PLUNGER_RELEASE_SPEED,
   PLUNGER_MAX_COMPRESSION,
-  PLUNGER_SPRING_SPACING,
-  PLUNGER_SPRING_TORUS_COUNT,
 } from "./plungerConfig"
 
 export interface PlungerMeshPart {
@@ -32,20 +32,23 @@ export interface PlungerMeshPart {
   position: PositionType
 }
 
+export interface PlungerLaunchState {
+  token: number
+  charge: number
+}
+
 interface PlungerSimulationOptions {
   pressedKeys: React.RefObject<Set<string>>
   rootPosition: Vector3
   tipRestPosition: Vector3
-  ringRestPositions: Vector3[]
   movementAxis: Vector3
-  ringMeshes: PlungerMeshPart[]
 }
 
 interface PlungerSimulationResult {
   tipGroupRef: React.RefObject<Group | null>
   rodBodyRef: React.RefObject<RapierRigidBody | null>
-  torusRefs: React.RefObject<(Group | null)[]>
-  ringRefs: React.RefObject<(Group | null)[]>
+  chargeRef: React.RefObject<number>
+  launchRef: React.RefObject<PlungerLaunchState>
   handleBallEnter: (payload: CollisionPayload) => void
   handleBallExit: (payload: CollisionPayload) => void
 }
@@ -54,9 +57,7 @@ export const usePlungerSimulation = ({
   pressedKeys,
   rootPosition,
   tipRestPosition,
-  ringRestPositions,
   movementAxis,
-  ringMeshes,
 }: PlungerSimulationOptions): PlungerSimulationResult => {
   const plungerPositionRef = useRef(0)
   const wasSpacePressed = useRef(false)
@@ -68,8 +69,7 @@ export const usePlungerSimulation = ({
   const ballClearTimerRef = useRef(0)
   const tipGroupRef = useRef<Group | null>(null)
   const rodBodyRef = useRef<RapierRigidBody | null>(null)
-  const torusRefs = useRef<(Group | null)[]>([])
-  const ringRefs = useRef<(Group | null)[]>([])
+  const launchRef = useRef<PlungerLaunchState>({ token: 0, charge: 0 })
   const lastPlungerReleaseToken = useRef(getPlungerInputSnapshot().releaseToken)
   const ballInLaneRef = useRef<RapierRigidBody | null>(null)
 
@@ -78,7 +78,13 @@ export const usePlungerSimulation = ({
 
     if (charge >= PLUNGER_MIN_CHARGE) {
       if (ballInLaneRef.current) {
-        playSfx(charge >= PLUNGER_MIN_LAUNCH_CHARGE ? "plunger_launch" : "flipper_up")
+        const isLaunch = charge >= PLUNGER_MIN_LAUNCH_CHARGE
+        playSfx(isLaunch ? "plunger_launch" : "flipper_up")
+        if (isLaunch) {
+          launchRef.current.token += 1
+          launchRef.current.charge = charge
+          useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.plungerLaunch * charge)
+        }
         waitForBallClearRef.current = true
         ballClearTimerRef.current = PLUNGER_BALL_CLEAR_TIMEOUT
 
@@ -222,36 +228,14 @@ export const usePlungerSimulation = ({
         z: colliderPosition.z,
       })
     }
-
-    if (ringMeshes.length > 0 && ringRestPositions.length > 0) {
-      const backRestPosition = ringRestPositions[ringRestPositions.length - 1]
-      const frontRestPosition = ringRestPositions[0]
-      if (!backRestPosition || !frontRestPosition) return
-
-      const restLength = Math.max(
-        backRestPosition.clone().sub(frontRestPosition).dot(movementAxis),
-        0,
-      )
-      const compressedLength = restLength * (1 - plungerPositionRef.current * 0.6)
-
-      for (let i = 0; i < ringRefs.current.length; i++) {
-        const ring = ringRefs.current[i]
-        if (!ring) continue
-        const t = ringRefs.current.length <= 1 ? 0 : i / (ringRefs.current.length - 1)
-        ring.position
-          .copy(backRestPosition)
-          .add(movementAxis.clone().multiplyScalar(-compressedLength * (1 - t)))
-      }
-      return
-    }
-
-    const compressedSpacing = PLUNGER_SPRING_SPACING * (1 - plungerPositionRef.current * 0.6)
-    for (let i = 0; i < PLUNGER_SPRING_TORUS_COUNT; i++) {
-      const torus = torusRefs.current[i]
-      if (!torus) continue
-      torus.position.z = compressedSpacing * (i + 1) + compression
-    }
   })
 
-  return { tipGroupRef, rodBodyRef, torusRefs, ringRefs, handleBallEnter, handleBallExit }
+  return {
+    tipGroupRef,
+    rodBodyRef,
+    chargeRef: plungerPositionRef,
+    launchRef,
+    handleBallEnter,
+    handleBallExit,
+  }
 }

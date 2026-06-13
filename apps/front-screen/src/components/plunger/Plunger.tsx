@@ -10,8 +10,11 @@ import {
   PLUNGER_SPRING_RADIUS,
   PLUNGER_SPRING_SPACING,
   PLUNGER_SPRING_TORUS_COUNT,
-  PLUNGER_SPRING_TUBE_RADIUS,
 } from "./plungerConfig"
+import PlungerBeam from "./PlungerBeam"
+import PlungerEnergyRings from "./PlungerEnergyRings"
+import PlungerNeonTip from "./PlungerNeonTip"
+import PlungerShockwave from "./PlungerShockwave"
 import { type PlungerMeshPart, usePlungerSimulation } from "./usePlungerSimulation"
 
 export type { PlungerMeshPart }
@@ -34,10 +37,13 @@ const Plunger = ({ position = PLUNGER_POSITION, tipMesh, ringMeshes = [] }: Plun
     () => toVector3(tipMesh?.position ?? [0, 0, 0]),
     [tipMesh?.position],
   )
-  const ringRestPositions = useMemo(
-    () => ringMeshes.map((part) => toVector3(part.position)),
-    [ringMeshes],
-  )
+  const ringRestPositions = useMemo(() => {
+    if (ringMeshes.length > 0) return ringMeshes.map((part) => toVector3(part.position))
+    return Array.from(
+      { length: PLUNGER_SPRING_TORUS_COUNT },
+      (_, i) => new Vector3(0, 0, PLUNGER_SPRING_SPACING * (i + 1)),
+    )
+  }, [ringMeshes])
   const movementAxis = useMemo(() => {
     const backRing = ringRestPositions.at(-1)
     if (!backRing) return new Vector3(0, 0, 1)
@@ -46,14 +52,12 @@ const Plunger = ({ position = PLUNGER_POSITION, tipMesh, ringMeshes = [] }: Plun
     return axis.normalize()
   }, [ringRestPositions, tipRestPosition])
 
-  const { tipGroupRef, rodBodyRef, torusRefs, ringRefs, handleBallEnter, handleBallExit } =
+  const { tipGroupRef, rodBodyRef, chargeRef, launchRef, handleBallEnter, handleBallExit } =
     usePlungerSimulation({
       pressedKeys,
       rootPosition,
       tipRestPosition,
-      ringRestPositions,
       movementAxis,
-      ringMeshes,
     })
 
   return (
@@ -74,44 +78,17 @@ const Plunger = ({ position = PLUNGER_POSITION, tipMesh, ringMeshes = [] }: Plun
       </RigidBody>
 
       <group ref={tipGroupRef} position={tipMesh?.position ?? [0, 0, 0]}>
-        {tipMesh ? (
-          <primitive object={tipMesh.mesh} />
-        ) : (
-          <mesh rotation={[Math.PI / 2, 0, 0]}>
-            <cylinderGeometry
-              args={[PLUNGER_ROD_RADIUS, PLUNGER_ROD_RADIUS, PLUNGER_ROD_LENGTH, 16]}
-            />
-            <meshStandardMaterial color="#888" />
-          </mesh>
-        )}
+        <PlungerNeonTip mesh={tipMesh?.mesh} chargeRef={chargeRef} />
       </group>
 
-      {ringMeshes.length > 0
-        ? ringMeshes.map((part, i) => (
-            <group
-              key={part.mesh.uuid}
-              ref={(el) => {
-                ringRefs.current[i] = el
-              }}
-              position={part.position}
-            >
-              <primitive object={part.mesh} />
-            </group>
-          ))
-        : Array.from({ length: PLUNGER_SPRING_TORUS_COUNT }).map((_, i) => (
-            <group
-              key={i}
-              ref={(el) => {
-                torusRefs.current[i] = el
-              }}
-              position={[0, 0, PLUNGER_SPRING_SPACING * (i + 1)]}
-            >
-              <mesh>
-                <torusGeometry args={[PLUNGER_SPRING_RADIUS, PLUNGER_SPRING_TUBE_RADIUS, 8, 24]} />
-                <meshStandardMaterial color="#aaa" />
-              </mesh>
-            </group>
-          ))}
+      <PlungerEnergyRings
+        chargeRef={chargeRef}
+        launchRef={launchRef}
+        restPositions={ringRestPositions}
+        movementAxis={movementAxis}
+      />
+      <PlungerBeam launchRef={launchRef} movementAxis={movementAxis} />
+      <PlungerShockwave launchRef={launchRef} movementAxis={movementAxis} />
     </group>
   )
 }

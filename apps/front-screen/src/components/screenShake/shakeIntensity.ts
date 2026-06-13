@@ -8,4 +8,5 @@ export const SHAKE_INTENSITY = {
   portalExit: 0.3,
   multiballTrigger: 0.375,
   multiballBounce: 0.16,
+  plungerLaunch: 0.25,
 } as const
