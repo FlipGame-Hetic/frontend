@@ -21,6 +21,7 @@ import AudioSpectrumVisualizer from "./components/environment/AudioSpectrumVisua
 import StageSpotlights from "./components/environment/StageSpotlights"
 import TronGridFloor from "./components/environment/TronGridFloor"
 import AudioReactiveController from "./components/audioReactive/AudioReactiveController"
+import ReactiveAccentLight from "./components/audioReactive/ReactiveAccentLight"
 import ReactiveAmbientLight from "./components/audioReactive/ReactiveAmbientLight"
 import World from "./components/World"
 import { useDebugKeys } from "./hooks/useDebugKeys"
@@ -52,6 +53,7 @@ const App = () => {
       />
       <World cameraSettings={cameraSettings as CameraProps}>
         <ReactiveAmbientLight />
+        <ReactiveAccentLight />
         <directionalLight
           position={[0, 13, 12]}
           intensity={0.8}

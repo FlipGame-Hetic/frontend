@@ -96,6 +96,11 @@ export const startMusic = (): void => {
 
 export const getCurrentTrackIndex = (): number => currentTrackIndex
 
+export const getMusicSeek = (): number => {
+  const t = currentMusic?.seek()
+  return typeof t === "number" ? t : 0
+}
+
 export const onMusicChange = (cb: (index: number) => void): (() => void) => {
   musicChangeListeners.add(cb)
   return () => {

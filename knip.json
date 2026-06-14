@@ -9,7 +9,9 @@
     "apps/dmd-screen": {
       "ignoreBinaries": ["vite"]
     },
-    "apps/front-screen": {},
+    "apps/front-screen": {
+      "ignore": ["scripts/**"]
+    },
     "packages/*": {}
   }
 }

@@ -1,5 +1,5 @@
-import { globalIgnores } from "eslint/config";
-import reactConfig from "@frontend/eslint-config/react";
+import { globalIgnores } from "eslint/config"
+import reactConfig from "@frontend/eslint-config/react"
 
 export default [
   globalIgnores([
@@ -9,6 +9,7 @@ export default [
     "coverage/**",
     "eslint.config.js",
     "*.config.*",
+    "scripts/**",
   ]),
   ...reactConfig,
   {
@@ -26,4 +27,4 @@ export default [
       "react/no-unknown-property": "off",
     },
   },
-];
+]

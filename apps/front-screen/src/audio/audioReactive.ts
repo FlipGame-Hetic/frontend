@@ -15,10 +15,13 @@ import {
   NEON_PALETTE_C,
   NEON_PALETTE_D,
   PEAK_DECAY,
+  SEG_BASE,
+  SEG_FFT_MIX,
   SWELL_ATTACK,
   SWELL_DECAY,
 } from "./audioReactiveConfig"
 import { getFrequencyData } from "./musicAnalyser"
+import { getSegmentState, updateSegments } from "./segmentTimeline"
 
 export interface AudioReactiveState {
   bass: number
@@ -27,6 +30,7 @@ export interface AudioReactiveState {
   energy: number
   swell: number
   beat: number
+  dropPulse: number
   color: THREE.Color
 }
 
@@ -37,8 +41,12 @@ const state: AudioReactiveState = {
   energy: 0,
   swell: 0,
   beat: 0,
+  dropPulse: 0,
   color: new THREE.Color(0, 0.94, 1),
 }
+
+let fftEnergy = 0
+let fftSwell = 0
 
 const BASS_END = 0.06
 const MID_END = 0.18
@@ -134,17 +142,34 @@ export const updateAudioReactive = (dt: number): void => {
   state.beat = Math.max(beatRaw, state.beat * Math.exp(-BEAT_DECAY_K * dt))
 
   const energyTarget = bassRel * 0.5 + midRel * 0.35 + highRel * 0.15
-  state.energy = ema(state.energy, energyTarget, ENERGY_K, dt)
-  state.swell = ema(
-    state.swell,
-    state.energy,
-    state.energy > state.swell ? SWELL_ATTACK : SWELL_DECAY,
-    dt,
-  )
+  fftEnergy = ema(fftEnergy, energyTarget, ENERGY_K, dt)
+  fftSwell = ema(fftSwell, fftEnergy, fftEnergy > fftSwell ? SWELL_ATTACK : SWELL_DECAY, dt)
 
-  huePhase += dt * (HUE_SPEED + state.energy * HUE_ENERGY_BOOST)
-  const [r, g, b] = cospal(huePhase, NEON_PALETTE_A, NEON_PALETTE_B, NEON_PALETTE_C, NEON_PALETTE_D)
-  state.color.setRGB(Math.max(0, r), Math.max(0, g), Math.max(0, b))
+  // Hybride : les segments scriptés posent la macro (intensité + couleur),
+  // la FFT live ajoute le détail micro ; fallback FFT pur sans segments.
+  updateSegments(dt)
+  const seg = getSegmentState()
+  if (seg.active) {
+    const detail = SEG_BASE + SEG_FFT_MIX * fftSwell
+    const macro = Math.min(1, seg.intensity * detail)
+    state.energy = macro
+    state.swell = macro
+    state.color.copy(seg.color)
+    state.dropPulse = seg.dropPulse
+  } else {
+    state.energy = fftEnergy
+    state.swell = fftSwell
+    state.dropPulse = 0
+    huePhase += dt * (HUE_SPEED + fftEnergy * HUE_ENERGY_BOOST)
+    const [r, g, b] = cospal(
+      huePhase,
+      NEON_PALETTE_A,
+      NEON_PALETTE_B,
+      NEON_PALETTE_C,
+      NEON_PALETTE_D,
+    )
+    state.color.setRGB(Math.max(0, r), Math.max(0, g), Math.max(0, b))
+  }
 }
 
 export const getAudioReactive = (): Readonly<AudioReactiveState> => state
