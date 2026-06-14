@@ -140,55 +140,59 @@ const BallsManager = () => {
     }
   }, [handleSpawn, handleSpawnInPlunger])
 
-  useControls("Ball Spawner", {
-    spawnX: {
-      value: DEFAULT_BALL_SPAWN[0],
-      min: -3.5,
-      max: 3.3,
-      step: 0.05,
-      onEditStart: (v: number) => {
-        handleSpawnSliderEditStart(0, v)
+  useControls(
+    "Ball Spawner",
+    () => ({
+      spawnX: {
+        value: DEFAULT_BALL_SPAWN[0],
+        min: -3.5,
+        max: 3.3,
+        step: 0.05,
+        onEditStart: (v: number) => {
+          handleSpawnSliderEditStart(0, v)
+        },
+        onEditEnd: (v: number) => {
+          handleSpawnSliderEditEnd(0, v)
+        },
+        onChange: (v: number, _path: string, context: { initial?: boolean }) => {
+          handleSpawnSliderChange(0, v, context)
+        },
       },
-      onEditEnd: (v: number) => {
-        handleSpawnSliderEditEnd(0, v)
+      spawnY: {
+        value: DEFAULT_BALL_SPAWN[1],
+        min: -0.5,
+        max: 3.5,
+        step: 0.05,
+        onEditStart: (v: number) => {
+          handleSpawnSliderEditStart(1, v)
+        },
+        onEditEnd: (v: number) => {
+          handleSpawnSliderEditEnd(1, v)
+        },
+        onChange: (v: number, _path: string, context: { initial?: boolean }) => {
+          handleSpawnSliderChange(1, v, context)
+        },
       },
-      onChange: (v: number, _path: string, context: { initial?: boolean }) => {
-        handleSpawnSliderChange(0, v, context)
+      spawnZ: {
+        value: DEFAULT_BALL_SPAWN[2],
+        min: -7,
+        max: 7,
+        step: 0.05,
+        onEditStart: (v: number) => {
+          handleSpawnSliderEditStart(2, v)
+        },
+        onEditEnd: (v: number) => {
+          handleSpawnSliderEditEnd(2, v)
+        },
+        onChange: (v: number, _path: string, context: { initial?: boolean }) => {
+          handleSpawnSliderChange(2, v, context)
+        },
       },
-    },
-    spawnY: {
-      value: DEFAULT_BALL_SPAWN[1],
-      min: -0.5,
-      max: 3.5,
-      step: 0.05,
-      onEditStart: (v: number) => {
-        handleSpawnSliderEditStart(1, v)
-      },
-      onEditEnd: (v: number) => {
-        handleSpawnSliderEditEnd(1, v)
-      },
-      onChange: (v: number, _path: string, context: { initial?: boolean }) => {
-        handleSpawnSliderChange(1, v, context)
-      },
-    },
-    spawnZ: {
-      value: DEFAULT_BALL_SPAWN[2],
-      min: -7,
-      max: 7,
-      step: 0.05,
-      onEditStart: (v: number) => {
-        handleSpawnSliderEditStart(2, v)
-      },
-      onEditEnd: (v: number) => {
-        handleSpawnSliderEditEnd(2, v)
-      },
-      onChange: (v: number, _path: string, context: { initial?: boolean }) => {
-        handleSpawnSliderChange(2, v, context)
-      },
-    },
-    "Spawn Ball": button(handleSpawn),
-    "Spawn in plunger": button(handleSpawnInPlunger),
-  })
+      "Spawn Ball": button(handleSpawn),
+      "Spawn in plunger": button(handleSpawnInPlunger),
+    }),
+    { order: 1 },
+  )
 
   return (
     <>

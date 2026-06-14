@@ -3,8 +3,11 @@ import { useControls } from "leva"
 import { useEffect, useRef } from "react"
 import { MUSIC_DEFAULT_VOLUME, SFX_DEFAULT_VOLUME } from "@/audio/soundConfig"
 import {
+  getCurrentTrackIndex,
+  onMusicChange,
   playSfx,
   setMusicEnabled,
+  setMusicTrack,
   setMusicVolume,
   setSfxEnabled,
   setSfxVolume,
@@ -17,7 +20,7 @@ const SoundManager = () => {
     () => ({
       sfxMuted: { value: false, label: "Mute SFX" },
       sfxVolume: { value: SFX_DEFAULT_VOLUME, min: 0, max: 1, step: 0.05, label: "SFX volume" },
-      musicMuted: { value: true, label: "Mute music" },
+      musicMuted: { value: false, label: "Mute music" },
       musicVolume: {
         value: MUSIC_DEFAULT_VOLUME,
         min: 0,
@@ -25,12 +28,26 @@ const SoundManager = () => {
         step: 0.05,
         label: "Music volume",
       },
+      track: {
+        value: 0 as number,
+        options: {
+          "Track 1": 0,
+          "Track 2": 1,
+          "Track 3": 2,
+          "Track 4": 3,
+          "Track 5": 4,
+          "Track 6": 5,
+          "Track 7": 6,
+        },
+        label: "Current track",
+      },
     }),
-    { order: 1 },
+    { order: 3 },
   )
 
   const sfxMutedRef = useRef(sound.sfxMuted)
   const musicMutedRef = useRef(sound.musicMuted)
+  const engineIndexRef = useRef(-1)
 
   useEffect(() => {
     sfxMutedRef.current = sound.sfxMuted
@@ -55,6 +72,25 @@ const SoundManager = () => {
   useEffect(() => {
     setMusicVolume(sound.musicVolume)
   }, [sound.musicVolume])
+
+  useEffect(() => {
+    const unsub = onMusicChange((i) => {
+      engineIndexRef.current = i
+      setSound({ track: i })
+    })
+    const initial = getCurrentTrackIndex()
+    if (initial >= 0) {
+      engineIndexRef.current = initial
+      setSound({ track: initial })
+    }
+    return unsub
+  }, [setSound])
+
+  useEffect(() => {
+    if (sound.track !== engineIndexRef.current) {
+      setMusicTrack(sound.track)
+    }
+  }, [sound.track])
 
   useEffect(() => {
     startMusic()

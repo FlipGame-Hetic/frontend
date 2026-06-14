@@ -1,5 +1,4 @@
 import { Grid } from "@react-three/drei"
-import { useControls } from "leva"
 import { useMemo } from "react"
 import * as THREE from "three"
 import {
@@ -17,51 +16,27 @@ import {
 } from "./tronGridConfig"
 
 const TronGridFloor = () => {
-  const {
-    positionY,
-    cellSize,
-    sectionSize,
-    cellThickness,
-    sectionThickness,
-    cellColorHex,
-    sectionColorHex,
-    fadeDistance,
-    fadeStrength,
-    hdrFactor,
-  } = useControls("Tron Grid", {
-    positionY: { value: TRON_GRID_POSITION_Y, min: -10, max: 5, step: 0.1 },
-    cellSize: { value: TRON_CELL_SIZE, min: 0.1, max: 10, step: 0.1 },
-    sectionSize: { value: TRON_SECTION_SIZE, min: 1, max: 20, step: 1 },
-    cellThickness: { value: TRON_CELL_THICKNESS, min: 0, max: 5, step: 0.1 },
-    sectionThickness: { value: TRON_SECTION_THICKNESS, min: 0, max: 10, step: 0.1 },
-    cellColorHex: { value: TRON_CELL_COLOR, label: "cellColor" },
-    sectionColorHex: { value: TRON_SECTION_COLOR, label: "sectionColor" },
-    fadeDistance: { value: TRON_FADE_DISTANCE, min: 5, max: 100, step: 1 },
-    fadeStrength: { value: TRON_FADE_STRENGTH, min: 0, max: 5, step: 0.1 },
-    hdrFactor: { value: TRON_HDR_FACTOR, min: 0.5, max: 5, step: 0.05 },
-  })
-
   const cellColor = useMemo(
-    () => new THREE.Color(cellColorHex).multiplyScalar(hdrFactor),
-    [cellColorHex, hdrFactor],
+    () => new THREE.Color(TRON_CELL_COLOR).multiplyScalar(TRON_HDR_FACTOR),
+    [],
   )
   const sectionColor = useMemo(
-    () => new THREE.Color(sectionColorHex).multiplyScalar(hdrFactor),
-    [sectionColorHex, hdrFactor],
+    () => new THREE.Color(TRON_SECTION_COLOR).multiplyScalar(TRON_HDR_FACTOR),
+    [],
   )
 
   return (
     <Grid
       args={[TRON_GRID_SIZE, TRON_GRID_SIZE]}
-      position={[0, positionY, 0]}
-      cellSize={cellSize}
+      position={[0, TRON_GRID_POSITION_Y, 0]}
+      cellSize={TRON_CELL_SIZE}
       cellColor={cellColor}
-      cellThickness={cellThickness}
-      sectionSize={sectionSize}
+      cellThickness={TRON_CELL_THICKNESS}
+      sectionSize={TRON_SECTION_SIZE}
       sectionColor={sectionColor}
-      sectionThickness={sectionThickness}
-      fadeDistance={fadeDistance}
-      fadeStrength={fadeStrength}
+      sectionThickness={TRON_SECTION_THICKNESS}
+      fadeDistance={TRON_FADE_DISTANCE}
+      fadeStrength={TRON_FADE_STRENGTH}
       infiniteGrid
     />
   )

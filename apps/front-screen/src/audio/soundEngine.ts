@@ -1,4 +1,5 @@
 import { Howl } from "howler"
+import { connectMusicNode } from "./musicAnalyser"
 import {
   MUSIC_DEFAULT_VOLUME,
   MUSIC_TRACKS,
@@ -15,6 +16,9 @@ let musicVolume = MUSIC_DEFAULT_VOLUME
 
 const sfxHowls = new Map<string, Howl>()
 let currentMusic: Howl | null = null
+let currentTrackIndex = -1
+
+const musicChangeListeners = new Set<(index: number) => void>()
 
 const KEY_TO_GAIN: Record<string, number> = {
   flipper_up: SFX_GAINS.flipper ?? 1,
@@ -53,31 +57,62 @@ const getSfxHowl = (srcs: [string, string], pool: number): Howl => {
   return h
 }
 
-const pickTrack = (): string => {
-  const fallbackTrack = MUSIC_TRACKS[0]
-  if (fallbackTrack === undefined) {
-    throw new Error("No music tracks configured")
-  }
-
-  return MUSIC_TRACKS[Math.floor(Math.random() * MUSIC_TRACKS.length)] ?? fallbackTrack
+const pickTrackIndex = (): number => {
+  if (MUSIC_TRACKS.length === 0) throw new Error("No music tracks configured")
+  return Math.floor(Math.random() * MUSIC_TRACKS.length)
 }
 
-const playMusicTrack = (path: string): void => {
+const notifyMusicChange = (index: number): void => {
+  currentTrackIndex = index
+  musicChangeListeners.forEach((cb) => {
+    cb(index)
+  })
+}
+
+const playTrackByIndex = (index: number): void => {
+  const path = MUSIC_TRACKS[index]
+  if (!path) return
   const h = new Howl({
     src: [path],
     volume: musicEnabled ? musicVolume : 0,
+    onplay: () => {
+      connectMusicNode(h)
+    },
     onend: () => {
+      if (currentMusic !== h) return
       currentMusic = null
-      playMusicTrack(pickTrack())
+      playTrackByIndex(pickTrackIndex())
     },
   })
+  notifyMusicChange(index)
   currentMusic = h
   h.play()
 }
 
 export const startMusic = (): void => {
   if (currentMusic) return
-  playMusicTrack(pickTrack())
+  playTrackByIndex(pickTrackIndex())
+}
+
+export const getCurrentTrackIndex = (): number => currentTrackIndex
+
+export const onMusicChange = (cb: (index: number) => void): (() => void) => {
+  musicChangeListeners.add(cb)
+  return () => {
+    musicChangeListeners.delete(cb)
+  }
+}
+
+export const setMusicTrack = (index: number): void => {
+  if (index === currentTrackIndex) return
+  if (index < 0 || index >= MUSIC_TRACKS.length) return
+  const toStop = currentMusic
+  currentMusic = null
+  if (toStop) {
+    toStop.stop()
+    toStop.unload()
+  }
+  playTrackByIndex(index)
 }
 
 export const setSfxEnabled = (enabled: boolean): void => {

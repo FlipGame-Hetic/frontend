@@ -94,4 +94,22 @@ export const INVISIBLE_WALLS: InvisibleWallConfig[] = [
     position: [-3.4, 1, 1.72],
     rotation: [0, 0, 0],
   },
+  {
+    id: "top-left-flipper-hole",
+    halfExtents: [0.2, 0.2, 0.2],
+    position: [-2.7, 0.8, 0.15],
+    rotation: [0, 0, 0],
+  },
+  {
+    id: "bottom-left-rail-exit",
+    halfExtents: [0.5, 0.1, 0.6],
+    position: [-2.6, 0.8, 4],
+    rotation: [0.7, 0, 0],
+  },
+  {
+    id: "bottom-right-rail-exit",
+    halfExtents: [0.5, 0.1, 0.6],
+    position: [2, 0.8, 4],
+    rotation: [0.7, 0, 0],
+  },
 ]

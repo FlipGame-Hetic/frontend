@@ -17,7 +17,11 @@ import { GUTTER_DRAIN_ASSIST_SENSORS } from "./components/sensors/directionalAcc
 import ScorePopupsManager from "./components/scorePopups/ScorePopupsManager"
 import ScreenShakeController from "./components/screenShake/ScreenShakeController"
 import SoundManager from "./components/sound/SoundManager"
+import AudioSpectrumVisualizer from "./components/environment/AudioSpectrumVisualizer"
+import StageSpotlights from "./components/environment/StageSpotlights"
 import TronGridFloor from "./components/environment/TronGridFloor"
+import AudioReactiveController from "./components/audioReactive/AudioReactiveController"
+import ReactiveAmbientLight from "./components/audioReactive/ReactiveAmbientLight"
 import World from "./components/World"
 import { useDebugKeys } from "./hooks/useDebugKeys"
 import { useFlipperButtonRelay } from "./hooks/useFlipperButtonRelay"
@@ -47,7 +51,7 @@ const App = () => {
         theme={{ sizes: { rootWidth: "350px" } }}
       />
       <World cameraSettings={cameraSettings as CameraProps}>
-        <ambientLight intensity={0.5} />
+        <ReactiveAmbientLight />
         <directionalLight
           position={[0, 13, 12]}
           intensity={0.8}
@@ -68,7 +72,10 @@ const App = () => {
           <DebugCamera cameraPosition={cameraSettings.position} cameraFov={cameraSettings.fov} />
         )}
         <ScreenShakeController />
+        <AudioReactiveController />
         <TronGridFloor />
+        <AudioSpectrumVisualizer />
+        <StageSpotlights />
 
         <PhysicsManager isDebug={true}>
           <BallsManager />
