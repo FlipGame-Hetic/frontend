@@ -1,4 +1,4 @@
-import { SpotLight, useDepthBuffer } from "@react-three/drei"
+import { SpotLight } from "@react-three/drei"
 import { useFrame } from "@react-three/fiber"
 import { useMemo, useRef } from "react"
 import * as THREE from "three"
@@ -25,7 +25,6 @@ import {
 } from "./stageSpotlightsShader"
 
 const StageSpotlights = () => {
-  const depthBuffer = useDepthBuffer({ frames: 1 })
   const spotA = useRef<THREE.SpotLight>(null)
   const spotB = useRef<THREE.SpotLight>(null)
   const targetA = useRef<THREE.Object3D>(null)
@@ -74,7 +73,6 @@ const StageSpotlights = () => {
         anglePower={SPOT_ANGLE_POWER}
         intensity={SPOT_BASE_INTENSITY}
         opacity={SPOT_VOLUMETRIC_OPACITY}
-        depthBuffer={depthBuffer}
         color="#00f0ff"
       />
       <SpotLight
@@ -88,7 +86,6 @@ const StageSpotlights = () => {
         anglePower={SPOT_ANGLE_POWER}
         intensity={SPOT_BASE_INTENSITY}
         opacity={SPOT_VOLUMETRIC_OPACITY}
-        depthBuffer={depthBuffer}
         color="#ff2d6b"
       />
       <mesh renderOrder={999} frustumCulled={false}>

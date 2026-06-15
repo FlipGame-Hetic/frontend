@@ -2,9 +2,14 @@ import DebugProvider from "@/debug/DebugProvider"
 import type { CameraProps } from "@react-three/fiber"
 import { Leva } from "leva"
 import { Suspense } from "react"
+import AudioReactiveController from "./components/audioReactive/AudioReactiveController"
+import ReactiveAccentLight from "./components/audioReactive/ReactiveAccentLight"
+import ReactiveAmbientLight from "./components/audioReactive/ReactiveAmbientLight"
 import BallsManager from "./components/balls/BallsManager"
 import DebugCamera from "./components/DebugCamera"
 import Drain from "./components/drain/Drain"
+import StageSpotlights from "./components/environment/StageSpotlights"
+import TronGridFloor from "./components/environment/TronGridFloor"
 import InvisibleWallsManager from "./components/physics/InvisibleWallsManager"
 import PhysicsManager from "./components/physics/PhysicsManager"
 import PlayfieldScene from "./components/playfield/PlayfieldScene"
@@ -12,17 +17,11 @@ import TopTunnelAssistManager from "./components/playfield/TopTunnelAssistManage
 import PlungerLaneGate from "./components/plunger/PlungerLaneGate"
 import PortalsManager from "./components/portal/PortalsManager"
 import ProductionCamera from "./components/ProductionCamera"
-import DirectionalAccelerationSensorsManager from "./components/sensors/DirectionalAccelerationSensorsManager"
-import { GUTTER_DRAIN_ASSIST_SENSORS } from "./components/sensors/directionalAccelerationSensorsConfig"
 import ScorePopupsManager from "./components/scorePopups/ScorePopupsManager"
 import ScreenShakeController from "./components/screenShake/ScreenShakeController"
+import { GUTTER_DRAIN_ASSIST_SENSORS } from "./components/sensors/directionalAccelerationSensorsConfig"
+import DirectionalAccelerationSensorsManager from "./components/sensors/DirectionalAccelerationSensorsManager"
 import SoundManager from "./components/sound/SoundManager"
-import AudioSpectrumVisualizer from "./components/environment/AudioSpectrumVisualizer"
-import StageSpotlights from "./components/environment/StageSpotlights"
-import TronGridFloor from "./components/environment/TronGridFloor"
-import AudioReactiveController from "./components/audioReactive/AudioReactiveController"
-import ReactiveAccentLight from "./components/audioReactive/ReactiveAccentLight"
-import ReactiveAmbientLight from "./components/audioReactive/ReactiveAmbientLight"
 import World from "./components/World"
 import { useDebugKeys } from "./hooks/useDebugKeys"
 import { useFlipperButtonRelay } from "./hooks/useFlipperButtonRelay"
@@ -76,7 +75,7 @@ const App = () => {
         <ScreenShakeController />
         <AudioReactiveController />
         <TronGridFloor />
-        <AudioSpectrumVisualizer />
+        {/* <AudioSpectrumVisualizer /> */}
         <StageSpotlights />
 
         <PhysicsManager isDebug={true}>
