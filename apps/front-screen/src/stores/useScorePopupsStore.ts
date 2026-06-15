@@ -62,31 +62,37 @@ const useScorePopupsStore = create<ScorePopupsState>((set, get) => ({
 
     const now = performance.now()
     const hits = pruneHits(get().recentHits, now)
+    let matchedHit: HitRecord | undefined
 
     let index = -1
     if (ballId) {
       for (let i = hits.length - 1; i >= 0; i--) {
-        if (hits[i].ballId === ballId && now - hits[i].ts < HIT_MATCH_WINDOW_MS) {
+        const hit = hits[i]
+        if (hit?.ballId === ballId && now - hit.ts < HIT_MATCH_WINDOW_MS) {
           index = i
+          matchedHit = hit
           break
         }
       }
     }
     if (index === -1 && reason) {
       index = hits.findIndex((hit) => hit.reason === reason)
+      matchedHit = index >= 0 ? hits[index] : undefined
     }
     if (index === -1 && ballId) {
       for (let i = hits.length - 1; i >= 0; i--) {
-        if (hits[i].ballId === ballId) {
+        const hit = hits[i]
+        if (hit?.ballId === ballId) {
           index = i
+          matchedHit = hit
           break
         }
       }
     }
 
     let position: Position
-    if (index >= 0) {
-      position = hits[index].position
+    if (matchedHit) {
+      position = matchedHit.position
     } else {
       position = (ballId ? getBallPosition(ballId) : undefined) ??
         getAnyBallPosition() ?? { x: 0, y: 0, z: 0 }

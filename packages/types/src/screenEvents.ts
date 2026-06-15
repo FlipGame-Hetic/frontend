@@ -48,7 +48,7 @@ export type GameMode = "solo" | "duo" | "boss"
 
 export interface PhaseChangeEvent {
   event_type: "phase_change"
-  payload: { phase: GamePhase; ball?: number; player?: number }
+  payload: { phase: GamePhase; ball?: number; player?: number; score?: number }
 }
 
 export interface ScoreUpdateEvent {

@@ -122,7 +122,12 @@ export const useScreenHub = (): void => {
           from: SCREEN_ID,
           to: { kind: "broadcast" },
           event_type: "phase_change",
-          payload: { phase: state.phase, ball: state.ballNumber, player: state.currentPlayer },
+          payload: {
+            phase: state.phase,
+            ball: state.ballNumber,
+            player: state.currentPlayer,
+            score: state.score,
+          },
         })
       }
     })
