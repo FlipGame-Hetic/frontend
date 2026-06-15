@@ -3,13 +3,13 @@ import type { CameraProps } from "@react-three/fiber"
 import { Leva } from "leva"
 import { Suspense } from "react"
 import AudioReactiveController from "./components/audioReactive/AudioReactiveController"
-import ReactiveAccentLight from "./components/audioReactive/ReactiveAccentLight"
+// import ReactiveAccentLight from "./components/audioReactive/ReactiveAccentLight"
 import ReactiveAmbientLight from "./components/audioReactive/ReactiveAmbientLight"
 import BallsManager from "./components/balls/BallsManager"
 import DebugCamera from "./components/DebugCamera"
 import Drain from "./components/drain/Drain"
-import StageSpotlights from "./components/environment/StageSpotlights"
-import TronGridFloor from "./components/environment/TronGridFloor"
+// import StageSpotlights from "./components/environment/StageSpotlights"
+// import TronGridFloor from "./components/environment/TronGridFloor"
 import InvisibleWallsManager from "./components/physics/InvisibleWallsManager"
 import PhysicsManager from "./components/physics/PhysicsManager"
 import PlayfieldScene from "./components/playfield/PlayfieldScene"
@@ -52,7 +52,7 @@ const App = () => {
       />
       <World cameraSettings={cameraSettings as CameraProps}>
         <ReactiveAmbientLight />
-        <ReactiveAccentLight />
+        {/* <ReactiveAccentLight /> */}
         <directionalLight
           position={[0, 13, 12]}
           intensity={0.8}
@@ -74,11 +74,11 @@ const App = () => {
         )}
         <ScreenShakeController />
         <AudioReactiveController />
-        <TronGridFloor />
+        {/* <TronGridFloor /> */}
         {/* <AudioSpectrumVisualizer /> */}
-        <StageSpotlights />
+        {/* <StageSpotlights />p     */}
 
-        <PhysicsManager isDebug={true}>
+        <PhysicsManager isDebug={!isProduction}>
           <BallsManager />
           <Drain />
           <DirectionalAccelerationSensorsManager sensors={GUTTER_DRAIN_ASSIST_SENSORS} />
