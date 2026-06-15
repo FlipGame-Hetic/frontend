@@ -12,6 +12,7 @@ import {
   TOP_TUNNEL_ASSIST_SEGMENTS,
   TOP_TUNNEL_ENTRY_TRACTOR,
 } from "./topTunnelAssistConfig"
+import TractorBeamSurface from "./TractorBeamSurface"
 import {
   addCenterPullImpulse,
   addForwardImpulse,
@@ -276,6 +277,8 @@ const TopTunnelAssistManager = () => {
 
   return (
     <RigidBody type="fixed" colliders={false}>
+      <TractorBeamSurface />
+
       <ConeCollider
         sensor
         name="top-tunnel-entry-tractor"

@@ -32,7 +32,7 @@ export const TOP_TUNNEL_ENTRY_TRACTOR: TopTunnelEntryTractorConfig = {
   halfHeight: 1.5,
   radius: 0.65,
   position: [3, 1.95, -4],
-  rotation: [-Math.PI / 2, 0, -0.15],
+  rotation: [-1.4, 0, -0.15],
   pullAccel: 30,
 }
 
