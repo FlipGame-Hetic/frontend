@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react"
-import type { GameMessage } from "@frontend/types"
+import type { ButtonId, ButtonPayload, GameMessage } from "@frontend/types"
 import { useGameSocket } from "@frontend/ws"
 import { StatusBar } from "@/components/StatusBar"
 import { TerminalLog } from "@/components/TerminalLog"
@@ -7,6 +7,7 @@ import type { LogEntry } from "@/components/TerminalLog"
 import SceneRouter from "@/scenes/SceneRouter"
 import { useScreenHubClient } from "@/hooks/useScreenHubClient"
 import { useKeyboardInput } from "@/hooks/useKeyboardInput"
+import { handleMenuButton } from "@/menu/menuActions"
 
 const MAX_LOGS = 500
 const isDebug = new URLSearchParams(window.location.search).has("debug")
@@ -20,6 +21,11 @@ function App() {
   const [logs, setLogs] = useState<LogEntry[]>([])
 
   const onMessage = useCallback((message: GameMessage) => {
+    if (message._type === "Button") {
+      const { id, state } = message as GameMessage & ButtonPayload
+      if (state === 1) handleMenuButton(id as ButtonId)
+    }
+
     if (!isDebug) return
     const entry: LogEntry = {
       id: nextId++,

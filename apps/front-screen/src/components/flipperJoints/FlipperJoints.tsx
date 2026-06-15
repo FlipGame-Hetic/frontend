@@ -11,6 +11,7 @@ import { pressKey, releaseKey } from "@/stores/inputStore"
 import { useMemo, useRef, type RefObject } from "react"
 import { Vector3, type Mesh } from "three"
 import { projectOnPlayfield } from "../physics/playfieldPlane"
+import { isTiltLocked } from "@/physics/tilt"
 import {
   LEFT_KEYS,
   RIGHT_KEYS,
@@ -117,7 +118,7 @@ const FlipperJoints = ({ position, side, meshOverride }: FlipperJointsProps) => 
     }
 
     const keyPressedFrame = activationKeys.some((key) => pressedKeys.current.has(key))
-    const isPressed = keyPressedFrame
+    const isPressed = keyPressedFrame && !isTiltLocked()
 
     if (isPressed && !prevPressedRef.current) playSfx("flipper_up")
     else if (!isPressed && prevPressedRef.current) playSfx("flipper_down")

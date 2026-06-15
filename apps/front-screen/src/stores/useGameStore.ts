@@ -41,6 +41,7 @@ interface GameStore {
   resume: () => void
   setScore: (score: number) => void
   nextBall: () => void
+  menuBack: () => void
   reset: () => void
   restartGame: () => void
 }
@@ -125,6 +126,21 @@ const useGameStore = create<GameStore>()((set) => ({
         return { phase: "game_over" as GamePhase }
       }
       return { ballNumber: state.ballNumber + 1 }
+    })
+  },
+
+  menuBack: () => {
+    set((state) => {
+      switch (state.phase) {
+        case "character_select":
+          return { phase: "mode_select" as GamePhase, selectedPlayers: [] }
+        case "mode_select":
+          return { phase: "idle" as GamePhase, mode: null }
+        case "game_over":
+          return { phase: "idle" as GamePhase }
+        default:
+          return {}
+      }
     })
   },
 

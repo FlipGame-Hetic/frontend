@@ -11,6 +11,8 @@ export const SCREEN_EVENT_TYPES = {
   MenuConfirm: "menu_confirm",
   MenuNext: "menu_next",
   MenuPrev: "menu_prev",
+  MenuBack: "menu_back",
+  UltimateActivated: "ultimate_activated",
   BumperHit: "bumper_hit",
   SlingshotHit: "slingshot_hit",
   BallLost: "ball_lost",
@@ -89,6 +91,16 @@ export interface MenuNextEvent {
 export interface MenuPrevEvent {
   event_type: "menu_prev"
   payload: Record<string, never>
+}
+
+export interface MenuBackEvent {
+  event_type: "menu_back"
+  payload: Record<string, never>
+}
+
+export interface UltimateActivatedEvent {
+  event_type: "ultimate_activated"
+  payload: { player: number }
 }
 
 export interface BumperHitEvent {
@@ -206,6 +218,8 @@ export type ScreenEvent =
   | MenuConfirmEvent
   | MenuNextEvent
   | MenuPrevEvent
+  | MenuBackEvent
+  | UltimateActivatedEvent
   | BumperHitEvent
   | SlingshotHitEvent
   | BallLostEvent

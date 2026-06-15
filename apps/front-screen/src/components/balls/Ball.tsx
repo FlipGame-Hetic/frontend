@@ -8,6 +8,7 @@ import { RigidBody, useAfterPhysicsStep, useRapier } from "@react-three/rapier"
 import { useEffect, useRef } from "react"
 import { DRAIN_SAFETY_FALLBACK_Y } from "../drain/drainConfig"
 import { registerBallFade, unregisterBallFade } from "./ballFadeRegistry"
+import { registerBallBody, unregisterBallBody } from "./ballBodyRegistry"
 import { removeBallPosition, setBallPosition } from "./ballPositionRegistry"
 import useBallMaterial from "./useBallMaterial"
 import {
@@ -78,6 +79,7 @@ const Ball = ({
     })
     return () => {
       unregisterBallFade(id)
+      unregisterBallBody(id)
       cleanupRailBall(id)
       removeBallPosition(id)
     }
@@ -86,6 +88,7 @@ const Ball = ({
   useAfterPhysicsStep((world) => {
     const body = ballRef.current
     if (!body || fadingRef.current) return
+    registerBallBody(id, body)
 
     const pos = body.translation()
     const vel = body.linvel()

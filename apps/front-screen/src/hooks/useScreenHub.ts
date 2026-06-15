@@ -24,7 +24,7 @@ const TOKEN =
   (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_SCREEN_TOKEN ?? ""
 
 const handleScreenEvent = (envelope: ScreenEnvelope): void => {
-  const { selectMode, selectCharacter, startGame, setPhase, restartGame, setScore } =
+  const { selectMode, selectCharacter, startGame, setPhase, restartGame, setScore, menuBack } =
     useGameStore.getState()
 
   if (envelope.event_type === "ScoreUpdate") {
@@ -48,6 +48,10 @@ const handleScreenEvent = (envelope: ScreenEnvelope): void => {
     return
   }
 
+  if (isScreenEvent(envelope, "menu_back")) {
+    menuBack()
+    return
+  }
   if (isScreenEvent(envelope, "menu_confirm")) {
     if (envelope.payload.context === "idle") setPhase("mode_select")
     if (envelope.payload.context === "game_over") restartGame()
