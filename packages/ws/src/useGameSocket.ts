@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import type { ConnectionStatus, GameMessage } from "@frontend/types"
-import { RECONNECT_DELAY_MS, DEFAULT_WS_URL } from "./wsConfig"
+import { RECONNECT_DELAY_MS, resolveGameWsUrl } from "./wsConfig"
 
 export interface UseGameSocketOptions {
   url?: string
@@ -13,10 +13,7 @@ export interface UseGameSocketReturn {
 }
 
 export function useGameSocket(options?: UseGameSocketOptions): UseGameSocketReturn {
-  const wsUrl =
-    options?.url ??
-    (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_WS_URL ??
-    DEFAULT_WS_URL
+  const wsUrl = resolveGameWsUrl(options?.url)
 
   const [status, setStatus] = useState<ConnectionStatus>("disconnected")
   const wsRef = useRef<WebSocket | null>(null)
