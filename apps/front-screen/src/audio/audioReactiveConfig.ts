@@ -21,10 +21,6 @@ export const NEON_PALETTE_B = [0.4, 0.35, 0.25] as const
 export const NEON_PALETTE_C = [1.0, 0.95, 0.9] as const
 export const NEON_PALETTE_D = [0.5, 0.2, 0.0] as const
 
-export const SPECTRUM_HDR = 2.8
-export const SPECTRUM_POSITION: [number, number, number] = [0, -1.25, 0]
-export const SPECTRUM_SIZE = 30
-
 // Ambient : wash global modéré (le relief du flipper ne doit pas être aplati).
 export const AMBIENT_BASE_INTENSITY = 0.5
 export const AMBIENT_SWELL_STRENGTH = 0.28

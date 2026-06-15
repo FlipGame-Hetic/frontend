@@ -3,12 +3,8 @@
   "tags": ["-lintignore"],
   "workspaces": {
     ".": {},
-    "apps/back-screen": {
-      "ignoreBinaries": ["vite"]
-    },
-    "apps/dmd-screen": {
-      "ignoreBinaries": ["vite"]
-    },
+    "apps/back-screen": {},
+    "apps/dmd-screen": {},
     "apps/front-screen": {
       "ignore": ["scripts/**"]
     },
