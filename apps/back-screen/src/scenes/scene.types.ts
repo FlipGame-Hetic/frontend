@@ -1,6 +1,5 @@
 import type { GameMode } from "@frontend/types"
 
-export type { CharacterConfig } from "@frontend/types"
 export { CHARACTER_OPTIONS } from "@frontend/types"
 
 export interface ModeOption {

@@ -15,6 +15,7 @@ import {
   MULTIBALL_SPAWN_POSITION2,
 } from "@/components/playfield/bonusZoneConfig"
 import { DebugContext, type DebugControls } from "@/debug/debugContext"
+import { getDebugBallId } from "@/debug/getDebugBallId"
 
 const DebugProvider = ({ children }: { children: ReactNode }) => {
   const ballCountRef = useRef(MULTIBALL_BALL_COUNT)
@@ -48,7 +49,10 @@ const DebugProvider = ({ children }: { children: ReactNode }) => {
       },
       "Trigger Multiball": button(() => {
         playSfx("multiball_triggered")
-        broadcastEvent({ event_type: "MultiballTriggered", payload: {} })
+        broadcastEvent({
+          event_type: "MultiballTriggered",
+          payload: { ball_id: getDebugBallId() },
+        })
         useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.multiballTrigger)
         useMultiballStore.getState().reset()
         const count = ballCountRef.current

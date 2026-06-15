@@ -1,5 +1,5 @@
-import { globalIgnores } from "eslint/config";
-import reactConfig from "@frontend/eslint-config/react";
+import { globalIgnores } from "eslint/config"
+import reactConfig from "@frontend/eslint-config/react"
 
 export default [
   globalIgnores([
@@ -21,4 +21,4 @@ export default [
       },
     },
   },
-];
+]

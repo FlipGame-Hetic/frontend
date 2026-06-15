@@ -1,52 +1,61 @@
 export const SFX_DEFAULT_VOLUME = 0.4
-export const MUSIC_DEFAULT_VOLUME = 0.4
+export const MUSIC_DEFAULT_VOLUME = 1.5
 
 const base = import.meta.env.BASE_URL
 
-export const SFX_PATHS: Record<string, string> = {
-  ball_new: `${base}sounds/ball/new.wav`,
-  ball_lost: `${base}sounds/ball/lost.wav`,
-  ballsaver_up: `${base}sounds/ball_savers/up.wav`,
-  plunger_launch: `${base}sounds/plunger/launch.m4a`,
-  flipper_up: `${base}sounds/flipperJoints/up.m4a`,
-  flipper_down: `${base}sounds/flipperJoints/down.m4a`,
-  game_over: `${base}sounds/score/game_over.m4a`,
-  score_event: `${base}sounds/score/event.wav`,
-  zone_bounce: `${base}sounds/multiball/zone_enter.m4a`,
-  multiball_triggered: `${base}sounds/multiball/multiball.m4a`,
-  hit0: `${base}sounds/multiball/hit0.m4a`,
-  hit1: `${base}sounds/multiball/hit1.m4a`,
-  hit2: `${base}sounds/multiball/hit2.m4a`,
-  hit3: `${base}sounds/multiball/hit3.m4a`,
-  hit4: `${base}sounds/multiball/hit4.m4a`,
-  hit5: `${base}sounds/multiball/hit5.m4a`,
-  hit6: `${base}sounds/multiball/hit6.m4a`,
-  hit7: `${base}sounds/multiball/hit7.m4a`,
-  hit8: `${base}sounds/multiball/hit8.m4a`,
-  hit9: `${base}sounds/multiball/hit9.m4a`,
+export const SFX_GAINS: Record<string, number> = {
+  flipper: 1.0,
+  plunger: 2.0,
+  ballsaver: 1.0,
+  portal: 1.0,
+  multiball: 1.0,
+  bumpers: 1.0,
+  targets: 1.0,
+  slingshots: 1.0,
+  ball: 1.0,
+  score: 1.0,
 }
 
-export const SFX_GROUPS: Record<string, string[]> = {
-  score_voice: [
-    `${base}sounds/score/voice1.wav`,
-    `${base}sounds/score/voice2.wav`,
-    `${base}sounds/score/voice3.wav`,
-    `${base}sounds/score/voice4.wav`,
-  ],
-  portal_enter: [`${base}sounds/portal/enter1.wav`, `${base}sounds/portal/enter2.wav`],
-  portal_exit: [`${base}sounds/portal/exit1.wav`, `${base}sounds/portal/exit2.wav`],
-  bumpers: [
-    `${base}sounds/bumpers/0.m4a`,
-    `${base}sounds/bumpers/1.m4a`,
-    `${base}sounds/bumpers/2.m4a`,
-    `${base}sounds/bumpers/3.m4a`,
-  ],
-  slingshots: [`${base}sounds/slingshots/hit1.m4a`, `${base}sounds/slingshots/hit2.m4a`],
-  targets: [`${base}sounds/targets/hit1.m4a`, `${base}sounds/targets/hit2.m4a`],
+const sfx = (dir: string, name: string): [string, string] => [
+  `${base}sounds/${dir}/${name}.ogg`,
+  `${base}sounds/${dir}/${name}.m4a`,
+]
+
+export const SFX_PATHS: Record<string, [string, string]> = {
+  ball_new: sfx("ball", "new"),
+  ballsaver_up: sfx("ball_savers", "up"),
+  plunger_launch: sfx("plunger", "launch"),
+  flipper_up: sfx("flipperJoints", "up"),
+  flipper_down: sfx("flipperJoints", "down"),
+  game_over: sfx("score", "game_over"),
+  multiball_triggered: sfx("multiball", "multiball"),
+  hit0: sfx("multiball", "hit0"),
+  hit1: sfx("multiball", "hit1"),
+  hit2: sfx("multiball", "hit2"),
+  hit3: sfx("multiball", "hit3"),
+  hit4: sfx("multiball", "hit4"),
+  hit5: sfx("multiball", "hit5"),
+  hit6: sfx("multiball", "hit6"),
+  hit7: sfx("multiball", "hit7"),
+  hit8: sfx("multiball", "hit8"),
+  hit9: sfx("multiball", "hit9"),
+}
+
+export const SFX_GROUPS: Record<string, [string, string][]> = {
+  ball_lost: [sfx("ball", "lost1"), sfx("ball", "lost2")],
+  portal_enter: [sfx("portal", "enter1"), sfx("portal", "enter2")],
+  portal_exit: [sfx("portal", "exit1"), sfx("portal", "exit2")],
+  bumpers: [sfx("bumpers", "0"), sfx("bumpers", "1"), sfx("bumpers", "2")],
+  slingshots: [sfx("slingshots", "hit1"), sfx("slingshots", "hit2")],
+  targets: [sfx("targets", "hit1"), sfx("targets", "hit2")],
 }
 
 export const MUSIC_TRACKS = [
   `${base}sounds/music/1.mp3`,
-  // `${base}sounds/music/2.mp3`,
+  `${base}sounds/music/2.mp3`,
   `${base}sounds/music/3.mp3`,
+  `${base}sounds/music/4.mp3`,
+  `${base}sounds/music/5.mp3`,
+  `${base}sounds/music/6.mp3`,
+  `${base}sounds/music/7.mp3`,
 ]

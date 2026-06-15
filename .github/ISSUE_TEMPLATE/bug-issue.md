@@ -1,9 +1,9 @@
 ---
 name: Bug issue
 about: Report a bug to fix
-title: 'fix/scope: name'
-labels: ''
-assignees: ''
+title: "fix/scope: name"
+labels: ""
+assignees: ""
 ---
 
 ### Goal of the issue

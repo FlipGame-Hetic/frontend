@@ -125,8 +125,8 @@ const PortalsManager = () => {
         useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.portalExit)
         useScorePopupsStore
           .getState()
-          .setLastHitPosition({ x: ghostPos.x, y: ghostPos.y, z: ghostPos.z })
-        broadcastEvent({ event_type: "PortalUsed", payload: {} })
+          .recordHit({ x: ghostPos.x, y: ghostPos.y, z: ghostPos.z }, ballId, "portal")
+        broadcastEvent({ event_type: "PortalUsed", payload: { ball_id: ballId } })
         setCooldown(ballId, PORTAL_REENTRY_COOLDOWN_MS)
         endTraversal(ballId)
         usePortalTraversalStore.getState().removeGhost(ballId)

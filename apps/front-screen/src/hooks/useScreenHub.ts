@@ -24,7 +24,7 @@ const TOKEN =
   (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_SCREEN_TOKEN ?? ""
 
 const handleScreenEvent = (envelope: ScreenEnvelope): void => {
-  const { selectMode, selectCharacter, startGame, setPhase, restartGame, setScore } =
+  const { selectMode, selectCharacter, startGame, setPhase, restartGame, setScore, menuBack } =
     useGameStore.getState()
 
   if (envelope.event_type === "ScoreUpdate") {
@@ -34,13 +34,24 @@ const handleScreenEvent = (envelope: ScreenEnvelope): void => {
   }
 
   if (envelope.event_type === "ScoreDelta") {
-    const payload = envelope.payload as { delta: number; reason: string; total: number }
+    const payload = envelope.payload as {
+      delta: number
+      reason: string
+      total: number
+      ball_id?: string
+    }
     if (payload.reason !== "timer_bonus") {
-      useScorePopupsStore.getState().spawnPopupFromDelta(payload.delta, payload.reason)
+      useScorePopupsStore
+        .getState()
+        .spawnPopupFromDelta(payload.delta, payload.reason, payload.ball_id)
     }
     return
   }
 
+  if (isScreenEvent(envelope, "menu_back")) {
+    menuBack()
+    return
+  }
   if (isScreenEvent(envelope, "menu_confirm")) {
     if (envelope.payload.context === "idle") setPhase("mode_select")
     if (envelope.payload.context === "game_over") restartGame()
@@ -115,7 +126,12 @@ export const useScreenHub = (): void => {
           from: SCREEN_ID,
           to: { kind: "broadcast" },
           event_type: "phase_change",
-          payload: { phase: state.phase, ball: state.ballNumber, player: state.currentPlayer },
+          payload: {
+            phase: state.phase,
+            ball: state.ballNumber,
+            player: state.currentPlayer,
+            score: state.score,
+          },
         })
       }
     })

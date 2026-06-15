@@ -32,8 +32,8 @@ export const TOP_TUNNEL_ENTRY_TRACTOR: TopTunnelEntryTractorConfig = {
   halfHeight: 1.5,
   radius: 0.65,
   position: [3, 1.95, -4],
-  rotation: [-Math.PI / 2, 0, -0.15],
-  pullAccel: 0,
+  rotation: [-1.5, -0.7, -0.15],
+  pullAccel: 30,
 }
 
 export const TOP_TUNNEL_ASSIST_SEGMENTS: TopTunnelAssistSegmentConfig[] = [
@@ -43,8 +43,8 @@ export const TOP_TUNNEL_ASSIST_SEGMENTS: TopTunnelAssistSegmentConfig[] = [
     end: [3.1, 2.5, -6.8],
     sensorHalfExtents: [0.25, 1, 1.8],
     sensorPosition: [3.1, 1.95, -5.375],
-    centerPullAccel: 0,
-    forwardAccel: 0,
+    centerPullAccel: 20,
+    forwardAccel: 50,
   },
   {
     id: "top-cross",
@@ -52,8 +52,8 @@ export const TOP_TUNNEL_ASSIST_SEGMENTS: TopTunnelAssistSegmentConfig[] = [
     end: [-2.65, 2.5, -6.8],
     sensorHalfExtents: [3.65, 0.5, 0.45],
     sensorPosition: [0.075, 2.5, -6.8],
-    centerPullAccel: 20,
-    forwardAccel: 12,
+    centerPullAccel: 50,
+    forwardAccel: 50,
   },
   {
     id: "left-return",
@@ -61,8 +61,8 @@ export const TOP_TUNNEL_ASSIST_SEGMENTS: TopTunnelAssistSegmentConfig[] = [
     end: [-3.4, 1.7, -3],
     sensorHalfExtents: [0.2, 1.2, 4],
     sensorPosition: [-3.4, 1.7, -3],
-    centerPullAccel: 0,
-    forwardAccel: 0,
+    centerPullAccel: 20,
+    forwardAccel: 20,
   },
 ]
 

@@ -1,6 +1,7 @@
 import type { BallState } from "@/types/ballTypes"
 import type { PositionType } from "@/types/worldTypes"
 import { playSfx } from "@/audio/soundEngine"
+import { resetTilt } from "@/physics/tilt"
 import { create } from "zustand"
 
 interface BallStore {
@@ -38,6 +39,7 @@ const useBallStore = create<BallStore>()((set, get) => ({
   playingBallIds: [],
   spawnBall: (position, options) => {
     playSfx("ball_new")
+    if (options?.isPlaying) resetTilt()
     const id = crypto.randomUUID()
     set((state) => ({
       balls: [...state.balls, { id, position }],

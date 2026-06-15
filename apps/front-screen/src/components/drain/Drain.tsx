@@ -1,6 +1,6 @@
 import useGameStore from "@/stores/useGameStore"
 import useBallStore from "@/stores/useBallStore"
-import { playSfx } from "@/audio/soundEngine"
+import { playRandomSfx } from "@/audio/soundEngine"
 import { broadcastEvent } from "@frontend/ws"
 import type { CollisionPayload } from "@react-three/rapier"
 import { CuboidCollider, RigidBody } from "@react-three/rapier"
@@ -49,7 +49,7 @@ const Drain = () => {
         const drainResult = useBallStore.getState().drainBall(ballId)
         if (!drainResult.wasTracked) return
 
-        playSfx("ball_lost")
+        playRandomSfx("ball_lost")
 
         if (!drainResult.isLifeLost) return
 

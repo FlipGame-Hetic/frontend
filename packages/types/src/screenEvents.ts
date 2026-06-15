@@ -11,6 +11,8 @@ export const SCREEN_EVENT_TYPES = {
   MenuConfirm: "menu_confirm",
   MenuNext: "menu_next",
   MenuPrev: "menu_prev",
+  MenuBack: "menu_back",
+  UltimateActivated: "ultimate_activated",
   BumperHit: "bumper_hit",
   SlingshotHit: "slingshot_hit",
   BallLost: "ball_lost",
@@ -24,6 +26,8 @@ export const SCREEN_EVENT_TYPES = {
   BackFlipperLeft: "FlipperLeft",
   BackFlipperRight: "FlipperRight",
   BackBallSaverReady: "BallSaverReady",
+  RailStart: "RailStart",
+  RailEnd: "RailEnd",
   BackBallLost: "BallLost",
   BackEndGame: "EndGame",
   BackStartGame: "StartGame",
@@ -46,7 +50,7 @@ export type GameMode = "solo" | "duo" | "boss"
 
 export interface PhaseChangeEvent {
   event_type: "phase_change"
-  payload: { phase: GamePhase; ball?: number; player?: number }
+  payload: { phase: GamePhase; ball?: number; player?: number; score?: number }
 }
 
 export interface ScoreUpdateEvent {
@@ -89,6 +93,16 @@ export interface MenuPrevEvent {
   payload: Record<string, never>
 }
 
+export interface MenuBackEvent {
+  event_type: "menu_back"
+  payload: Record<string, never>
+}
+
+export interface UltimateActivatedEvent {
+  event_type: "ultimate_activated"
+  payload: { player: number }
+}
+
 export interface BumperHitEvent {
   event_type: "bumper_hit"
   payload: { bumper_id: number }
@@ -111,7 +125,7 @@ export interface TargetHitEvent {
 
 export interface MultiballTriggeredEvent {
   event_type: "MultiballTriggered"
-  payload: Record<string, never>
+  payload: { ball_id: string }
 }
 
 export interface ComboActivatedEvent {
@@ -126,17 +140,17 @@ export interface MultiplierUpdateEvent {
 
 export interface BackBumperEvent {
   event_type: "Bumper"
-  payload: Record<string, never>
+  payload: { ball_id: string }
 }
 
 export interface BackBumperTriangleEvent {
   event_type: "BumperTriangle"
-  payload: Record<string, never>
+  payload: { ball_id: string }
 }
 
 export interface BackPortalUsedEvent {
   event_type: "PortalUsed"
-  payload: Record<string, never>
+  payload: { ball_id: string }
 }
 
 export interface BackFlipperLeftEvent {
@@ -151,7 +165,17 @@ export interface BackFlipperRightEvent {
 
 export interface BackBallSaverReadyEvent {
   event_type: "BallSaverReady"
-  payload: Record<string, never>
+  payload: { ball_id?: string }
+}
+
+export interface RailStartEvent {
+  event_type: "RailStart"
+  payload: { ball_id: string }
+}
+
+export interface RailEndEvent {
+  event_type: "RailEnd"
+  payload: { ball_id: string }
 }
 
 export interface BackBallLostEvent {
@@ -176,7 +200,7 @@ export interface BackScoreUpdateEvent {
 
 export interface BackScoreDeltaEvent {
   event_type: "ScoreDelta"
-  payload: { delta: number; reason: string; total: number }
+  payload: { delta: number; reason: string; total: number; ball_id?: string }
 }
 
 export interface BackLifeUpdateEvent {
@@ -194,6 +218,8 @@ export type ScreenEvent =
   | MenuConfirmEvent
   | MenuNextEvent
   | MenuPrevEvent
+  | MenuBackEvent
+  | UltimateActivatedEvent
   | BumperHitEvent
   | SlingshotHitEvent
   | BallLostEvent
@@ -207,6 +233,8 @@ export type ScreenEvent =
   | BackFlipperLeftEvent
   | BackFlipperRightEvent
   | BackBallSaverReadyEvent
+  | RailStartEvent
+  | RailEndEvent
   | BackBallLostEvent
   | BackEndGameEvent
   | BackStartGameEvent

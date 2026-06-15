@@ -1,9 +1,9 @@
 ---
 name: New feature issue
 about: Missing feature for this project
-title: 'feat/scope: name'
-labels: ''
-assignees: ''
+title: "feat/scope: name"
+labels: ""
+assignees: ""
 ---
 
 ### Goal of the issue

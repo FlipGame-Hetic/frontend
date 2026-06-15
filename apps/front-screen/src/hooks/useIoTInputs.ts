@@ -1,14 +1,22 @@
 import { useCallback } from "react"
 import { useGameSocket } from "@frontend/ws"
-import type { ButtonPayload, GameMessage, GyroPayload, PlungerPayload } from "@frontend/types"
+import {
+  BUTTON_IDS,
+  type ButtonPayload,
+  type GameMessage,
+  type GyroPayload,
+  type PlungerPayload,
+} from "@frontend/types"
 import { pressKey, releaseKey, setPlungerPosition, setPlungerReleased } from "@/stores/inputStore"
 import { LEFT_KEYS, RIGHT_KEYS } from "@/components/flipperJoints/jointsConfig"
 import { PLUNGER_KEY } from "@/components/plunger/plungerConfig"
+import { applyNudge } from "@/physics/tilt"
+import { triggerUltimate } from "@/gameplay/ultimate"
 import useGameStore from "@/stores/useGameStore"
 
 const BUTTON_KEY_MAP: Record<string, string[]> = {
-  left_flipper: LEFT_KEYS,
-  right_flipper: RIGHT_KEYS,
+  [BUTTON_IDS.flipperLeft]: LEFT_KEYS,
+  [BUTTON_IDS.flipperRight]: RIGHT_KEYS,
 }
 
 export const useIoTInputs = (): void => {
@@ -19,11 +27,25 @@ export const useIoTInputs = (): void => {
       switch (message._type) {
         case "Button": {
           const { id, state } = message as GameMessage & ButtonPayload
-          const keys = BUTTON_KEY_MAP[id] ?? []
-          if (state === 1) {
-            keys.forEach(pressKey)
-          } else {
-            keys.forEach(releaseKey)
+          const phase = useGameStore.getState().phase
+
+          const keys = BUTTON_KEY_MAP[id]
+          if (keys) {
+            if (state === 1) keys.forEach(pressKey)
+            else keys.forEach(releaseKey)
+            break
+          }
+
+          if (state !== 1) break
+
+          if (id === BUTTON_IDS.start) {
+            if (phase === "playing") useGameStore.getState().pause()
+            else if (phase === "paused") useGameStore.getState().resume()
+            break
+          }
+
+          if (id === BUTTON_IDS.extra1 || id === BUTTON_IDS.extra2) {
+            if (phase === "playing") triggerUltimate(useGameStore.getState().currentPlayer)
           }
           break
         }
@@ -41,9 +63,9 @@ export const useIoTInputs = (): void => {
         }
 
         case "Gyro": {
-          const { tilt } = message as GameMessage & GyroPayload
+          const { ax, ay, tilt } = message as GameMessage & GyroPayload
           if (tilt && useGameStore.getState().phase === "playing") {
-            setPhase("paused")
+            applyNudge(ax, ay)
           }
           break
         }

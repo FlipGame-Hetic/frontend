@@ -1,26 +1,48 @@
 import { create } from "zustand"
-import useBallStore from "./useBallStore"
+import { getAnyBallPosition, getBallPosition } from "@/components/balls/ballPositionRegistry"
+
+interface Position {
+  x: number
+  y: number
+  z: number
+}
 
 interface ScorePopup {
   id: number
   amount: number
-  position: { x: number; y: number; z: number }
+  position: Position
+}
+
+interface HitRecord {
+  ballId?: string
+  reason?: string
+  position: Position
+  ts: number
 }
 
 interface ScorePopupsState {
   popups: ScorePopup[]
-  lastHitPosition: { x: number; y: number; z: number }
-  addPopup: (amount: number, position: { x: number; y: number; z: number }) => void
+  recentHits: HitRecord[]
+  addPopup: (amount: number, position: Position) => void
   removePopup: (id: number) => void
-  setLastHitPosition: (position: { x: number; y: number; z: number }) => void
-  spawnPopupFromDelta: (amount: number, reason?: string) => void
+  recordHit: (position: Position, ballId?: string, reason?: string) => void
+  spawnPopupFromDelta: (amount: number, reason?: string, ballId?: string) => void
 }
 
 let nextId = 0
 
+const HITS_CAP = 16
+const HIT_EXPIRY_MS = 2000
+const HIT_MATCH_WINDOW_MS = 1500
+
+const pruneHits = (hits: HitRecord[], now: number): HitRecord[] => {
+  const fresh = hits.filter((hit) => now - hit.ts < HIT_EXPIRY_MS)
+  return fresh.length > HITS_CAP ? fresh.slice(fresh.length - HITS_CAP) : fresh
+}
+
 const useScorePopupsStore = create<ScorePopupsState>((set, get) => ({
   popups: [],
-  lastHitPosition: { x: 0, y: 0, z: 0 },
+  recentHits: [],
   addPopup: (amount, position) => {
     set((state) => ({
       popups: [...state.popups, { id: nextId++, amount, position }],
@@ -29,15 +51,56 @@ const useScorePopupsStore = create<ScorePopupsState>((set, get) => ({
   removePopup: (id) => {
     set((state) => ({ popups: state.popups.filter((p) => p.id !== id) }))
   },
-  setLastHitPosition: (position) => {
-    set({ lastHitPosition: position })
-  },
-  spawnPopupFromDelta: (amount, reason) => {
-    if (amount === 0) return
-    const balls = useBallStore.getState().balls
-    const { lastHitPosition } = get()
-    const position = balls.length > 1 && reason === "combo" ? { x: 0, y: 0, z: 0 } : lastHitPosition
+  recordHit: (position, ballId, reason) => {
+    const now = performance.now()
     set((state) => ({
+      recentHits: pruneHits([...state.recentHits, { ballId, reason, position, ts: now }], now),
+    }))
+  },
+  spawnPopupFromDelta: (amount, reason, ballId) => {
+    if (amount === 0) return
+
+    const now = performance.now()
+    const hits = pruneHits(get().recentHits, now)
+    let matchedHit: HitRecord | undefined
+
+    let index = -1
+    if (ballId) {
+      for (let i = hits.length - 1; i >= 0; i--) {
+        const hit = hits[i]
+        if (hit?.ballId === ballId && now - hit.ts < HIT_MATCH_WINDOW_MS) {
+          index = i
+          matchedHit = hit
+          break
+        }
+      }
+    }
+    if (index === -1 && reason) {
+      index = hits.findIndex((hit) => hit.reason === reason)
+      matchedHit = index >= 0 ? hits[index] : undefined
+    }
+    if (index === -1 && ballId) {
+      for (let i = hits.length - 1; i >= 0; i--) {
+        const hit = hits[i]
+        if (hit?.ballId === ballId) {
+          index = i
+          matchedHit = hit
+          break
+        }
+      }
+    }
+
+    let position: Position
+    if (matchedHit) {
+      position = matchedHit.position
+    } else {
+      position = (ballId ? getBallPosition(ballId) : undefined) ??
+        getAnyBallPosition() ?? { x: 0, y: 0, z: 0 }
+    }
+    const remainingHits = index >= 0 ? hits.filter((_, i) => i !== index) : hits
+
+    set((state) => ({
+      recentHits: remainingHits,
       popups: [...state.popups, { id: nextId++, amount, position }],
     }))
   },

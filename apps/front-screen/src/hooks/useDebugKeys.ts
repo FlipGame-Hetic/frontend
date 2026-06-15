@@ -1,5 +1,6 @@
 import { useEffect } from "react"
 import { broadcastEvent } from "@frontend/ws"
+import { getDebugBallId } from "@/debug/getDebugBallId"
 import useGameStore from "@/stores/useGameStore"
 
 export const useDebugKeys = (): void => {
@@ -10,7 +11,7 @@ export const useDebugKeys = (): void => {
 
       switch (e.key.toLowerCase()) {
         case "b":
-          broadcastEvent({ event_type: "Bumper", payload: {} })
+          broadcastEvent({ event_type: "Bumper", payload: { ball_id: getDebugBallId() } })
           break
         case "k":
           broadcastEvent({ event_type: "BallLost", payload: {} })

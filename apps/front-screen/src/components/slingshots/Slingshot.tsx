@@ -13,6 +13,7 @@ import {
 import { useCallback, useMemo, useRef } from "react"
 import type { Group, Mesh } from "three"
 import { normalizedPlayfieldDirection } from "../physics/playfieldPlane"
+import { getBallId } from "../balls/ballUserData"
 import { createStuckBallTracker } from "../physics/stuckBallTracker"
 import {
   SLINGSHOT_ACTIVE_FACE_POINTS,
@@ -96,14 +97,17 @@ const Slingshot = ({
   const handleCollision = useCallback(({ other }: CollisionEnterPayload) => {
     if (!bodyRef.current || !other.rigidBody) return
     if (other.rigidBodyObject?.name !== "ball") return
-    broadcastEvent({ event_type: "BumperTriangle", payload: {} })
+    const ballId = getBallId(other.rigidBodyObject.userData) ?? ""
+    broadcastEvent({ event_type: "BumperTriangle", payload: { ball_id: ballId } })
     playRandomSfx("slingshots")
     useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.slingshot)
     hitAt.current = performance.now() / 1000
 
     const slingshotPos = bodyRef.current.translation()
     const ballPos = other.rigidBody.translation()
-    useScorePopupsStore.getState().setLastHitPosition({ x: ballPos.x, y: ballPos.y, z: ballPos.z })
+    useScorePopupsStore
+      .getState()
+      .recordHit({ x: ballPos.x, y: ballPos.y, z: ballPos.z }, ballId, "bumper")
     const exitDir = normalizedPlayfieldDirection({
       x: ballPos.x - slingshotPos.x,
       y: ballPos.y - slingshotPos.y,

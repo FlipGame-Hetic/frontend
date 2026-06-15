@@ -19,6 +19,8 @@ export function useScreenHubClient(): void {
     onEvent: (envelope: ScreenEnvelope) => {
       if (isScreenEvent(envelope, "phase_change")) {
         setPhase(envelope.payload.phase)
+        if (envelope.payload.score !== undefined) setScore(envelope.payload.score)
+        if (envelope.payload.ball !== undefined) setBallNumber(envelope.payload.ball)
         return
       }
       if (isScreenEvent(envelope, "ScoreUpdate")) {
