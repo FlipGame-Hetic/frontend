@@ -42,8 +42,8 @@ const EnergySection = ({ onDispatch }: Props) => {
 
         <CyberBtn
           label={`Send Energy — ${String(energy)}%`}
-          event="player:energy"
-          payload={{ value: energy }}
+          event="Command"
+          payload={{ cmd: "energy", params: { value: energy } }}
           color="purple"
           onDispatch={onDispatch}
         />

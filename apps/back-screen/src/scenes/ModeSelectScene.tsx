@@ -1,156 +1,77 @@
+import { cn } from "@frontend/utils"
 import { useBackScreenStore } from "@/stores/useBackScreenStore"
 import { MODE_OPTIONS } from "./scene.types"
+import { RetroBackground } from "@/components/RetroBackground"
 
 export default function ModeSelectScene() {
   const menuIndex = useBackScreenStore((s) => s.menuIndex)
+  const active = MODE_OPTIONS[menuIndex] ?? MODE_OPTIONS[0]
 
   return (
-    <div className="bg-arcade-black relative flex h-full w-full flex-col items-center justify-center overflow-hidden">
-      <TronGrid />
-      <Scanlines />
-      <Vignette />
-      <CornerDecorations />
+    <div className="bg-arcade-black relative flex h-full w-full overflow-hidden">
+      <RetroBackground />
 
-      <div className="relative z-10 flex w-full max-w-4xl flex-col items-center gap-10 px-8">
-        <div
-          className="font-arcade text-[clamp(0.4rem,1.2vw,0.7rem)] tracking-[0.3em] uppercase"
-          style={{ color: "#FF6600" }}
-        >
-          SÉLECTION DU MODE
-        </div>
+      <div className="relative z-10 flex h-full w-full">
+        <div className="flex w-[44%] flex-col justify-center border-r border-r-[rgba(243,230,0,0.08)] p-12">
+          <div className="mb-8 font-mono text-[clamp(0.32rem,0.65vw,0.46rem)] tracking-[0.25em] text-[rgba(85,234,212,0.4)] uppercase">
+            SÉLECTION.PROTOCOLE // MODE
+          </div>
 
-        <div
-          className="font-display text-center text-[clamp(2rem,5vw,4rem)] font-black tracking-widest uppercase"
-          style={{
-            color: "#00D9E8",
-            textShadow:
-              "0 0 8px #00D9E8, 0 0 24px rgba(0,217,232,0.45), 0 0 60px rgba(0,217,232,0.15)",
-          }}
-        >
-          CHOISIS TON MODE
-        </div>
-
-        <div className="flex w-full justify-center gap-6">
-          {MODE_OPTIONS.map((option, i) => {
-            const isActive = i === menuIndex
-            const isLocked = option.locked === true
-            return (
-              <div
-                key={option.id}
-                className="relative flex max-w-[280px] flex-1 flex-col gap-3 p-6 transition-all duration-300"
-                style={{
-                  border: `2px solid ${isLocked ? "rgba(232,244,255,0.1)" : isActive ? "#FF6600" : "rgba(0,217,232,0.2)"}`,
-                  boxShadow:
-                    !isLocked && isActive
-                      ? "0 0 8px #FF6600, 0 0 24px rgba(255,102,0,0.5), 0 0 60px rgba(255,102,0,0.2)"
-                      : "none",
-                  transform: !isLocked && isActive ? "scale(1.04)" : "scale(0.96)",
-                  opacity: isLocked ? 0.35 : isActive ? 1 : 0.5,
-                  background: !isLocked && isActive ? "rgba(255,102,0,0.05)" : "transparent",
-                }}
-              >
-                {isLocked && (
+          <div className="flex flex-col">
+            {MODE_OPTIONS.map((option, i) => {
+              const isActive = i === menuIndex
+              const isLocked = option.locked === true
+              return (
+                <div
+                  key={option.id}
+                  className={cn(
+                    "flex items-center gap-5 border-b border-b-[rgba(243,230,0,0.05)] py-5 transition-all duration-300",
+                    isLocked ? "opacity-[0.22]" : isActive ? "opacity-100" : "opacity-[0.35]",
+                  )}
+                >
                   <div
-                    className="font-arcade absolute top-3 right-3 px-2 py-1 text-[clamp(0.3rem,0.7vw,0.45rem)] tracking-widest uppercase"
-                    style={{
-                      color: "rgba(232,244,255,0.5)",
-                      border: "1px solid rgba(232,244,255,0.15)",
-                    }}
+                    className={cn(
+                      "w-[3px] shrink-0 transition-[height] duration-300 ease-in-out",
+                      isActive ? "h-9 bg-[#F3E600]" : "h-[14px] bg-[rgba(243,230,0,0.2)]",
+                    )}
+                  />
+                  <div
+                    className={cn(
+                      "font-display text-[clamp(1.4rem,3.2vw,2.6rem)] font-bold tracking-[0.1em] uppercase",
+                      isActive
+                        ? "text-[#F3E600] [text-shadow:2px_0_rgba(197,0,60,0.4),_-2px_0_rgba(85,234,212,0.35)]"
+                        : "text-[rgba(243,230,0,0.4)]",
+                    )}
                   >
-                    Bientôt
+                    {option.label}
                   </div>
-                )}
-                <div
-                  className="font-display text-[clamp(1.2rem,2.5vw,2rem)] font-black tracking-widest uppercase"
-                  style={{
-                    color: isLocked ? "rgba(232,244,255,0.3)" : isActive ? "#FF6600" : "#00D9E8",
-                    textShadow:
-                      !isLocked && isActive
-                        ? "0 0 8px #FF6600, 0 0 24px rgba(255,102,0,0.5)"
-                        : "none",
-                  }}
-                >
-                  {option.label}
+                  {isLocked && (
+                    <div className="ml-auto shrink-0 border border-[rgba(243,230,0,0.1)] px-[6px] py-[2px] font-mono text-[clamp(0.2rem,0.38vw,0.28rem)] tracking-widest text-[rgba(243,230,0,0.25)] uppercase">
+                      BIENTÔT
+                    </div>
+                  )}
                 </div>
-                <div
-                  className="font-mono text-[clamp(0.6rem,1.2vw,0.8rem)] leading-relaxed"
-                  style={{ color: "#E8F4FF", opacity: isLocked ? 0.4 : 0.7 }}
-                >
-                  {option.description}
-                </div>
-              </div>
-            )
-          })}
+              )
+            })}
+          </div>
+
+          <div className="mt-8 font-mono text-[clamp(0.28rem,0.55vw,0.38rem)] tracking-widest text-[rgba(243,230,0,0.18)] uppercase">
+            FLIPPER.G / FLIPPER.D — NAVIGUER // CONFIRMER
+          </div>
         </div>
 
-        <div
-          className="font-arcade text-[clamp(0.35rem,1vw,0.6rem)] tracking-widest"
-          style={{ color: "rgba(232,244,255,0.4)" }}
-        >
-          ← → NAVIGUER — ENTRÉE CONFIRMER
+        <div className="flex flex-1 flex-col justify-center gap-6 p-14">
+          <div className="font-display text-[clamp(2.5rem,6vw,5rem)] leading-none font-bold tracking-[0.12em] text-[#F3E600] uppercase [text-shadow:2px_0_rgba(197,0,60,0.45),-2px_0_rgba(85,234,212,0.4),0_3px_0_rgba(0,0,0,0.95)]">
+            {active.label}
+          </div>
+
+          <div className="h-px w-24 bg-[linear-gradient(90deg,rgba(243,230,0,0.3),transparent)]" />
+
+          <div className="max-w-[26ch] font-mono text-[clamp(0.65rem,1.3vw,0.9rem)] leading-relaxed text-[rgba(85,234,212,0.5)]">
+            {active.locked ? "DONNÉES NON DISPONIBLES." : active.description}
+          </div>
         </div>
       </div>
     </div>
-  )
-}
-
-function TronGrid() {
-  return (
-    <div
-      className="pointer-events-none absolute inset-0"
-      style={{
-        backgroundImage: `
-          linear-gradient(rgba(0,217,232,0.035) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(0,217,232,0.035) 1px, transparent 1px)
-        `,
-        backgroundSize: "60px 60px",
-      }}
-    />
-  )
-}
-
-function Scanlines() {
-  return (
-    <div
-      className="pointer-events-none absolute inset-0 z-20"
-      style={{
-        backgroundImage: "repeating-linear-gradient(0deg, transparent 3px, rgba(0,0,0,0.24) 4px)",
-      }}
-    />
-  )
-}
-
-function Vignette() {
-  return (
-    <div
-      className="pointer-events-none absolute inset-0 z-10"
-      style={{
-        background:
-          "radial-gradient(ellipse 90% 90% at 50% 50%, transparent 40%, rgba(0,0,0,0.8) 100%)",
-      }}
-    />
-  )
-}
-
-function CornerDecorations() {
-  return (
-    <>
-      <div
-        className="absolute top-6 left-6 h-8 w-8 border-t-2 border-l-2"
-        style={{ borderColor: "#00D9E8", boxShadow: "0 0 10px rgba(0,217,232,0.5)" }}
-      />
-      <div
-        className="absolute top-6 right-6 h-8 w-8 border-t-2 border-r-2"
-        style={{ borderColor: "#00D9E8", boxShadow: "0 0 10px rgba(0,217,232,0.5)" }}
-      />
-      <div
-        className="absolute bottom-6 left-6 h-8 w-8 border-b-2 border-l-2"
-        style={{ borderColor: "#00D9E8", boxShadow: "0 0 10px rgba(0,217,232,0.5)" }}
-      />
-      <div
-        className="absolute right-6 bottom-6 h-8 w-8 border-r-2 border-b-2"
-        style={{ borderColor: "#00D9E8", boxShadow: "0 0 10px rgba(0,217,232,0.5)" }}
-      />
-    </>
   )
 }

@@ -1,114 +1,41 @@
 import { useBackScreenStore } from "@/stores/useBackScreenStore"
+import { RetroBackground } from "@/components/RetroBackground"
 
 export default function GameOverScene() {
   const score = useBackScreenStore((s) => s.score)
 
   return (
-    <div className="bg-arcade-black relative flex h-full w-full items-center justify-center overflow-hidden">
-      <TronGrid />
-      <BlurOverlay />
-      <Scanlines />
-      <Vignette />
-      <CornerDecorations />
+    <div className="bg-arcade-black relative flex h-full w-full overflow-hidden">
+      <RetroBackground accentColor="#C5003C" withBlur />
 
-      <div className="relative z-10 text-center">
-        <div
-          className="font-display text-[clamp(3rem,10vw,8rem)] font-black tracking-[0.5em] uppercase italic"
-          style={{
-            color: "#FF6600",
-            textShadow:
-              "0 0 8px #FF6600, 0 0 24px rgba(255,102,0,0.5), 0 0 60px rgba(255,102,0,0.2)",
-          }}
-        >
-          GAME OVER.
+      <div className="relative z-10 flex h-full w-full flex-col justify-between p-12">
+        <div className="font-mono text-[clamp(0.38rem,0.78vw,0.54rem)] tracking-[0.3em] text-[rgba(197,0,60,0.55)] uppercase">
+          PROCESSUS.TERMINÉ // CONNEXION PERDUE
         </div>
-        <div
-          className="mt-6 font-mono text-[clamp(1.5rem,4vw,3rem)] font-bold tabular-nums"
-          style={{
-            color: "#00D9E8",
-            textShadow:
-              "0 0 8px #00D9E8, 0 0 24px rgba(0,217,232,0.45), 0 0 60px rgba(0,217,232,0.15)",
-          }}
-        >
-          {String(score).padStart(6, "0")} pts
+
+        <div className="flex flex-col gap-4">
+          <div className="font-display text-[clamp(3.5rem,11vw,9.5rem)] leading-none font-bold tracking-[0.1em] text-[#C5003C] uppercase [text-shadow:3px_0_rgba(243,230,0,0.5),-3px_0_rgba(85,234,212,0.4),0_5px_0_rgba(0,0,0,0.95)]">
+            GAME OVER
+          </div>
+
+          <div className="h-px w-40 bg-[rgba(197,0,60,0.25)]" />
+
+          <div className="flex items-baseline gap-4">
+            <div className="font-mono text-[clamp(2rem,5.5vw,4.5rem)] tracking-[0.1em] text-[#55EAD4] tabular-nums [text-shadow:2px_3px_0px_rgba(0,0,0,0.95)]">
+              {String(score)
+                .padStart(6, "0")
+                .replace(/(\d{3})(\d{3})/, "$1.$2")}
+            </div>
+            <div className="font-mono text-[clamp(0.55rem,1.1vw,0.8rem)] tracking-widest text-[rgba(85,234,212,0.45)] uppercase">
+              PTS
+            </div>
+          </div>
         </div>
-        <div
-          className="font-arcade mt-10 text-[clamp(0.6rem,1.5vw,1rem)] tracking-widest uppercase"
-          style={{ color: "#FF6600", opacity: 0.8 }}
-        >
-          APPUIE POUR REJOUER
+
+        <div className="cp-blink font-display text-[clamp(0.8rem,1.7vw,1.3rem)] font-bold tracking-[0.2em] text-[#F3E600] uppercase">
+          RECOMMENCER ?
         </div>
       </div>
     </div>
-  )
-}
-
-function TronGrid() {
-  return (
-    <div
-      className="pointer-events-none absolute inset-0"
-      style={{
-        backgroundImage: `
-          linear-gradient(rgba(0,217,232,0.035) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(0,217,232,0.035) 1px, transparent 1px)
-        `,
-        backgroundSize: "60px 60px",
-      }}
-    />
-  )
-}
-
-function BlurOverlay() {
-  return (
-    <div
-      className="absolute inset-0"
-      style={{ backdropFilter: "blur(4px)", background: "rgba(4,6,8,0.6)" }}
-    />
-  )
-}
-
-function Scanlines() {
-  return (
-    <div
-      className="pointer-events-none absolute inset-0 z-20"
-      style={{
-        backgroundImage: "repeating-linear-gradient(0deg, transparent 3px, rgba(0,0,0,0.24) 4px)",
-      }}
-    />
-  )
-}
-
-function Vignette() {
-  return (
-    <div
-      className="pointer-events-none absolute inset-0 z-10"
-      style={{
-        background:
-          "radial-gradient(ellipse 90% 90% at 50% 50%, transparent 40%, rgba(0,0,0,0.8) 100%)",
-      }}
-    />
-  )
-}
-
-function CornerDecorations() {
-  return (
-    <>
-      <div
-        className="absolute top-6 left-6 h-8 w-8 border-t-2 border-l-2"
-        style={{ borderColor: "#FF6600", boxShadow: "0 0 10px rgba(255,102,0,0.5)" }}
-      />
-      <div
-        className="absolute top-6 right-6 h-8 w-8 border-t-2 border-r-2"
-        style={{ borderColor: "#FF6600", boxShadow: "0 0 10px rgba(255,102,0,0.5)" }}
-      />
-      <div
-        className="absolute bottom-6 left-6 h-8 w-8 border-b-2 border-l-2"
-        style={{ borderColor: "#FF6600", boxShadow: "0 0 10px rgba(255,102,0,0.5)" }}
-      />
-      <div
-        className="absolute right-6 bottom-6 h-8 w-8 border-r-2 border-b-2"
-        style={{ borderColor: "#FF6600", boxShadow: "0 0 10px rgba(255,102,0,0.5)" }}
-      />
-    </>
   )
 }

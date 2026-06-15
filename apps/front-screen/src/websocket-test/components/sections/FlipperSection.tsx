@@ -12,13 +12,15 @@ const FlipperSection = ({ onDispatch }: Props) => {
       <div className="grid grid-cols-2 gap-2">
         <CyberBtn
           label="◄ Flipper Left"
-          event="flipper:left"
+          event="Command"
+          payload={{ cmd: "flipper_left", params: {} }}
           color="cyan"
           onDispatch={onDispatch}
         />
         <CyberBtn
           label="Flipper Right ►"
-          event="flipper:right"
+          event="Command"
+          payload={{ cmd: "flipper_right", params: {} }}
           color="cyan"
           onDispatch={onDispatch}
         />

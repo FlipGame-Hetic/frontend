@@ -1,99 +1,46 @@
+import { RetroBackground } from "@/components/RetroBackground"
+
 export default function IdleScene() {
   return (
-    <div className="bg-arcade-black relative flex h-full w-full flex-col items-center justify-center overflow-hidden">
-      <TronGrid />
-      <Scanlines />
-      <Vignette />
-      <CornerDecorations />
+    <div className="bg-arcade-black relative flex h-full w-full overflow-hidden">
+      <RetroBackground />
 
-      <div className="relative z-10 flex flex-col items-center gap-8">
-        <div
-          className="font-display text-center text-[clamp(3rem,8vw,7rem)] font-black tracking-widest uppercase"
-          style={{
-            color: "#00D9E8",
-            textShadow:
-              "0 0 8px #00D9E8, 0 0 24px rgba(0,217,232,0.45), 0 0 60px rgba(0,217,232,0.15)",
-          }}
-        >
-          S.P.A.M.E.R.
+      <div className="relative z-10 flex h-full w-full flex-col justify-between p-12">
+        <div className="flex flex-col gap-4">
+          <div className="font-mono text-[clamp(0.32rem,0.68vw,0.48rem)] tracking-[0.28em] text-[rgba(243,230,0,0.3)] uppercase">
+            SYS.INITIALISÉ // ATTENTE CRÉDIT
+          </div>
+
+          <div className="cp-glitch font-display text-[clamp(3rem,9vw,8rem)] leading-none font-bold tracking-[0.14em] text-[#F3E600] uppercase [text-shadow:3px_0_rgba(197,0,60,0.55),-3px_0_rgba(85,234,212,0.5),0_4px_0_rgba(0,0,0,0.95)]">
+            S.P.A.M.E.R.
+          </div>
+
+          <div className="font-mono text-[clamp(0.4rem,0.78vw,0.54rem)] tracking-[0.2em] text-[rgba(85,234,212,0.4)] uppercase">
+            SUPER PINBALL ARCADE MULTIPLAYER EXPERIENCE RIVALRY
+          </div>
         </div>
 
-        <div className="h-px w-64 opacity-40" style={{ background: "#00D9E8" }} />
+        <div className="flex items-center gap-3">
+          <div className="h-px flex-1 bg-[rgba(243,230,0,0.1)]" />
+          <div className="h-[4px] w-[4px] bg-[rgba(243,230,0,0.4)]" />
+          <div className="h-px w-16 bg-[rgba(243,230,0,0.1)]" />
+        </div>
 
-        <BlinkPrompt />
+        <div className="flex items-end justify-between">
+          <div className="flex flex-col gap-2">
+            <div className="font-mono text-[clamp(0.3rem,0.6vw,0.42rem)] tracking-[0.2em] text-[rgba(243,230,0,0.25)] uppercase">
+              {"// MEILLEUR SCORE //"}
+            </div>
+            <div className="font-mono text-[clamp(1.2rem,2.6vw,2rem)] tracking-[0.12em] text-[rgba(243,230,0,0.18)] tabular-nums">
+              000.000
+            </div>
+          </div>
+
+          <div className="cp-blink font-display text-[clamp(0.8rem,1.8vw,1.4rem)] font-bold tracking-[0.22em] text-[#F3E600] uppercase">
+            INSÉRER CRÉDIT
+          </div>
+        </div>
       </div>
-    </div>
-  )
-}
-
-function TronGrid() {
-  return (
-    <div
-      className="pointer-events-none absolute inset-0"
-      style={{
-        backgroundImage: `
-          linear-gradient(rgba(0,217,232,0.035) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(0,217,232,0.035) 1px, transparent 1px)
-        `,
-        backgroundSize: "60px 60px",
-      }}
-    />
-  )
-}
-
-function Scanlines() {
-  return (
-    <div
-      className="pointer-events-none absolute inset-0 z-20"
-      style={{
-        backgroundImage: "repeating-linear-gradient(0deg, transparent 3px, rgba(0,0,0,0.24) 4px)",
-      }}
-    />
-  )
-}
-
-function Vignette() {
-  return (
-    <div
-      className="pointer-events-none absolute inset-0 z-10"
-      style={{
-        background:
-          "radial-gradient(ellipse 90% 90% at 50% 50%, transparent 40%, rgba(0,0,0,0.8) 100%)",
-      }}
-    />
-  )
-}
-
-function CornerDecorations() {
-  return (
-    <>
-      <div
-        className="absolute top-6 left-6 h-8 w-8 border-t-2 border-l-2"
-        style={{ borderColor: "#00D9E8", boxShadow: "0 0 10px rgba(0,217,232,0.5)" }}
-      />
-      <div
-        className="absolute top-6 right-6 h-8 w-8 border-t-2 border-r-2"
-        style={{ borderColor: "#00D9E8", boxShadow: "0 0 10px rgba(0,217,232,0.5)" }}
-      />
-      <div
-        className="absolute bottom-6 left-6 h-8 w-8 border-b-2 border-l-2"
-        style={{ borderColor: "#00D9E8", boxShadow: "0 0 10px rgba(0,217,232,0.5)" }}
-      />
-      <div
-        className="absolute right-6 bottom-6 h-8 w-8 border-r-2 border-b-2"
-        style={{ borderColor: "#00D9E8", boxShadow: "0 0 10px rgba(0,217,232,0.5)" }}
-      />
-    </>
-  )
-}
-
-function BlinkPrompt() {
-  return (
-    <div
-      className="font-arcade animate-pulse text-[clamp(0.5rem,1.5vw,0.85rem)] tracking-widest uppercase"
-      style={{ color: "#FF6600", textShadow: "0 0 8px rgba(255,102,0,0.6)" }}
-    >
-      INSÉRER UNE PIÈCE
     </div>
   )
 }
