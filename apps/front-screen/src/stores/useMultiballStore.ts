@@ -60,7 +60,7 @@ const useMultiballStore = create<MultiballStore>()((set, get) => {
       }
 
       playSfx("multiball_triggered")
-      broadcastEvent({ event_type: "MultiballTriggered", payload: {} })
+      broadcastEvent({ event_type: "MultiballTriggered", payload: { ball_id: ballId } })
       useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.multiballTrigger)
       set({ bounceCount: 0, cooldownActive: true })
 

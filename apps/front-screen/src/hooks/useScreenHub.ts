@@ -34,9 +34,16 @@ const handleScreenEvent = (envelope: ScreenEnvelope): void => {
   }
 
   if (envelope.event_type === "ScoreDelta") {
-    const payload = envelope.payload as { delta: number; reason: string; total: number }
+    const payload = envelope.payload as {
+      delta: number
+      reason: string
+      total: number
+      ball_id?: string
+    }
     if (payload.reason !== "timer_bonus") {
-      useScorePopupsStore.getState().spawnPopupFromDelta(payload.delta, payload.reason)
+      useScorePopupsStore
+        .getState()
+        .spawnPopupFromDelta(payload.delta, payload.reason, payload.ball_id)
     }
     return
   }

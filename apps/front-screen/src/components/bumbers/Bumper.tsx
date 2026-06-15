@@ -10,6 +10,7 @@ import type { Group, Mesh } from "three"
 import { normalizedPlayfieldDirection } from "../physics/playfieldPlane"
 import { createStuckBallTracker } from "../physics/stuckBallTracker"
 import { applyBumperImpulse, shouldSkipBumperHit } from "./bumperCollision"
+import { getBallId } from "../balls/ballUserData"
 import {
   BUMPER_SCALE_FACTOR,
   BUMPER_SIZE_ARGS,
@@ -61,13 +62,16 @@ const Bumper = ({ position, bumperId: _bumperId, meshOverride, rubberMesh }: Bum
     if (other.rigidBodyObject?.name !== "ball") return
     if (shouldSkipBumperHit(other.rigidBody)) return
 
-    broadcastEvent({ event_type: "Bumper", payload: {} })
+    const ballId = getBallId(other.rigidBodyObject.userData) ?? ""
+    broadcastEvent({ event_type: "Bumper", payload: { ball_id: ballId } })
     playRandomSfx("bumpers")
     useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.bumper)
 
     const bumperPos = bodyRef.current.translation()
     const ballPos = other.rigidBody.translation()
-    useScorePopupsStore.getState().setLastHitPosition({ x: ballPos.x, y: ballPos.y, z: ballPos.z })
+    useScorePopupsStore
+      .getState()
+      .recordHit({ x: ballPos.x, y: ballPos.y, z: ballPos.z }, ballId, "bumper")
 
     const dir = normalizedPlayfieldDirection({
       x: ballPos.x - bumperPos.x,

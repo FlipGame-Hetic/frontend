@@ -12,6 +12,7 @@ import {
 import { useCallback, useEffect, useMemo, useRef } from "react"
 import { Box3, MathUtils, type Mesh, Vector3 } from "three"
 import { hasBallId } from "@/components/balls/ballUserData"
+import useBallStore from "@/stores/useBallStore"
 import { cloneWithWorldOrientation } from "../playfield/usePlayfieldModel"
 import {
   areBallSaverTargetsDown,
@@ -123,7 +124,11 @@ const BallSaver = ({ mesh, side, worldPosition }: BallSaverProps) => {
         setCollidersEnabled(false)
         setPhase("rising")
         playSfx("ballsaver_up")
-        broadcastEvent({ event_type: "BallSaverReady", payload: {} })
+        const playingBallId = useBallStore.getState().playingBallIds[0]
+        broadcastEvent({
+          event_type: "BallSaverReady",
+          payload: playingBallId ? { ball_id: playingBallId } : {},
+        })
       }
       return
     }
