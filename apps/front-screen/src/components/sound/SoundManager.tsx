@@ -1,7 +1,7 @@
 import useGameStore from "@/stores/useGameStore"
 import { useControls } from "leva"
 import { useEffect, useRef } from "react"
-import { MUSIC_DEFAULT_VOLUME, SFX_DEFAULT_VOLUME } from "@/audio/soundConfig"
+import { MUSIC_DEFAULT_VOLUME, MUSIC_TRACKS, SFX_DEFAULT_VOLUME } from "@/audio/soundConfig"
 import {
   getCurrentTrackIndex,
   onMusicChange,
@@ -14,7 +14,19 @@ import {
   startMusic,
 } from "@/audio/soundEngine"
 
+const MUSIC_TRACK_OPTIONS = Object.fromEntries(
+  MUSIC_TRACKS.map((_, index) => [`Track ${String(index + 1)}`, index]),
+) as Record<string, number>
+
+interface LevaTrackChangeContext {
+  initial: boolean
+  fromPanel?: boolean
+}
+
 const SoundManager = () => {
+  const engineIndexRef = useRef(-1)
+  const hasStartedMusicRef = useRef(false)
+
   const [sound, setSound] = useControls(
     "Sound",
     () => ({
@@ -30,14 +42,11 @@ const SoundManager = () => {
       },
       track: {
         value: 0 as number,
-        options: {
-          "Track 1": 0,
-          "Track 2": 1,
-          "Track 3": 2,
-          "Track 4": 3,
-          "Track 5": 4,
-          "Track 6": 5,
-          "Track 7": 6,
+        options: MUSIC_TRACK_OPTIONS,
+        transient: false,
+        onChange: (value: number, _path: string, context: LevaTrackChangeContext) => {
+          if (context.initial || !context.fromPanel) return
+          if (value !== engineIndexRef.current) setMusicTrack(value)
         },
         label: "Current track",
       },
@@ -47,7 +56,6 @@ const SoundManager = () => {
 
   const sfxMutedRef = useRef(sound.sfxMuted)
   const musicMutedRef = useRef(sound.musicMuted)
-  const engineIndexRef = useRef(-1)
 
   useEffect(() => {
     sfxMutedRef.current = sound.sfxMuted
@@ -87,13 +95,16 @@ const SoundManager = () => {
   }, [setSound])
 
   useEffect(() => {
-    if (sound.track !== engineIndexRef.current) {
-      setMusicTrack(sound.track)
+    const startWhenPlaying = (phase: ReturnType<typeof useGameStore.getState>["phase"]) => {
+      if (hasStartedMusicRef.current || phase !== "playing") return
+      hasStartedMusicRef.current = true
+      startMusic()
     }
-  }, [sound.track])
 
-  useEffect(() => {
-    startMusic()
+    startWhenPlaying(useGameStore.getState().phase)
+    return useGameStore.subscribe((state, prev) => {
+      if (state.phase !== prev.phase) startWhenPlaying(state.phase)
+    })
   }, [])
 
   useEffect(() => {

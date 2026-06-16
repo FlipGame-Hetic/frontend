@@ -17,6 +17,7 @@ let musicVolume = MUSIC_DEFAULT_VOLUME
 const sfxHowls = new Map<string, Howl>()
 let currentMusic: Howl | null = null
 let currentTrackIndex = -1
+let trackQueue: number[] = []
 
 const musicChangeListeners = new Set<(index: number) => void>()
 
@@ -57,9 +58,37 @@ const getSfxHowl = (srcs: [string, string], pool: number): Howl => {
   return h
 }
 
-const pickTrackIndex = (): number => {
+const ensureMusicTracks = (): void => {
   if (MUSIC_TRACKS.length === 0) throw new Error("No music tracks configured")
-  return Math.floor(Math.random() * MUSIC_TRACKS.length)
+}
+
+const shuffleTrackIndexes = (): number[] => {
+  ensureMusicTracks()
+  const indexes = MUSIC_TRACKS.map((_, index) => index)
+  for (let i = indexes.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    const current = indexes[i]
+    const picked = indexes[j]
+    if (current === undefined || picked === undefined) continue
+    indexes[i] = picked
+    indexes[j] = current
+  }
+  return indexes
+}
+
+const refillTrackQueue = (): void => {
+  trackQueue = shuffleTrackIndexes()
+  if (trackQueue.length > 1 && trackQueue[0] === currentTrackIndex) {
+    const repeatedTrack = trackQueue.shift()
+    if (repeatedTrack !== undefined) trackQueue.push(repeatedTrack)
+  }
+}
+
+const nextTrackIndex = (): number => {
+  if (trackQueue.length === 0) refillTrackQueue()
+  const index = trackQueue.shift()
+  if (index === undefined) throw new Error("No music tracks configured")
+  return index
 }
 
 const notifyMusicChange = (index: number): void => {
@@ -81,7 +110,7 @@ const playTrackByIndex = (index: number): void => {
     onend: () => {
       if (currentMusic !== h) return
       currentMusic = null
-      playTrackByIndex(pickTrackIndex())
+      playTrackByIndex(nextTrackIndex())
     },
   })
   notifyMusicChange(index)
@@ -91,7 +120,7 @@ const playTrackByIndex = (index: number): void => {
 
 export const startMusic = (): void => {
   if (currentMusic) return
-  playTrackByIndex(pickTrackIndex())
+  playTrackByIndex(nextTrackIndex())
 }
 
 export const getCurrentTrackIndex = (): number => currentTrackIndex
@@ -111,6 +140,7 @@ export const onMusicChange = (cb: (index: number) => void): (() => void) => {
 export const setMusicTrack = (index: number): void => {
   if (index === currentTrackIndex) return
   if (index < 0 || index >= MUSIC_TRACKS.length) return
+  trackQueue = trackQueue.filter((trackIndex) => trackIndex !== index)
   const toStop = currentMusic
   currentMusic = null
   if (toStop) {
