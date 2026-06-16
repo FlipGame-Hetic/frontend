@@ -1,6 +1,6 @@
 export const RECONNECT_DELAY_MS = 3000
 
-const DEFAULT_WS_PORT = "8080"
+const DEFAULT_WS_PORT = ""
 const GAME_WS_PATH = "/ws/bridge"
 const LOOPBACK_HOSTNAMES = new Set(["localhost", "127.0.0.1", "::1"])
 

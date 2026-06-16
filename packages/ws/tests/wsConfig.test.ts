@@ -23,11 +23,11 @@ afterEach(() => {
 })
 
 describe("wsConfig", () => {
-  it("builds localhost fallback websocket URLs on the backend dev port", () => {
+  it("builds localhost fallback websocket URLs through the reverse proxy", () => {
     setRuntimeLocation("http:", "localhost")
 
-    expect(resolveScreenHubUrl()).toBe("ws://localhost:8080")
-    expect(resolveGameWsUrl()).toBe("ws://localhost:8080/ws/bridge")
+    expect(resolveScreenHubUrl()).toBe("ws://localhost")
+    expect(resolveGameWsUrl()).toBe("ws://localhost/ws/bridge")
   })
 
   it("builds production fallback websocket URLs through the same host reverse proxy", () => {
