@@ -23,24 +23,31 @@ afterEach(() => {
 })
 
 describe("wsConfig", () => {
-  it("builds fallback websocket URLs from the browser hostname", () => {
+  it("builds localhost fallback websocket URLs on the backend dev port", () => {
+    setRuntimeLocation("http:", "localhost")
+
+    expect(resolveScreenHubUrl()).toBe("ws://localhost:8080")
+    expect(resolveGameWsUrl()).toBe("ws://localhost:8080/ws/bridge")
+  })
+
+  it("builds production fallback websocket URLs through the same host reverse proxy", () => {
     setRuntimeLocation("http:", "flipper.example.com")
 
-    expect(resolveScreenHubUrl()).toBe("ws://flipper.example.com:8080")
-    expect(resolveGameWsUrl()).toBe("ws://flipper.example.com:8080/ws/bridge")
+    expect(resolveScreenHubUrl()).toBe("ws://flipper.example.com")
+    expect(resolveGameWsUrl()).toBe("ws://flipper.example.com/ws/bridge")
   })
 
   it("uses secure websockets on https pages", () => {
     setRuntimeLocation("https:", "flipper.example.com")
 
-    expect(resolveScreenHubUrl()).toBe("wss://flipper.example.com:8080")
-    expect(resolveGameWsUrl()).toBe("wss://flipper.example.com:8080/ws/bridge")
+    expect(resolveScreenHubUrl()).toBe("wss://flipper.example.com")
+    expect(resolveGameWsUrl()).toBe("wss://flipper.example.com/ws/bridge")
   })
 
   it("keeps explicit overrides and ignores blank overrides", () => {
     setRuntimeLocation("http:", "flipper.local")
 
     expect(resolveScreenHubUrl(" ws://custom-host:9000 ")).toBe("ws://custom-host:9000")
-    expect(resolveGameWsUrl(" ")).toBe("ws://flipper.local:8080/ws/bridge")
+    expect(resolveGameWsUrl(" ")).toBe("ws://flipper.local/ws/bridge")
   })
 })
