@@ -1,17 +1,24 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+import { LOOPING_SFX_FADE_OUT_MS } from "@/audio/soundConfig"
 
 interface MockHowlOptions {
+  loop?: boolean
+  pool?: number
   src: string[]
-  volume: number
+  volume?: number
   onplay?: () => void
   onend?: () => void
 }
 
 interface MockHowlInstance {
+  fadeCalls: { duration: number; from: number; id?: number; to: number }[]
+  fade: (from: number, to: number, duration: number, id?: number) => MockHowlInstance
   options: MockHowlOptions
+  playCalls: number
   src: string[]
+  stopCalls: (number | undefined)[]
   play: () => number
-  stop: () => void
+  stop: (id?: number) => void
   unload: () => void
   pause: () => void
   volume: (value?: number) => number
@@ -29,23 +36,35 @@ vi.mock("@/audio/musicAnalyser", () => ({
 
 vi.mock("howler", () => ({
   Howl: class implements MockHowlInstance {
+    fadeCalls: { duration: number; from: number; id?: number; to: number }[] = []
     options: MockHowlOptions
+    playCalls = 0
     src: string[]
+    stopCalls: (number | undefined)[] = []
     private currentVolume: number
+    private nextSoundId = 1
 
     constructor(options: MockHowlOptions) {
       this.options = options
       this.src = options.src
-      this.currentVolume = options.volume
+      this.currentVolume = options.volume ?? 1
       howlInstances.push(this)
     }
 
     play() {
+      this.playCalls += 1
       this.options.onplay?.()
-      return 1
+      return this.nextSoundId++
     }
 
-    stop() {
+    fade(from: number, to: number, duration: number, id?: number) {
+      this.fadeCalls.push({ from, to, duration, id })
+      this.currentVolume = to
+      return this
+    }
+
+    stop(id?: number) {
+      this.stopCalls.push(id)
       return undefined
     }
 
@@ -165,5 +184,98 @@ describe("soundEngine music playlist", () => {
     setMusicTrack(3)
 
     expect(changes).toEqual([1, 2])
+  })
+})
+
+describe("soundEngine looping sfx", () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+    howlInstances.length = 0
+    connectMusicNode.mockClear()
+  })
+
+  afterEach(() => {
+    vi.clearAllTimers()
+    vi.useRealTimers()
+    vi.restoreAllMocks()
+  })
+
+  it("starts one loop for multiple active keys", async () => {
+    const { startLoopingSfx, stopLoopingSfx } = await loadSoundEngine()
+
+    startLoopingSfx("ramp_rolling", "ball-1")
+    startLoopingSfx("ramp_rolling", "ball-2")
+
+    const loop = latestHowl()
+    expect(loop.options.loop).toBe(true)
+    expect(loop.playCalls).toBe(1)
+
+    stopLoopingSfx("ramp_rolling", "ball-1")
+    expect(loop.stopCalls).toEqual([])
+
+    stopLoopingSfx("ramp_rolling", "ball-2")
+    expect(loop.fadeCalls).toEqual([{ from: 0.4, to: 0, duration: LOOPING_SFX_FADE_OUT_MS, id: 1 }])
+    expect(loop.stopCalls).toEqual([])
+
+    vi.advanceTimersByTime(LOOPING_SFX_FADE_OUT_MS)
+    expect(loop.stopCalls).toEqual([1])
+  })
+
+  it("keeps a loop active until the final key stops", async () => {
+    const { startLoopingSfx, stopLoopingSfx } = await loadSoundEngine()
+
+    startLoopingSfx("ramp_rolling", "ball-1")
+    startLoopingSfx("ramp_rolling", "ball-2")
+    stopLoopingSfx("ramp_rolling", "ball-1")
+    startLoopingSfx("ramp_rolling", "ball-3")
+    stopLoopingSfx("ramp_rolling", "ball-2")
+
+    const loop = latestHowl()
+    expect(loop.playCalls).toBe(1)
+    expect(loop.stopCalls).toEqual([])
+
+    stopLoopingSfx("ramp_rolling", "ball-3")
+    expect(loop.fadeCalls).toHaveLength(1)
+    expect(loop.stopCalls).toEqual([])
+
+    vi.advanceTimersByTime(LOOPING_SFX_FADE_OUT_MS)
+    expect(loop.stopCalls).toEqual([1])
+  })
+
+  it("cancels a pending fade-out when a loop key starts again", async () => {
+    const { startLoopingSfx, stopLoopingSfx } = await loadSoundEngine()
+
+    startLoopingSfx("ramp_rolling", "ball-1")
+    stopLoopingSfx("ramp_rolling", "ball-1")
+
+    const loop = latestHowl()
+    expect(loop.fadeCalls).toHaveLength(1)
+
+    vi.advanceTimersByTime(LOOPING_SFX_FADE_OUT_MS - 1)
+    startLoopingSfx("ramp_rolling", "ball-2")
+    vi.advanceTimersByTime(1)
+
+    expect(loop.playCalls).toBe(1)
+    expect(loop.stopCalls).toEqual([])
+    expect(loop.volume()).toBe(0.4)
+  })
+
+  it("applies mute and volume changes to active loops", async () => {
+    const { setSfxEnabled, setSfxVolume, startLoopingSfx } = await loadSoundEngine()
+
+    setSfxVolume(0.5)
+    startLoopingSfx("ramp_rolling", "ball-1")
+
+    const loop = latestHowl()
+    expect(loop.volume()).toBe(0.5)
+
+    setSfxEnabled(false)
+    expect(loop.stopCalls).toEqual([1])
+
+    setSfxVolume(0.25)
+    setSfxEnabled(true)
+
+    expect(loop.playCalls).toBe(2)
+    expect(loop.volume()).toBe(0.25)
   })
 })

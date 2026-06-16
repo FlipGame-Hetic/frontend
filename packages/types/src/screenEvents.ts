@@ -128,9 +128,16 @@ export interface MultiballTriggeredEvent {
   payload: { ball_id: string }
 }
 
+export type ComboDirection = "L" | "R"
+
 export interface ComboActivatedEvent {
   event_type: "ComboActivated"
-  payload: { combo_id: number; bonus_pts: number; multiplier: number; duration_ms: number }
+  payload: {
+    bonus_pts: number
+    sequence: ComboDirection[]
+    multiplier?: number
+    duration_ms?: number
+  }
 }
 
 export interface MultiplierUpdateEvent {

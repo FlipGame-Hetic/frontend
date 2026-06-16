@@ -2,13 +2,10 @@ import DebugProvider from "@/debug/DebugProvider"
 import type { CameraProps } from "@react-three/fiber"
 import { Leva } from "leva"
 import { Suspense } from "react"
-import AudioReactiveController from "./components/audioReactive/AudioReactiveController"
-import ReactiveAccentLight from "./components/audioReactive/ReactiveAccentLight"
 import ReactiveAmbientLight from "./components/audioReactive/ReactiveAmbientLight"
 import BallsManager from "./components/balls/BallsManager"
 import DebugCamera from "./components/DebugCamera"
 import Drain from "./components/drain/Drain"
-import StageSpotlights from "./components/environment/StageSpotlights"
 import TronGridFloor from "./components/environment/TronGridFloor"
 import InvisibleWallsManager from "./components/physics/InvisibleWallsManager"
 import PhysicsManager from "./components/physics/PhysicsManager"
@@ -52,7 +49,6 @@ const App = () => {
       />
       <World cameraSettings={cameraSettings as CameraProps}>
         <ReactiveAmbientLight />
-        <ReactiveAccentLight />
         <directionalLight
           position={[0, 13, 12]}
           intensity={0.8}
@@ -73,9 +69,7 @@ const App = () => {
           <DebugCamera cameraPosition={cameraSettings.position} cameraFov={cameraSettings.fov} />
         )}
         <ScreenShakeController />
-        <AudioReactiveController />
         <TronGridFloor />
-        <StageSpotlights />p
         <PhysicsManager isDebug={!isProduction}>
           <BallsManager />
           <Drain />

@@ -1,5 +1,6 @@
 export const SFX_DEFAULT_VOLUME = 0.4
 export const MUSIC_DEFAULT_VOLUME = 1.5
+export const LOOPING_SFX_FADE_OUT_MS = 220
 
 const base = import.meta.env.BASE_URL
 
@@ -23,6 +24,7 @@ const sfx = (dir: string, name: string): [string, string] => [
 
 export const SFX_PATHS: Record<string, [string, string]> = {
   ball_new: sfx("ball", "new"),
+  ramp_rolling: sfx("ball", "ramp_rolling"),
   ballsaver_up: sfx("ball_savers", "up"),
   plunger_launch: sfx("plunger", "launch"),
   flipper_up: sfx("flipperJoints", "up"),

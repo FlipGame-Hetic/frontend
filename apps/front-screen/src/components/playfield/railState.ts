@@ -1,31 +1,36 @@
 import { broadcastEvent } from "@frontend/ws"
-import { RAIL_EXIT_DEBOUNCE_MS } from "./railConfig"
+import { startLoopingSfx, stopLoopingSfx } from "@/audio/soundEngine"
 
-const railBalls = new Set<string>()
-const exitTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
-
-export const enterRail = (ballId: string): void => {
-  const pending = exitTimeouts.get(ballId)
-  if (pending !== undefined) {
-    clearTimeout(pending)
-    exitTimeouts.delete(ballId)
-  }
-  const wasOnRail = railBalls.has(ballId)
-  railBalls.add(ballId)
-  if (!wasOnRail) {
-    broadcastEvent({ event_type: "RailStart", payload: { ball_id: ballId } })
-  }
+interface RailBallState {
+  sources: Set<string>
 }
 
-export const scheduleExitRail = (ballId: string): void => {
-  const pending = exitTimeouts.get(ballId)
-  if (pending !== undefined) clearTimeout(pending)
-  const timeout = setTimeout(() => {
-    railBalls.delete(ballId)
-    exitTimeouts.delete(ballId)
-    broadcastEvent({ event_type: "RailEnd", payload: { ball_id: ballId } })
-  }, RAIL_EXIT_DEBOUNCE_MS)
-  exitTimeouts.set(ballId, timeout)
+const DEFAULT_RAIL_SOURCE = "rail-sensor"
+const railBalls = new Map<string, RailBallState>()
+
+const endRail = (ballId: string): void => {
+  railBalls.delete(ballId)
+  broadcastEvent({ event_type: "RailEnd", payload: { ball_id: ballId } })
+  stopLoopingSfx("ramp_rolling", ballId)
+}
+
+export const enterRail = (ballId: string, source = DEFAULT_RAIL_SOURCE): void => {
+  const existing = railBalls.get(ballId)
+  if (existing) {
+    existing.sources.add(source)
+    return
+  }
+
+  railBalls.set(ballId, { sources: new Set([source]) })
+  broadcastEvent({ event_type: "RailStart", payload: { ball_id: ballId } })
+  startLoopingSfx("ramp_rolling", ballId)
+}
+
+export const exitRailNow = (ballId: string): void => {
+  const state = railBalls.get(ballId)
+  if (!state) return
+  state.sources.clear()
+  endRail(ballId)
 }
 
 export const isOnRail = (ballId: string): boolean => {
@@ -33,12 +38,6 @@ export const isOnRail = (ballId: string): boolean => {
 }
 
 export const cleanupRailBall = (ballId: string): void => {
-  const pending = exitTimeouts.get(ballId)
-  if (pending !== undefined) clearTimeout(pending)
-  const wasOnRail = railBalls.has(ballId)
-  railBalls.delete(ballId)
-  exitTimeouts.delete(ballId)
-  if (wasOnRail) {
-    broadcastEvent({ event_type: "RailEnd", payload: { ball_id: ballId } })
-  }
+  if (!railBalls.has(ballId)) return
+  endRail(ballId)
 }
