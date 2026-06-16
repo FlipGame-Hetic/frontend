@@ -23,10 +23,14 @@ export interface PlayfieldNodes {
   lockedBall: Mesh[]
   spinner: Mesh[]
   rails: Mesh[]
+  multiballGateFrame: Mesh[]
+  multiballGateDoors: Mesh[]
 }
 
 export const classifyMesh = (name: string): keyof PlayfieldNodes | null => {
   if (name === "central_bonus_zone_inter") return "bonusZone"
+  if (name === "arch") return "multiballGateFrame"
+  if (name === "door_top" || name === "door_bottom") return "multiballGateDoors"
   if (name === "spinner") return "spinner"
   if (name === "tip" || /^ring_\d+$/.test(name)) return "plunger"
   if (name.includes("_ball_saver")) return "ballSavers"
@@ -117,7 +121,7 @@ export const buildModuleWithRubber = (
 }
 
 export const usePlayfieldModel = (): PlayfieldNodes => {
-  const { scene } = useGLTF("/models/playfield_x15.glb")
+  const { scene } = useGLTF("/models/playfield.glb")
   return useMemo(() => {
     const result: PlayfieldNodes = {
       cabinet: [],
@@ -137,6 +141,8 @@ export const usePlayfieldModel = (): PlayfieldNodes => {
       lockedBall: [],
       spinner: [],
       rails: [],
+      multiballGateFrame: [],
+      multiballGateDoors: [],
     }
     scene.traverse((node) => {
       if (!isMesh(node)) return

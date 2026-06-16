@@ -29,9 +29,16 @@ interface BumperProps {
   bumperId: number
   meshOverride?: Mesh
   rubberMesh?: Mesh
+  onBonusHit?: (ballId: string) => void
 }
 
-const Bumper = ({ position, bumperId: _bumperId, meshOverride, rubberMesh }: BumperProps) => {
+const Bumper = ({
+  position,
+  bumperId: _bumperId,
+  meshOverride,
+  rubberMesh,
+  onBonusHit,
+}: BumperProps) => {
   const bodyRef = useRef<RapierRigidBody>(null)
   const meshRef = useRef<Mesh>(null)
   const rubberGroupRef = useRef<Group>(null)
@@ -52,45 +59,49 @@ const Bumper = ({ position, bumperId: _bumperId, meshOverride, rubberMesh }: Bum
     }),
   )
 
-  const handleCollision = useCallback(({ other }: CollisionEnterPayload) => {
-    isBouncing.current = true
-    setTimeout(() => {
-      isBouncing.current = false
-    }, 150)
+  const handleCollision = useCallback(
+    ({ other }: CollisionEnterPayload) => {
+      isBouncing.current = true
+      setTimeout(() => {
+        isBouncing.current = false
+      }, 150)
 
-    if (!bodyRef.current || !other.rigidBody) return
-    if (other.rigidBodyObject?.name !== "ball") return
-    if (shouldSkipBumperHit(other.rigidBody)) return
+      if (!bodyRef.current || !other.rigidBody) return
+      if (other.rigidBodyObject?.name !== "ball") return
+      if (shouldSkipBumperHit(other.rigidBody)) return
 
-    const ballId = getBallId(other.rigidBodyObject.userData) ?? ""
-    broadcastEvent({ event_type: "Bumper", payload: { ball_id: ballId } })
-    playRandomSfx("bumpers")
-    useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.bumper)
+      const ballId = getBallId(other.rigidBodyObject.userData) ?? ""
+      broadcastEvent({ event_type: "Bumper", payload: { ball_id: ballId } })
+      if (ballId) onBonusHit?.(ballId)
+      playRandomSfx("bumpers")
+      useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.bumper)
 
-    const bumperPos = bodyRef.current.translation()
-    const ballPos = other.rigidBody.translation()
-    useScorePopupsStore
-      .getState()
-      .recordHit({ x: ballPos.x, y: ballPos.y, z: ballPos.z }, ballId, "bumper")
+      const bumperPos = bodyRef.current.translation()
+      const ballPos = other.rigidBody.translation()
+      useScorePopupsStore
+        .getState()
+        .recordHit({ x: ballPos.x, y: ballPos.y, z: ballPos.z }, ballId, "bumper")
 
-    const dir = normalizedPlayfieldDirection({
-      x: ballPos.x - bumperPos.x,
-      y: ballPos.y - bumperPos.y,
-      z: ballPos.z - bumperPos.z,
-    })
+      const dir = normalizedPlayfieldDirection({
+        x: ballPos.x - bumperPos.x,
+        y: ballPos.y - bumperPos.y,
+        z: ballPos.z - bumperPos.z,
+      })
 
-    if (!dir) return
+      if (!dir) return
 
-    applyBumperImpulse(
-      other.rigidBody,
-      dir,
-      BUMPER_IMPULSE_STRENGTH,
-      BALL_MIN_NORMAL_SPEED,
-      BALL_MAX_NORMAL_SPEED,
-    )
+      applyBumperImpulse(
+        other.rigidBody,
+        dir,
+        BUMPER_IMPULSE_STRENGTH,
+        BALL_MIN_NORMAL_SPEED,
+        BALL_MAX_NORMAL_SPEED,
+      )
 
-    stuckTracker.current.arm(other.rigidBody)
-  }, [])
+      stuckTracker.current.arm(other.rigidBody)
+    },
+    [onBonusHit],
+  )
 
   useFrame(() => {
     const animTarget = rubberGroupRef.current ?? meshRef.current

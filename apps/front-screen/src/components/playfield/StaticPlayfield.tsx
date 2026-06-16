@@ -2,23 +2,15 @@ import { useCallback, useMemo } from "react"
 import type { CollisionPayload } from "@react-three/rapier"
 import { RigidBody } from "@react-three/rapier"
 import { RAIL_COLLISION_GROUPS } from "./railCollisionGroups"
-import { useDebugControls } from "@/debug/debugContext"
-import useMultiballStore from "@/stores/useMultiballStore"
-import type { Vector3Tuple } from "three"
 import { getBallId } from "@/components/balls/ballUserData"
 import { cloneAtWorldTransform, type PlayfieldNodes } from "./usePlayfieldModel"
 import { enterRail, scheduleExitRail } from "./railState"
 import { createBonusZoneHitTester } from "./bonusZoneHitTest"
-import {
-  BONUS_ZONE_RESTITUTION,
-  BONUS_ZONE_COOLDOWN_MS,
-  BONUS_ZONE_SPAWN_INTERVAL_MS,
-  MULTIBALL_SPAWN_POSITION1,
-  MULTIBALL_SPAWN_POSITION2,
-} from "./bonusZoneConfig"
+import { BONUS_ZONE_RESTITUTION } from "./bonusZoneConfig"
+import { useBonusZoneHitRegistrar } from "./bonusZoneHits"
 
 const StaticPlayfield = ({ nodes }: { nodes: PlayfieldNodes }) => {
-  const { bounceThreshold, ballCount } = useDebugControls()
+  const registerBonusHit = useBonusZoneHitRegistrar()
 
   const clones = useMemo(
     () => ({
@@ -56,21 +48,9 @@ const StaticPlayfield = ({ nodes }: { nodes: PlayfieldNodes }) => {
       const ballPosition = other.rigidBody?.translation()
       if (!ballPosition || !bonusZoneHitTester.containsPoint(ballPosition)) return
 
-      const pos1: Vector3Tuple = [...MULTIBALL_SPAWN_POSITION1]
-      const pos2: Vector3Tuple = [...MULTIBALL_SPAWN_POSITION2]
-      useMultiballStore
-        .getState()
-        .registerBounce(
-          ballId,
-          bounceThreshold,
-          pos1,
-          pos2,
-          BONUS_ZONE_SPAWN_INTERVAL_MS,
-          BONUS_ZONE_COOLDOWN_MS,
-          ballCount,
-        )
+      registerBonusHit(ballId)
     },
-    [bounceThreshold, ballCount, bonusZoneHitTester],
+    [bonusZoneHitTester, registerBonusHit],
   )
 
   return (

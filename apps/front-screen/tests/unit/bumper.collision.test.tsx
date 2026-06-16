@@ -76,6 +76,7 @@ function callHandler(payload: unknown): void {
 }
 
 function makeBallPayload(overrides?: {
+  ballId?: string
   name?: string
   rigidBody?: unknown
   rigidBodyObject?: unknown
@@ -95,7 +96,10 @@ function makeBallPayload(overrides?: {
       rigidBodyObject:
         overrides?.rigidBodyObject !== undefined
           ? overrides.rigidBodyObject
-          : { name: overrides?.name ?? "ball" },
+          : {
+              name: overrides?.name ?? "ball",
+              userData: { ballId: overrides?.ballId ?? "ball-1" },
+            },
     },
   }
 }
@@ -114,25 +118,31 @@ describe("Bumper — handleCollision", () => {
       expect(mockBroadcastEvent).toHaveBeenCalledOnce()
     })
 
-    it("broadcasts the back-screen bumper event", () => {
+    it("broadcasts the back-screen bumper event with the ball id", () => {
       render(<Bumper position={[0, 0, 0]} bumperId={3} />)
-      callHandler(makeBallPayload())
+      callHandler(makeBallPayload({ ballId: "ball-7" }))
       expect(mockBroadcastEvent).toHaveBeenCalledWith({
         event_type: "Bumper",
-        payload: {},
+        payload: { ball_id: "ball-7" },
       })
     })
 
-    it("does not include bumper id in payload", () => {
+    it("includes ball id but not bumper id in payload", () => {
       render(<Bumper position={[0, 0, 0]} bumperId={0} />)
-      callHandler(makeBallPayload())
-      expect(mockBroadcastEvent).toHaveBeenLastCalledWith(expect.objectContaining({ payload: {} }))
+      callHandler(makeBallPayload({ ballId: "ball-left" }))
+      expect(mockBroadcastEvent).toHaveBeenLastCalledWith({
+        event_type: "Bumper",
+        payload: { ball_id: "ball-left" },
+      })
 
       mockBroadcastEvent.mockReset()
 
       render(<Bumper position={[0, 0, 0]} bumperId={8} />)
-      callHandler(makeBallPayload())
-      expect(mockBroadcastEvent).toHaveBeenLastCalledWith(expect.objectContaining({ payload: {} }))
+      callHandler(makeBallPayload({ ballId: "ball-right" }))
+      expect(mockBroadcastEvent).toHaveBeenLastCalledWith({
+        event_type: "Bumper",
+        payload: { ball_id: "ball-right" },
+      })
     })
 
     it("clamps the ball velocity immediately after applying the bumper impulse", () => {

@@ -7,13 +7,28 @@ import { classifyMesh } from "@/components/playfield/usePlayfieldModel"
 
 const PLAYFIELD_MODEL_PATH = join(
   dirname(fileURLToPath(import.meta.url)),
-  "../../public/models/playfield_x15.glb",
+  "../../public/models/playfield.glb",
 )
 
 describe("usePlayfieldModel — ball saver classification", () => {
   it("keeps the central inner bonus mesh in the bonus zone bucket", () => {
     expect(classifyMesh("central_bonus_zone_inter")).toBe("bonusZone")
     expect(classifyMesh("central_bonus_zone")).toBe("playfield")
+  })
+
+  it("keeps multiball gate meshes in dedicated buckets", () => {
+    expect(classifyMesh("arch")).toBe("multiballGateFrame")
+    expect(classifyMesh("door_top")).toBe("multiballGateDoors")
+    expect(classifyMesh("door_bottom")).toBe("multiballGateDoors")
+  })
+
+  it("uses multiball gate names in the playfield model asset", () => {
+    const model = readFileSync(PLAYFIELD_MODEL_PATH)
+    const modelText = model.toString("utf8")
+
+    expect(modelText).toContain("arch")
+    expect(modelText).toContain("door_top")
+    expect(modelText).toContain("door_bottom")
   })
 
   it("classifies only renamed saver meshes as ball savers", () => {
