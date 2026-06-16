@@ -45,6 +45,7 @@ const handleScreenEvent = (envelope: ScreenEnvelope): void => {
         .getState()
         .spawnPopupFromDelta(payload.delta, payload.reason, payload.ball_id)
     }
+    setScore(payload.total)
     return
   }
 
@@ -117,6 +118,19 @@ export const useScreenHub = (): void => {
 
   useEffect(() => {
     const unsub = useGameStore.subscribe((state, prev) => {
+      if (state.score !== prev.score) {
+        send({
+          from: SCREEN_ID,
+          to: { kind: "broadcast" },
+          event_type: "ScoreUpdate",
+          payload: {
+            score: state.score,
+            player: state.currentPlayer,
+            ball: state.ballNumber,
+          },
+        })
+      }
+
       if (
         state.phase !== prev.phase ||
         state.ballNumber !== prev.ballNumber ||

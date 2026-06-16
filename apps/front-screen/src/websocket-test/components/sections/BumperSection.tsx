@@ -16,8 +16,8 @@ const BumperSection = ({ onDispatch }: Props) => {
           <CyberBtn
             key={id}
             label={`Bumper ${String(id)}`}
-            event="bumper:hit"
-            payload={{ id }}
+            event="BallHit"
+            payload={{ hits: [{ id: `bumper_${String(id)}`, type: "bumper", force: 1.0 }] }}
             color="magenta"
             onDispatch={onDispatch}
           />

@@ -1,5 +1,7 @@
+import { cn } from "@frontend/utils"
 import { useBackScreenStore } from "@/stores/useBackScreenStore"
 import { CHARACTER_OPTIONS } from "./scene.types"
+import { RetroBackground } from "@/components/RetroBackground"
 
 export default function CharacterSelectScene() {
   const menuIndex = useBackScreenStore((s) => s.menuIndex)
@@ -7,65 +9,47 @@ export default function CharacterSelectScene() {
 
   return (
     <div className="bg-arcade-black relative flex h-full w-full overflow-hidden">
-      <TronGrid />
-      <Scanlines />
-      <Vignette />
-      <CornerDecorations />
+      <RetroBackground />
 
       <div className="relative z-10 flex h-full w-full">
-        <div className="flex flex-1 flex-col justify-center gap-8 px-16">
-          <div
-            className="font-arcade text-[clamp(0.4rem,1.2vw,0.7rem)] tracking-[0.3em] uppercase"
-            style={{ color: "#FF6600" }}
-          >
-            CHOISIS TA BILLE
+        <div className="flex flex-1 flex-col justify-between p-12">
+          <div className="font-mono text-[clamp(0.32rem,0.65vw,0.46rem)] tracking-[0.28em] text-[rgba(85,234,212,0.4)] uppercase">
+            AGENT.IDENTIFICATION // SÉLECTION
           </div>
 
-          <div
-            className="font-display text-[clamp(1.8rem,4vw,3.5rem)] leading-none font-black tracking-widest uppercase"
-            style={{
-              color: "#00D9E8",
-              textShadow:
-                "0 0 8px #00D9E8, 0 0 24px rgba(0,217,232,0.45), 0 0 60px rgba(0,217,232,0.15)",
-            }}
-          >
-            {active.label}
+          <div className="flex flex-col gap-5">
+            <div className="font-display text-[clamp(2rem,5vw,4.2rem)] leading-none font-bold tracking-[0.1em] text-[#F3E600] uppercase [text-shadow:2px_0_rgba(197,0,60,0.45),-2px_0_rgba(85,234,212,0.4),0_3px_0_rgba(0,0,0,0.95)]">
+              {active.label}
+            </div>
+
+            <div className="h-px w-28 bg-[linear-gradient(90deg,rgba(243,230,0,0.3),transparent)]" />
+
+            <div className="max-w-[28ch] font-mono text-[clamp(0.58rem,1.15vw,0.78rem)] leading-relaxed text-[rgba(85,234,212,0.42)]">
+              {active.locked ? "DONNÉES NON DISPONIBLES." : active.description}
+            </div>
           </div>
 
-          <div
-            className="max-w-xs font-mono text-[clamp(0.65rem,1.3vw,0.9rem)] leading-relaxed"
-            style={{ color: "#E8F4FF", opacity: 0.7 }}
-          >
-            {active.locked ? "Non disponible pour l'instant." : active.description}
-          </div>
-
-          <div
-            className="font-arcade text-[clamp(0.35rem,0.9vw,0.6rem)] tracking-widest"
-            style={{ color: "rgba(232,244,255,0.4)" }}
-          >
-            ← → NAVIGUER — ENTRÉE CHOISIR
+          <div className="font-mono text-[clamp(0.28rem,0.55vw,0.38rem)] tracking-widest text-[rgba(243,230,0,0.2)] uppercase">
+            FLIPPER.G / FLIPPER.D — NAVIGUER // CHOISIR
           </div>
         </div>
 
-        <div className="flex items-center justify-center pr-16">
-          <div className="flex flex-col items-center gap-6">
-            <BigBall option={active} />
+        <div className="flex w-[42%] flex-col items-center justify-between py-12 pr-14">
+          <div />
 
-            <div className="flex gap-4">
-              {CHARACTER_OPTIONS.map((opt, i) => (
-                <div key={opt.id} className="flex flex-col items-center gap-1">
-                  <SmallBall option={opt} isActive={i === menuIndex} />
-                  {opt.locked && (
-                    <div
-                      className="font-arcade text-[clamp(0.2rem,0.45vw,0.3rem)] tracking-widest uppercase"
-                      style={{ color: "rgba(232,244,255,0.3)" }}
-                    >
-                      bientôt
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
+          <BigBall option={active} />
+
+          <div className="flex gap-5">
+            {CHARACTER_OPTIONS.map((opt, i) => (
+              <div key={opt.id} className="flex flex-col items-center gap-2">
+                <SmallBall option={opt} isActive={i === menuIndex} />
+                {opt.locked && (
+                  <div className="font-mono text-[clamp(0.18rem,0.36vw,0.26rem)] tracking-widest text-[rgba(243,230,0,0.2)] uppercase">
+                    BIENTÔT
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -76,13 +60,10 @@ export default function CharacterSelectScene() {
 function BigBall({ option }: { option: (typeof CHARACTER_OPTIONS)[number] }) {
   return (
     <div
-      className="rounded-full"
+      className="h-[clamp(130px,19vw,240px)] w-[clamp(130px,19vw,240px)] rounded-full transition-all duration-300"
       style={{
-        width: "clamp(120px, 18vw, 220px)",
-        height: "clamp(120px, 18vw, 220px)",
         background: option.gradient,
         boxShadow: option.glow !== "none" ? option.glow : "none",
-        transition: "all 0.3s ease",
       }}
     />
   )
@@ -97,76 +78,15 @@ function SmallBall({
 }) {
   return (
     <div
-      className="rounded-full transition-all duration-300"
+      className={cn(
+        "h-11 w-11 rounded-full transition-all duration-300",
+        isActive ? "scale-[1.3]" : "scale-100",
+        option.locked ? "opacity-[0.14]" : isActive ? "opacity-100" : "opacity-[0.32]",
+      )}
       style={{
-        width: 40,
-        height: 40,
         background: option.gradient,
         boxShadow: isActive && option.glow !== "none" ? option.glow : "none",
-        opacity: option.locked ? 0.18 : isActive ? 1 : 0.4,
-        transform: isActive ? "scale(1.25)" : "scale(1)",
       }}
     />
-  )
-}
-
-function TronGrid() {
-  return (
-    <div
-      className="pointer-events-none absolute inset-0"
-      style={{
-        backgroundImage: `
-          linear-gradient(rgba(0,217,232,0.035) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(0,217,232,0.035) 1px, transparent 1px)
-        `,
-        backgroundSize: "60px 60px",
-      }}
-    />
-  )
-}
-
-function Scanlines() {
-  return (
-    <div
-      className="pointer-events-none absolute inset-0 z-20"
-      style={{
-        backgroundImage: "repeating-linear-gradient(0deg, transparent 3px, rgba(0,0,0,0.24) 4px)",
-      }}
-    />
-  )
-}
-
-function Vignette() {
-  return (
-    <div
-      className="pointer-events-none absolute inset-0 z-10"
-      style={{
-        background:
-          "radial-gradient(ellipse 90% 90% at 50% 50%, transparent 40%, rgba(0,0,0,0.8) 100%)",
-      }}
-    />
-  )
-}
-
-function CornerDecorations() {
-  return (
-    <>
-      <div
-        className="absolute top-6 left-6 h-8 w-8 border-t-2 border-l-2"
-        style={{ borderColor: "#00D9E8", boxShadow: "0 0 10px rgba(0,217,232,0.5)" }}
-      />
-      <div
-        className="absolute top-6 right-6 h-8 w-8 border-t-2 border-r-2"
-        style={{ borderColor: "#00D9E8", boxShadow: "0 0 10px rgba(0,217,232,0.5)" }}
-      />
-      <div
-        className="absolute bottom-6 left-6 h-8 w-8 border-b-2 border-l-2"
-        style={{ borderColor: "#00D9E8", boxShadow: "0 0 10px rgba(0,217,232,0.5)" }}
-      />
-      <div
-        className="absolute right-6 bottom-6 h-8 w-8 border-r-2 border-b-2"
-        style={{ borderColor: "#00D9E8", boxShadow: "0 0 10px rgba(0,217,232,0.5)" }}
-      />
-    </>
   )
 }
