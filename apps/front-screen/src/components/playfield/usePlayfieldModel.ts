@@ -117,7 +117,7 @@ export const buildModuleWithRubber = (
 }
 
 export const usePlayfieldModel = (): PlayfieldNodes => {
-  const { scene } = useGLTF("/models/playfield_x15.glb")
+  const { scene } = useGLTF("/models/playfield.glb")
   return useMemo(() => {
     const result: PlayfieldNodes = {
       cabinet: [],
