@@ -1,7 +1,6 @@
 import { Howler } from "howler"
 
 let analyser: AnalyserNode | null = null
-let dataArray: Uint8Array<ArrayBuffer> | null = null
 let lastMusicNode: AudioNode | null = null
 
 const ensureAnalyser = (): AnalyserNode | null => {
@@ -12,7 +11,6 @@ const ensureAnalyser = (): AnalyserNode | null => {
   node.fftSize = 1024
   node.smoothingTimeConstant = 0.3
   analyser = node
-  dataArray = new Uint8Array(node.frequencyBinCount)
   return node
 }
 
@@ -37,10 +35,4 @@ export const connectMusicNode = (howl: Howl): void => {
   } catch {
     /* ignore */
   }
-}
-
-export const getFrequencyData = (): Uint8Array | null => {
-  if (!analyser || !dataArray) return null
-  analyser.getByteFrequencyData(dataArray)
-  return dataArray
 }
