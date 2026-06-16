@@ -1,12 +1,17 @@
+import { getBallId } from "@/components/balls/ballUserData"
+import type { PositionType } from "@/types/worldTypes"
 import { useFrame } from "@react-three/fiber"
 import type { CollisionEnterPayload, CollisionPayload } from "@react-three/rapier"
 import { CuboidCollider, RigidBody } from "@react-three/rapier"
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react"
-import type { Material, Mesh } from "three"
-import { Box3, Euler, Plane, Vector3 } from "three"
-import { getBallId } from "@/components/balls/ballUserData"
-import type { PositionType } from "@/types/worldTypes"
-import { BONUS_ZONE_RESTITUTION, MULTIBALL_GATE_OPEN_DISTANCE } from "./bonusZoneConfig"
+import type { Material, Object3D } from "three"
+import { Box3, Euler, Matrix4, Mesh, Plane, Vector3 } from "three"
+import {
+  BONUS_ZONE_RESTITUTION,
+  MULTIBALL_GATE_HALF_EXTENTS,
+  MULTIBALL_GATE_OPEN_DISTANCE,
+  MULTIBALL_GATE_POSITION,
+} from "./bonusZoneConfig"
 import { useBonusZoneHitRegistrar } from "./bonusZoneHits"
 import {
   advanceMultiballGateState,
@@ -17,9 +22,9 @@ import {
 import { cloneAtWorldTransform, type PlayfieldNodes } from "./usePlayfieldModel"
 
 interface PreparedGate {
-  frame?: Mesh
-  topDoor: Mesh
-  bottomDoor: Mesh
+  frame?: Object3D
+  topDoor: Object3D
+  bottomDoor: Object3D
   topClosedPosition: Vector3
   bottomClosedPosition: Vector3
   openAxis: Vector3
@@ -51,19 +56,43 @@ const cloneMaterial = (material: Material | Material[], clippingPlane?: Plane) =
   return Array.isArray(material) ? material.map(cloneOne) : cloneOne(material)
 }
 
-const getGeometryBox = (mesh: Mesh): Box3 => {
-  mesh.geometry.computeBoundingBox()
-  const box = mesh.geometry.boundingBox
-  if (!box) return new Box3()
-  return box.clone()
+const isMesh = (node: Object3D): node is Mesh => {
+  return node instanceof Mesh
 }
 
-const getWorldBox = (mesh: Mesh): Box3 => {
-  mesh.updateWorldMatrix(true, false)
-  return new Box3().setFromObject(mesh)
+const cloneMaterials = (object: Object3D, clippingPlane?: Plane) => {
+  object.traverse((node) => {
+    if (!isMesh(node)) return
+    node.material = cloneMaterial(node.material, clippingPlane)
+  })
 }
 
-const getTopDoorClipPlane = (topDoor: Mesh, frame: Mesh | undefined): Plane => {
+const getLocalObjectBox = (object: Object3D): Box3 => {
+  object.updateWorldMatrix(true, true)
+  const rootInverse = object.matrixWorld.clone().invert()
+  const box = new Box3()
+
+  object.traverse((node) => {
+    if (!isMesh(node)) return
+
+    node.geometry.computeBoundingBox()
+    const geometryBox = node.geometry.boundingBox
+    if (!geometryBox) return
+
+    node.updateWorldMatrix(true, false)
+    const nodeToRoot = new Matrix4().multiplyMatrices(rootInverse, node.matrixWorld)
+    box.union(geometryBox.clone().applyMatrix4(nodeToRoot))
+  })
+
+  return box
+}
+
+const getWorldBox = (object: Object3D): Box3 => {
+  object.updateWorldMatrix(true, false)
+  return new Box3().setFromObject(object)
+}
+
+const getTopDoorClipPlane = (topDoor: Object3D, frame: Object3D | undefined): Plane => {
   const topDoorBox = getWorldBox(topDoor)
   const frameBox = frame ? getWorldBox(frame) : null
   const frameTopY = frameBox?.max.y ?? topDoorBox.max.y + 0.12
@@ -89,9 +118,9 @@ const boxColliderFromBounds = (
 }
 
 const getGateFrameColliders = (
-  frame: Mesh | undefined,
-  topDoor: Mesh,
-  bottomDoor: Mesh,
+  frame: Object3D | undefined,
+  topDoor: Object3D,
+  bottomDoor: Object3D,
 ): GateFrameCollider[] => {
   if (!frame) return []
 
@@ -139,10 +168,10 @@ const prepareGate = (nodes: PlayfieldNodes): PreparedGate | null => {
   const bottomDoor = cloneAtWorldTransform(bottomSource)
   const topClipPlane = getTopDoorClipPlane(topDoor, frame)
 
-  topDoor.material = cloneMaterial(topDoor.material, topClipPlane)
-  bottomDoor.material = cloneMaterial(bottomDoor.material)
+  cloneMaterials(topDoor, topClipPlane)
+  cloneMaterials(bottomDoor)
 
-  const localBox = getGeometryBox(topSource).union(getGeometryBox(bottomSource))
+  const localBox = getLocalObjectBox(topSource).union(getLocalObjectBox(bottomSource))
   const localCenter = localBox.getCenter(new Vector3())
   const localSize = localBox.getSize(new Vector3())
   const quat = topDoor.quaternion.clone()
@@ -261,8 +290,8 @@ const PreparedMultiballGate = ({ gate }: { gate: PreparedGate }) => {
         <CuboidCollider
           sensor
           name="multiball-gate-sensor"
-          args={gate.sensorArgs}
-          position={gate.colliderPosition}
+          args={MULTIBALL_GATE_HALF_EXTENTS}
+          position={MULTIBALL_GATE_POSITION}
           rotation={gate.colliderRotation}
           onIntersectionEnter={handleSensorEnter}
         />
