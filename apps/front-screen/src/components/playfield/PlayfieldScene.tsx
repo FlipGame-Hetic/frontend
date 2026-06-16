@@ -8,12 +8,14 @@ import GlbTargetsManager from "./GlbTargetsManager"
 import GlbPlunger from "./GlbPlunger"
 import GlbSpinnerManager from "./GlbSpinnerManager"
 import GlbBallSaversManager from "./GlbBallSaversManager"
+import MultiballGate from "./MultiballGate"
 
 const PlayfieldScene = () => {
   const nodes = usePlayfieldModel()
   return (
     <>
       <StaticPlayfield nodes={nodes} />
+      <MultiballGate nodes={nodes} />
       <GlbBumpersManager nodes={nodes} />
       <GlbSlimBumpersManager nodes={nodes} />
       <GlbSlingshotsManager nodes={nodes} />

@@ -1,21 +1,7 @@
+import type { ComboDirection } from "@frontend/types"
 import type { RenderContext, Scene } from "../types"
 import { setPixel } from "../buffer"
 import { drawStringScaled, measureStringScaled } from "../font"
-
-type Side = "L" | "R"
-
-const COMBO_SEQUENCES: Record<number, Side[]> = {
-  1: ["L", "L", "R", "R"],
-  2: ["L", "L", "R", "R", "L"],
-  3: ["L", "L", "R", "R", "R", "R"],
-  4: ["L", "L", "R", "R", "R", "L"],
-  5: ["L", "L", "R", "L", "L", "R"],
-  6: ["L", "L", "R", "R", "L", "L", "R"],
-  7: ["L", "L", "R", "L", "R", "L", "L"],
-  8: ["R", "R", "R", "L", "L", "R", "L"],
-  12: ["R", "R", "R", "L"],
-  13: ["R", "R", "L"],
-}
 
 const COMBO_SCALE = 3
 const COMBO_SPACING = 2
@@ -47,10 +33,10 @@ function drawRightArrow(buffer: Float32Array, cols: number, x: number, y: number
 }
 
 export class ComboScene implements Scene {
-  private comboId = 0
+  private sequence: ComboDirection[] | null = null
 
-  update(data: { comboId: number }): void {
-    this.comboId = data.comboId
+  update(data: { sequence?: ComboDirection[] }): void {
+    this.sequence = data.sequence ?? null
   }
 
   render(ctx: RenderContext): void {
@@ -68,8 +54,8 @@ export class ComboScene implements Scene {
       drawStringScaled(buffer, cols, comboText, comboX, comboY, COMBO_SCALE, COMBO_SPACING, 1.0)
     }
 
-    const sequence = COMBO_SEQUENCES[this.comboId]
-    if (sequence) {
+    if (this.sequence) {
+      const sequence = this.sequence
       const totalW = sequence.length * ARROW_W + (sequence.length - 1) * ARROW_GAP
       let arrowX = Math.floor((cols - totalW) / 2)
       const arrowY = comboY + COMBO_SCALE * 7 + 6

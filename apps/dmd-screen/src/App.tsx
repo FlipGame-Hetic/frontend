@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useScreenHub } from "@frontend/ws"
 import { isScreenEvent } from "@frontend/types"
-import type { ScreenEnvelope, GamePhase } from "@frontend/types"
+import type { ComboDirection, ScreenEnvelope, GamePhase } from "@frontend/types"
 import { DEFAULT_DMD_CONFIG } from "@/dmd/config"
 import type { DmdConfig } from "@/dmd/config"
 import { DmdCanvas } from "@/dmd/DmdCanvas"
@@ -19,6 +19,13 @@ const TOKEN =
   (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_SCREEN_TOKEN ?? ""
 
 const COMBO_FLASH_MS = 1800
+
+const isComboDirection = (value: unknown): value is ComboDirection => value === "L" || value === "R"
+
+const parseComboSequence = (value: unknown): ComboDirection[] | undefined => {
+  if (!Array.isArray(value) || value.length === 0) return undefined
+  return value.every(isComboDirection) ? value : undefined
+}
 
 function App() {
   const [config, setConfig] = useState<DmdConfig>(DEFAULT_DMD_CONFIG)
@@ -72,13 +79,16 @@ function App() {
       }
 
       if (isScreenEvent(envelope, "ComboActivated")) {
-        const { combo_id, multiplier, duration_ms } = envelope.payload
-        scenes.playing.update({
-          multiplier,
-          multiplierDurationMs: duration_ms,
-          multiplierStartedAt: performance.now(),
-        })
-        scenes.combo.update({ comboId: combo_id })
+        const { multiplier, duration_ms, sequence } = envelope.payload
+        const comboSequence = parseComboSequence(sequence)
+        if (multiplier !== undefined && duration_ms !== undefined) {
+          scenes.playing.update({
+            multiplier,
+            multiplierDurationMs: duration_ms,
+            multiplierStartedAt: performance.now(),
+          })
+        }
+        scenes.combo.update({ sequence: comboSequence })
         if (comboTimerRef.current !== null) clearTimeout(comboTimerRef.current)
         setComboActive(true)
         comboTimerRef.current = setTimeout(() => {

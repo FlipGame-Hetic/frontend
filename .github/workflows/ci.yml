@@ -7,8 +7,12 @@ on:
 
 jobs:
   build:
-    name: Build
+    name: Build (${{ matrix.app }})
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app: [front-screen, back-screen, dmd-screen]
+    environment: ${{ matrix.app }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -17,7 +21,11 @@ jobs:
           node-version: 20
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm -r run build
+      - run: pnpm --filter @frontend/${{ matrix.app }} run build
+        env:
+          VITE_WS_URL: ${{ secrets.VITE_WS_URL }}
+          VITE_SCREEN_HUB_URL: ${{ secrets.VITE_SCREEN_HUB_URL }}
+          VITE_SCREEN_TOKEN: ${{ secrets.VITE_SCREEN_TOKEN }}
 
   unit-tests:
     name: Unit Tests

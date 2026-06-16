@@ -1,24 +1,22 @@
 import { useCallback, useMemo } from "react"
 import type { CollisionPayload } from "@react-three/rapier"
-import { RigidBody } from "@react-three/rapier"
+import { CuboidCollider, RigidBody } from "@react-three/rapier"
 import { RAIL_COLLISION_GROUPS } from "./railCollisionGroups"
-import { useDebugControls } from "@/debug/debugContext"
-import useMultiballStore from "@/stores/useMultiballStore"
-import type { Vector3Tuple } from "three"
 import { getBallId } from "@/components/balls/ballUserData"
 import { cloneAtWorldTransform, type PlayfieldNodes } from "./usePlayfieldModel"
-import { enterRail, scheduleExitRail } from "./railState"
+import { enterRail, exitRailNow } from "./railState"
+import { RAIL_ENTRY_SENSORS, RAIL_EXIT_SENSORS, type RailSensorConfig } from "./railConfig"
 import { createBonusZoneHitTester } from "./bonusZoneHitTest"
-import {
-  BONUS_ZONE_RESTITUTION,
-  BONUS_ZONE_COOLDOWN_MS,
-  BONUS_ZONE_SPAWN_INTERVAL_MS,
-  MULTIBALL_SPAWN_POSITION1,
-  MULTIBALL_SPAWN_POSITION2,
-} from "./bonusZoneConfig"
+import { BONUS_ZONE_RESTITUTION } from "./bonusZoneConfig"
+import { useBonusZoneHitRegistrar } from "./bonusZoneHits"
+
+const getBallIdFromPayload = ({ other }: CollisionPayload): string | undefined => {
+  if (other.rigidBodyObject?.name !== "ball") return undefined
+  return getBallId(other.rigidBodyObject.userData)
+}
 
 const StaticPlayfield = ({ nodes }: { nodes: PlayfieldNodes }) => {
-  const { bounceThreshold, ballCount } = useDebugControls()
+  const registerBonusHit = useBonusZoneHitRegistrar()
 
   const clones = useMemo(
     () => ({
@@ -34,18 +32,19 @@ const StaticPlayfield = ({ nodes }: { nodes: PlayfieldNodes }) => {
     [clones.bonusZone],
   )
 
-  const handleRailEnter = useCallback(({ other }: CollisionPayload) => {
-    if (other.rigidBodyObject?.name !== "ball") return
-    const ballId = getBallId(other.rigidBodyObject.userData)
-    if (!ballId) return
-    enterRail(ballId)
-  }, [])
+  const handleRailSensorEnter = useCallback(
+    (sensor: RailSensorConfig, payload: CollisionPayload) => {
+      const ballId = getBallIdFromPayload(payload)
+      if (!ballId) return
+      enterRail(ballId, sensor.source)
+    },
+    [],
+  )
 
-  const handleRailExit = useCallback(({ other }: CollisionPayload) => {
-    if (other.rigidBodyObject?.name !== "ball") return
-    const ballId = getBallId(other.rigidBodyObject.userData)
+  const handleRailEndSensorEnter = useCallback((payload: CollisionPayload) => {
+    const ballId = getBallIdFromPayload(payload)
     if (!ballId) return
-    scheduleExitRail(ballId)
+    exitRailNow(ballId)
   }, [])
 
   const handleBonusZoneCollision = useCallback(
@@ -56,21 +55,9 @@ const StaticPlayfield = ({ nodes }: { nodes: PlayfieldNodes }) => {
       const ballPosition = other.rigidBody?.translation()
       if (!ballPosition || !bonusZoneHitTester.containsPoint(ballPosition)) return
 
-      const pos1: Vector3Tuple = [...MULTIBALL_SPAWN_POSITION1]
-      const pos2: Vector3Tuple = [...MULTIBALL_SPAWN_POSITION2]
-      useMultiballStore
-        .getState()
-        .registerBounce(
-          ballId,
-          bounceThreshold,
-          pos1,
-          pos2,
-          BONUS_ZONE_SPAWN_INTERVAL_MS,
-          BONUS_ZONE_COOLDOWN_MS,
-          ballCount,
-        )
+      registerBonusHit(ballId)
     },
-    [bounceThreshold, ballCount, bonusZoneHitTester],
+    [bonusZoneHitTester, registerBonusHit],
   )
 
   return (
@@ -103,18 +90,39 @@ const StaticPlayfield = ({ nodes }: { nodes: PlayfieldNodes }) => {
       )}
 
       {clones.rails.length > 0 && (
-        <RigidBody
-          type="fixed"
-          colliders="trimesh"
-          collisionGroups={RAIL_COLLISION_GROUPS}
-          onCollisionEnter={handleRailEnter}
-          onCollisionExit={handleRailExit}
-        >
+        <RigidBody type="fixed" colliders="trimesh" collisionGroups={RAIL_COLLISION_GROUPS}>
           {clones.rails.map((mesh) => (
             <primitive key={mesh.uuid} object={mesh} />
           ))}
         </RigidBody>
       )}
+
+      <RigidBody type="fixed" colliders={false}>
+        {RAIL_ENTRY_SENSORS.map((sensor) => (
+          <CuboidCollider
+            key={sensor.id}
+            sensor
+            name={sensor.id}
+            args={sensor.halfExtents}
+            position={sensor.position}
+            rotation={sensor.rotation}
+            onIntersectionEnter={(payload) => {
+              handleRailSensorEnter(sensor, payload)
+            }}
+          />
+        ))}
+        {RAIL_EXIT_SENSORS.map((sensor) => (
+          <CuboidCollider
+            key={sensor.id}
+            sensor
+            name={sensor.id}
+            args={sensor.halfExtents}
+            position={sensor.position}
+            rotation={sensor.rotation}
+            onIntersectionEnter={handleRailEndSensorEnter}
+          />
+        ))}
+      </RigidBody>
     </>
   )
 }

@@ -4,6 +4,7 @@ import type { Object3D } from "three"
 import { Mesh, Quaternion, Vector3 } from "three"
 
 const PLAYFIELD_OFFSET: [number, number, number] = [0, -12, 0]
+type MultiballGateBucket = "multiballGateFrame" | "multiballGateDoors"
 
 export interface PlayfieldNodes {
   cabinet: Mesh[]
@@ -23,10 +24,14 @@ export interface PlayfieldNodes {
   lockedBall: Mesh[]
   spinner: Mesh[]
   rails: Mesh[]
+  multiballGateFrame: Object3D[]
+  multiballGateDoors: Object3D[]
 }
 
 export const classifyMesh = (name: string): keyof PlayfieldNodes | null => {
   if (name === "central_bonus_zone_inter") return "bonusZone"
+  if (name === "arch") return "multiballGateFrame"
+  if (name === "door_top" || name === "door_bottom") return "multiballGateDoors"
   if (name === "spinner") return "spinner"
   if (name === "tip" || /^ring_\d+$/.test(name)) return "plunger"
   if (name.includes("_ball_saver")) return "ballSavers"
@@ -45,8 +50,8 @@ export const classifyMesh = (name: string): keyof PlayfieldNodes | null => {
   return "cabinet"
 }
 
-const isVisibleInHierarchy = (mesh: Mesh): boolean => {
-  let current: Object3D | null = mesh
+const isVisibleInHierarchy = (object: Object3D): boolean => {
+  let current: Object3D | null = object
   while (current) {
     if (!current.visible) return false
     current = current.parent
@@ -58,6 +63,51 @@ const isMesh = (node: Object3D): node is Mesh => {
   return node instanceof Mesh
 }
 
+const isMultiballGateBucket = (
+  bucket: keyof PlayfieldNodes | null,
+): bucket is MultiballGateBucket => {
+  return bucket === "multiballGateFrame" || bucket === "multiballGateDoors"
+}
+
+const hasMultiballGateAncestor = (node: Object3D): boolean => {
+  let current = node.parent
+  while (current) {
+    if (isMultiballGateBucket(classifyMesh(current.name))) return true
+    current = current.parent
+  }
+  return false
+}
+
+const applyShadowsToMeshes = (object: Object3D) => {
+  object.traverse((node) => {
+    if (!isMesh(node)) return
+    node.castShadow = true
+    node.receiveShadow = true
+  })
+}
+
+const createEmptyPlayfieldNodes = (): PlayfieldNodes => ({
+  cabinet: [],
+  playfield: [],
+  bonusZone: [],
+  flippers: [],
+  bumpers: [],
+  bumperRubbers: [],
+  slimBumpers: [],
+  slingshots: [],
+  slingshotRubbers: [],
+  targets: [],
+  ballSavers: [],
+  plunger: [],
+  overhead: [],
+  tunnels: [],
+  lockedBall: [],
+  spinner: [],
+  rails: [],
+  multiballGateFrame: [],
+  multiballGateDoors: [],
+})
+
 const applyWorldOffset = (v: Vector3): [number, number, number] => {
   return [v.x + PLAYFIELD_OFFSET[0], v.y + PLAYFIELD_OFFSET[1], v.z + PLAYFIELD_OFFSET[2]]
 }
@@ -68,13 +118,13 @@ export const getWorldPosition = (mesh: Mesh): [number, number, number] => {
   return applyWorldOffset(pos)
 }
 
-export const cloneAtWorldTransform = (mesh: Mesh): Mesh => {
-  mesh.updateWorldMatrix(true, false)
-  const clone = mesh.clone()
+export const cloneAtWorldTransform = <T extends Object3D>(object: T): T => {
+  object.updateWorldMatrix(true, false)
+  const clone = object.clone()
   const pos = new Vector3()
   const quat = new Quaternion()
   const meshScale = new Vector3()
-  mesh.matrixWorld.decompose(pos, quat, meshScale)
+  object.matrixWorld.decompose(pos, quat, meshScale)
   const [wx, wy, wz] = applyWorldOffset(pos)
   clone.position.set(wx, wy, wz)
   clone.quaternion.copy(quat)
@@ -116,37 +166,32 @@ export const buildModuleWithRubber = (
   return { position, baseClone: cloneWithWorldOrientation(base), rubberClone }
 }
 
-export const usePlayfieldModel = (): PlayfieldNodes => {
-  const { scene } = useGLTF("/models/playfield_x15.glb")
-  return useMemo(() => {
-    const result: PlayfieldNodes = {
-      cabinet: [],
-      playfield: [],
-      bonusZone: [],
-      flippers: [],
-      bumpers: [],
-      bumperRubbers: [],
-      slimBumpers: [],
-      slingshots: [],
-      slingshotRubbers: [],
-      targets: [],
-      ballSavers: [],
-      plunger: [],
-      overhead: [],
-      tunnels: [],
-      lockedBall: [],
-      spinner: [],
-      rails: [],
-    }
-    scene.traverse((node) => {
-      if (!isMesh(node)) return
-      if (!isVisibleInHierarchy(node)) return
-      node.castShadow = true
-      node.receiveShadow = true
-      const bucket = classifyMesh(node.name)
-      if (!bucket) return
+export const collectPlayfieldNodes = (scene: Object3D): PlayfieldNodes => {
+  const result = createEmptyPlayfieldNodes()
+
+  scene.traverse((node) => {
+    if (!isVisibleInHierarchy(node)) return
+
+    const bucket = classifyMesh(node.name)
+    if (isMultiballGateBucket(bucket)) {
+      applyShadowsToMeshes(node)
       result[bucket].push(node)
-    })
-    return result
-  }, [scene])
+      return
+    }
+
+    if (hasMultiballGateAncestor(node)) return
+    if (!isMesh(node)) return
+
+    node.castShadow = true
+    node.receiveShadow = true
+    if (!bucket) return
+    result[bucket].push(node)
+  })
+
+  return result
+}
+
+export const usePlayfieldModel = (): PlayfieldNodes => {
+  const { scene } = useGLTF("/models/playfield.glb")
+  return useMemo(() => collectPlayfieldNodes(scene), [scene])
 }

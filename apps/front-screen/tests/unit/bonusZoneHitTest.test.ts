@@ -10,7 +10,7 @@ import { cloneAtWorldTransform } from "@/components/playfield/usePlayfieldModel"
 
 const PLAYFIELD_MODEL_PATH = join(
   dirname(fileURLToPath(import.meta.url)),
-  "../../public/models/playfield_x15.glb",
+  "../../public/models/playfield.glb",
 )
 
 function isMesh(node: Object3D): node is Mesh {
