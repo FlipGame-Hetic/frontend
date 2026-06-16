@@ -1,11 +1,9 @@
 export const RECONNECT_DELAY_MS = 3000
-const DEFAULT_WS_URL = "ws://localhost:8080/ws/bridge"
+export const DEFAULT_WS_URL = "ws://localhost:8080/ws/bridge"
 export const DEFAULT_SCREEN_HUB_URL = "ws://localhost:8080"
 
 type WsEnvKey = "VITE_WS_URL" | "VITE_SCREEN_HUB_URL"
-type WsEnv = Partial<Record<WsEnvKey, string>> & {
-  PROD?: boolean
-}
+type WsEnv = Partial<Record<WsEnvKey, string>>
 
 const readEnv = (): WsEnv => {
   return (import.meta as unknown as { env?: WsEnv }).env ?? {}
@@ -20,10 +18,7 @@ const resolveUrl = (key: WsEnvKey, fallback: string, override?: string): string 
   const env = readEnv()
   const configuredUrl = cleanUrl(override) ?? cleanUrl(env[key])
 
-  if (configuredUrl) return configuredUrl
-  if (!env.PROD) return fallback
-
-  throw new Error(`Missing ${key}. Configure it at build time for production deploys.`)
+  return configuredUrl ?? fallback
 }
 
 export const resolveGameWsUrl = (override?: string): string => {
