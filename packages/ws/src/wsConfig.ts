@@ -36,8 +36,10 @@ const readRuntimeHostname = (): string => {
 const defaultScreenHubUrl = (): string => {
   const location = readLocation()
   const protocol = location?.protocol === "https:" ? "wss:" : "ws:"
+  const hostname = readRuntimeHostname()
+  const port = isLoopbackHostname(hostname) ? `:${DEFAULT_WS_PORT}` : ""
 
-  return `${protocol}//${readRuntimeHostname()}:${DEFAULT_WS_PORT}`
+  return `${protocol}//${hostname}${port}`
 }
 
 const defaultGameWsUrl = (): string => {
