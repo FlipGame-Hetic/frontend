@@ -7,7 +7,7 @@ import { classifyMesh } from "@/components/playfield/usePlayfieldModel"
 
 const PLAYFIELD_MODEL_PATH = join(
   dirname(fileURLToPath(import.meta.url)),
-  "../../public/models/playfield_x15.glb",
+  "../../public/models/playfield.glb",
 )
 
 describe("usePlayfieldModel — ball saver classification", () => {
