@@ -1,7 +1,7 @@
 import { getBallId } from "@/components/balls/ballUserData"
 import type { PositionType } from "@/types/worldTypes"
 import { useFrame } from "@react-three/fiber"
-import type { CollisionEnterPayload, CollisionPayload } from "@react-three/rapier"
+import type { CollisionEnterPayload, CollisionPayload, RapierRigidBody } from "@react-three/rapier"
 import { CuboidCollider, RigidBody } from "@react-three/rapier"
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react"
 import type { Material, Object3D } from "three"
@@ -16,6 +16,8 @@ import { useBonusZoneHitRegistrar } from "./bonusZoneHits"
 import {
   advanceMultiballGateState,
   createOpenMultiballGateState,
+  hasClearedMultiballGate,
+  isMultiballGateClosingVelocity,
   shouldCloseMultiballGateFromSensor,
   triggerMultiballGateClose,
 } from "./multiballGateRuntime"
@@ -98,7 +100,7 @@ const getTopDoorClipPlane = (topDoor: Object3D, frame: Object3D | undefined): Pl
   const frameTopY = frameBox?.max.y ?? topDoorBox.max.y + 0.12
   const clipY = topDoorBox.max.y + (frameTopY - topDoorBox.max.y) * 0.5
 
-  return new Plane(new Vector3(0, 1, 0), -clipY)
+  return new Plane(new Vector3(0, -1, 0), clipY)
 }
 
 const boxColliderFromBounds = (
@@ -226,6 +228,7 @@ const PreparedMultiballGate = ({ gate }: { gate: PreparedGate }) => {
   const registerBonusHit = useBonusZoneHitRegistrar()
   const gateStateRef = useRef(createOpenMultiballGateState())
   const colliderActiveRef = useRef(false)
+  const pendingGateBallsRef = useRef(new Map<string, RapierRigidBody>())
   const [colliderActive, setColliderActive] = useState(false)
 
   const syncColliderActive = useCallback((active: boolean) => {
@@ -234,25 +237,53 @@ const PreparedMultiballGate = ({ gate }: { gate: PreparedGate }) => {
     setColliderActive(active)
   }, [])
 
+  const syncGateState = useCallback(
+    (state: ReturnType<typeof createOpenMultiballGateState>) => {
+      gateStateRef.current = state
+      syncColliderActive(state.colliderActive)
+      applyGateAnimation(gate, state.closedAmount)
+    },
+    [gate, syncColliderActive],
+  )
+
   useLayoutEffect(() => {
-    gateStateRef.current = createOpenMultiballGateState()
-    colliderActiveRef.current = false
-    applyGateAnimation(gate, 0)
+    const openState = createOpenMultiballGateState()
+    gateStateRef.current = openState
+    colliderActiveRef.current = openState.colliderActive
+    pendingGateBallsRef.current.clear()
+    applyGateAnimation(gate, openState.closedAmount)
   }, [gate])
 
   const handleSensorEnter = useCallback(
     (payload: CollisionPayload) => {
       if (!shouldCloseMultiballGateFromSensor(payload)) return
+      if (!payload.other.rigidBody) return
+
+      const ballId = getBallId(payload.other.rigidBodyObject?.userData)
+      if (!ballId) return
 
       const now = performance.now()
       const current = advanceMultiballGateState(gateStateRef.current, now)
-      const next = triggerMultiballGateClose(current, now)
-      gateStateRef.current = next
-      syncColliderActive(next.colliderActive)
-      applyGateAnimation(gate, next.closedAmount)
+      syncGateState(current)
+      if (current.phase !== "open") return
+
+      if (hasClearedMultiballGate(payload.other.rigidBody.translation())) {
+        pendingGateBallsRef.current.clear()
+        syncGateState(triggerMultiballGateClose(current, now))
+        return
+      }
+
+      pendingGateBallsRef.current.set(ballId, payload.other.rigidBody)
     },
-    [gate, syncColliderActive],
+    [syncGateState],
   )
+
+  const handleSensorExit = useCallback((payload: CollisionPayload) => {
+    const ballId = getBallId(payload.other.rigidBodyObject?.userData)
+    if (!ballId) return
+
+    pendingGateBallsRef.current.delete(ballId)
+  }, [])
 
   const handleGateCollision = useCallback(
     ({ other }: CollisionEnterPayload) => {
@@ -265,10 +296,23 @@ const PreparedMultiballGate = ({ gate }: { gate: PreparedGate }) => {
   )
 
   useFrame(() => {
-    const next = advanceMultiballGateState(gateStateRef.current, performance.now())
-    gateStateRef.current = next
-    syncColliderActive(next.colliderActive)
-    applyGateAnimation(gate, next.closedAmount)
+    const now = performance.now()
+    let next = advanceMultiballGateState(gateStateRef.current, now)
+
+    if (next.phase === "open" && pendingGateBallsRef.current.size > 0) {
+      for (const body of pendingGateBallsRef.current.values()) {
+        if (
+          hasClearedMultiballGate(body.translation()) &&
+          isMultiballGateClosingVelocity(body.linvel())
+        ) {
+          pendingGateBallsRef.current.clear()
+          next = triggerMultiballGateClose(next, now)
+          break
+        }
+      }
+    }
+
+    syncGateState(next)
   })
 
   return (
@@ -294,6 +338,7 @@ const PreparedMultiballGate = ({ gate }: { gate: PreparedGate }) => {
           position={MULTIBALL_GATE_POSITION}
           rotation={gate.colliderRotation}
           onIntersectionEnter={handleSensorEnter}
+          onIntersectionExit={handleSensorExit}
         />
         {colliderActive && (
           <CuboidCollider

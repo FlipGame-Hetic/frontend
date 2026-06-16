@@ -1,6 +1,7 @@
 import type { CollisionPayload } from "@react-three/rapier"
 import {
   MULTIBALL_GATE_CLOSE_DURATION_MS,
+  MULTIBALL_GATE_CLOSE_TRIGGER_Z,
   MULTIBALL_GATE_OPEN_DURATION_MS,
   MULTIBALL_GATE_REOPEN_DELAY_MS,
   MULTIBALL_GATE_TRIGGER_MIN_Z_VELOCITY,
@@ -20,6 +21,10 @@ export interface MultiballGateState {
 export interface MultiballGateTiming {
   closeDurationMs: number
   openDurationMs: number
+}
+
+interface MultiballGateZVector {
+  z: number
 }
 
 const DEFAULT_TIMING: MultiballGateTiming = {
@@ -46,7 +51,7 @@ export const triggerMultiballGateClose = (
   now: number,
   reopenDelayMs = MULTIBALL_GATE_REOPEN_DELAY_MS,
 ): MultiballGateState => {
-  if (state.phase === "closing" || state.phase === "closed") return state
+  if (state.phase !== "open") return state
 
   return {
     phase: "closing",
@@ -114,7 +119,21 @@ export const shouldCloseMultiballGateFromSensor = (
   if (payload.other.rigidBodyObject?.name !== "ball") return false
 
   const velocity = payload.other.rigidBody?.linvel()
-  if (!velocity) return false
+  return isMultiballGateClosingVelocity(velocity, minZVelocity)
+}
 
-  return velocity.z > minZVelocity
+export const isMultiballGateClosingVelocity = (
+  velocity: MultiballGateZVector | null | undefined,
+  minZVelocity = MULTIBALL_GATE_TRIGGER_MIN_Z_VELOCITY,
+): boolean => {
+  if (!velocity) return false
+  return velocity.z < -Math.abs(minZVelocity)
+}
+
+export const hasClearedMultiballGate = (
+  position: MultiballGateZVector | null | undefined,
+  triggerZ = MULTIBALL_GATE_CLOSE_TRIGGER_Z,
+): boolean => {
+  if (!position) return false
+  return position.z <= triggerZ
 }
