@@ -14,14 +14,14 @@ export default function GameOverScene() {
         </div>
 
         <div className="flex flex-col gap-4">
-          <div className="font-display text-[clamp(3.5rem,11vw,9.5rem)] leading-none font-bold tracking-[0.1em] text-[#C5003C] uppercase [text-shadow:3px_0_rgba(243,230,0,0.5),-3px_0_rgba(85,234,212,0.4),0_5px_0_rgba(0,0,0,0.95)]">
+          <div className="font-display text-[clamp(3.5rem,11vw,9.5rem)] leading-none font-bold tracking-widest text-[#C5003C] uppercase [text-shadow:3px_0_rgba(243,230,0,0.5),-3px_0_rgba(85,234,212,0.4),0_5px_0_rgba(0,0,0,0.95)]">
             GAME OVER
           </div>
 
           <div className="h-px w-40 bg-[rgba(197,0,60,0.25)]" />
 
           <div className="flex items-baseline gap-4">
-            <div className="font-mono text-[clamp(2rem,5.5vw,4.5rem)] tracking-[0.1em] text-[#55EAD4] tabular-nums [text-shadow:2px_3px_0px_rgba(0,0,0,0.95)]">
+            <div className="font-display text-[clamp(2rem,5.5vw,4.5rem)] font-bold tracking-widest text-[#55EAD4] tabular-nums [text-shadow:2px_3px_0px_rgba(0,0,0,0.95)]">
               {String(score)
                 .padStart(6, "0")
                 .replace(/(\d{3})(\d{3})/, "$1.$2")}

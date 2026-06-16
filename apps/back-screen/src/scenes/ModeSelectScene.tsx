@@ -31,22 +31,22 @@ export default function ModeSelectScene() {
                 >
                   <div
                     className={cn(
-                      "w-[3px] shrink-0 transition-[height] duration-300 ease-in-out",
-                      isActive ? "h-9 bg-[#F3E600]" : "h-[14px] bg-[rgba(243,230,0,0.2)]",
+                      "w-0.75 shrink-0 transition-[height] duration-300 ease-in-out",
+                      isActive ? "h-9 bg-[#F3E600]" : "h-3.5 bg-[rgba(243,230,0,0.2)]",
                     )}
                   />
                   <div
                     className={cn(
-                      "font-display text-[clamp(1.4rem,3.2vw,2.6rem)] font-bold tracking-[0.1em] uppercase",
+                      "font-display text-[clamp(1.4rem,3.2vw,2.6rem)] font-bold tracking-widest uppercase",
                       isActive
-                        ? "text-[#F3E600] [text-shadow:2px_0_rgba(197,0,60,0.4),_-2px_0_rgba(85,234,212,0.35)]"
+                        ? "text-[#F3E600] [text-shadow:2px_0_rgba(197,0,60,0.4),-2px_0_rgba(85,234,212,0.35)]"
                         : "text-[rgba(243,230,0,0.4)]",
                     )}
                   >
                     {option.label}
                   </div>
                   {isLocked && (
-                    <div className="ml-auto shrink-0 border border-[rgba(243,230,0,0.1)] px-[6px] py-[2px] font-mono text-[clamp(0.2rem,0.38vw,0.28rem)] tracking-widest text-[rgba(243,230,0,0.25)] uppercase">
+                    <div className="ml-auto shrink-0 border border-[rgba(243,230,0,0.1)] px-1.5 py-0.5 font-mono text-[clamp(0.2rem,0.38vw,0.28rem)] tracking-widest text-[rgba(243,230,0,0.25)] uppercase">
                       BIENTÔT
                     </div>
                   )}

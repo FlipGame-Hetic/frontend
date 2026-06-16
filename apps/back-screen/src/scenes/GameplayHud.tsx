@@ -26,7 +26,7 @@ export default function GameplayHud() {
           <div className="font-mono text-[clamp(0.3rem,0.6vw,0.42rem)] tracking-widest text-[rgba(243,230,0,0.35)] uppercase">
             SCORE
           </div>
-          <div className="font-mono text-[clamp(3.5rem,10vw,9rem)] leading-none tracking-[0.06em] text-[#55EAD4] tabular-nums [text-shadow:2px_3px_0px_rgba(0,0,0,0.95)]">
+          <div className="font-display text-[clamp(3.5rem,10vw,9rem)] leading-none font-bold tracking-[0.06em] text-[#55EAD4] tabular-nums [text-shadow:3px_0_rgba(197,0,60,0.55),-3px_0_rgba(85,234,212,0.5),0_4px_0_rgba(0,0,0,0.95)]">
             {formatScore(score)}
           </div>
           <div className="font-mono text-[clamp(0.5rem,1vw,0.7rem)] tracking-widest text-[rgba(85,234,212,0.3)] uppercase">
@@ -52,7 +52,7 @@ function BallIndicator({ current, total }: { current: number; total: number }) {
       {Array.from({ length: total }, (_, i) => (
         <div
           key={i}
-          className="h-[9px] w-[9px] rounded-full border border-[rgba(243,230,0,0.35)]"
+          className="size-2.25 rounded-full border border-[rgba(243,230,0,0.35)]"
           style={{
             background: i < current ? "#F3E600" : "transparent",
             boxShadow: i < current ? "0 0 6px rgba(243,230,0,0.5)" : "none",

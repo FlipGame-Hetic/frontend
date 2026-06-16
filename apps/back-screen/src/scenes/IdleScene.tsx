@@ -22,7 +22,7 @@ export default function IdleScene() {
 
         <div className="flex items-center gap-3">
           <div className="h-px flex-1 bg-[rgba(243,230,0,0.1)]" />
-          <div className="h-[4px] w-[4px] bg-[rgba(243,230,0,0.4)]" />
+          <div className="size-1 bg-[rgba(243,230,0,0.4)]" />
           <div className="h-px w-16 bg-[rgba(243,230,0,0.1)]" />
         </div>
 
@@ -31,7 +31,7 @@ export default function IdleScene() {
             <div className="font-mono text-[clamp(0.3rem,0.6vw,0.42rem)] tracking-[0.2em] text-[rgba(243,230,0,0.25)] uppercase">
               {"// MEILLEUR SCORE //"}
             </div>
-            <div className="font-mono text-[clamp(1.2rem,2.6vw,2rem)] tracking-[0.12em] text-[rgba(243,230,0,0.18)] tabular-nums">
+            <div className="font-display text-[clamp(1.2rem,2.6vw,2rem)] font-bold tracking-[0.12em] text-[rgba(243,230,0,0.18)] tabular-nums">
               000.000
             </div>
           </div>
