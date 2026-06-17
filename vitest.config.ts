@@ -26,6 +26,13 @@ export default defineConfig({
         },
       },
       {
+        extends: "packages/ws/vitest.config.ts",
+        test: {
+          root: "packages/ws",
+          include: ["packages/ws/tests/**/*.test.ts"],
+        },
+      },
+      {
         extends: "packages/ui/vitest.config.ts",
         test: {
           root: "packages/ui",
