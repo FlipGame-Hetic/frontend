@@ -1,10 +1,11 @@
 import { useGLTF } from "@react-three/drei"
 import { useMemo } from "react"
-import type { Object3D } from "three"
+import type { AnimationClip, Object3D } from "three"
 import { Mesh, Quaternion, Vector3 } from "three"
 
 const PLAYFIELD_OFFSET: [number, number, number] = [0, -12, 0]
 type MultiballGateBucket = "multiballGateFrame" | "multiballGateDoors"
+type AnimatedGroupBucket = "animatedGroups"
 
 export interface PlayfieldNodes {
   cabinet: Mesh[]
@@ -26,9 +27,16 @@ export interface PlayfieldNodes {
   rails: Mesh[]
   multiballGateFrame: Object3D[]
   multiballGateDoors: Object3D[]
+  animatedGroups: Object3D[]
+}
+
+export interface PlayfieldModel {
+  nodes: PlayfieldNodes
+  animations: AnimationClip[]
 }
 
 export const classifyMesh = (name: string): keyof PlayfieldNodes | null => {
+  if (name === "globe") return "animatedGroups"
   if (name === "central_bonus_zone_inter") return "bonusZone"
   if (name === "arch") return "multiballGateFrame"
   if (name === "door_top" || name === "door_bottom") return "multiballGateDoors"
@@ -69,13 +77,30 @@ const isMultiballGateBucket = (
   return bucket === "multiballGateFrame" || bucket === "multiballGateDoors"
 }
 
-const hasMultiballGateAncestor = (node: Object3D): boolean => {
+const isAnimatedGroupBucket = (
+  bucket: keyof PlayfieldNodes | null,
+): bucket is AnimatedGroupBucket => {
+  return bucket === "animatedGroups"
+}
+
+const hasBucketAncestor = (
+  node: Object3D,
+  matchesBucket: (bucket: keyof PlayfieldNodes | null) => boolean,
+): boolean => {
   let current = node.parent
   while (current) {
-    if (isMultiballGateBucket(classifyMesh(current.name))) return true
+    if (matchesBucket(classifyMesh(current.name))) return true
     current = current.parent
   }
   return false
+}
+
+const hasMultiballGateAncestor = (node: Object3D): boolean => {
+  return hasBucketAncestor(node, isMultiballGateBucket)
+}
+
+const hasAnimatedGroupAncestor = (node: Object3D): boolean => {
+  return hasBucketAncestor(node, isAnimatedGroupBucket)
 }
 
 const applyShadowsToMeshes = (object: Object3D) => {
@@ -106,6 +131,7 @@ const createEmptyPlayfieldNodes = (): PlayfieldNodes => ({
   rails: [],
   multiballGateFrame: [],
   multiballGateDoors: [],
+  animatedGroups: [],
 })
 
 const applyWorldOffset = (v: Vector3): [number, number, number] => {
@@ -173,12 +199,19 @@ export const collectPlayfieldNodes = (scene: Object3D): PlayfieldNodes => {
     if (!isVisibleInHierarchy(node)) return
 
     const bucket = classifyMesh(node.name)
+    if (isAnimatedGroupBucket(bucket)) {
+      applyShadowsToMeshes(node)
+      result[bucket].push(node)
+      return
+    }
+
     if (isMultiballGateBucket(bucket)) {
       applyShadowsToMeshes(node)
       result[bucket].push(node)
       return
     }
 
+    if (hasAnimatedGroupAncestor(node)) return
     if (hasMultiballGateAncestor(node)) return
     if (!isMesh(node)) return
 
@@ -191,7 +224,9 @@ export const collectPlayfieldNodes = (scene: Object3D): PlayfieldNodes => {
   return result
 }
 
-export const usePlayfieldModel = (): PlayfieldNodes => {
-  const { scene } = useGLTF("/models/playfield.glb")
-  return useMemo(() => collectPlayfieldNodes(scene), [scene])
+export const usePlayfieldModel = (): PlayfieldModel => {
+  const { scene, animations } = useGLTF("/models/playfield.glb")
+  const nodes = useMemo(() => collectPlayfieldNodes(scene), [scene])
+
+  return useMemo(() => ({ nodes, animations }), [animations, nodes])
 }

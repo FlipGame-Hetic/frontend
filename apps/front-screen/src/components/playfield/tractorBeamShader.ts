@@ -16,6 +16,7 @@ void main() {
 
 export const FRAGMENT_SHADER = /* glsl */ `
 uniform float uTime;
+uniform float uHdr;
 uniform vec3 uColor;
 
 varying vec2 vUv;
@@ -54,6 +55,6 @@ void main() {
 
   vec3 color = uColor * (1.0 + rings * 0.6);
 
-  gl_FragColor = vec4(color * intensity, intensity);
+  gl_FragColor = vec4(color * intensity * uHdr, intensity);
 }
 `

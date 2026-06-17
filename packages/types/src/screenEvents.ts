@@ -12,7 +12,7 @@ export const SCREEN_EVENT_TYPES = {
   MenuNext: "menu_next",
   MenuPrev: "menu_prev",
   MenuBack: "menu_back",
-  UltimateActivated: "ultimate_activated",
+  UltimateActivated: "UltimateActivated",
   BumperHit: "bumper_hit",
   SlingshotHit: "slingshot_hit",
   BallLost: "ball_lost",
@@ -20,11 +20,15 @@ export const SCREEN_EVENT_TYPES = {
   MultiballTriggered: "MultiballTriggered",
   ComboActivated: "ComboActivated",
   MultiplierUpdate: "MultiplierUpdate",
+  BossUpdate: "BossUpdate",
   BackBumper: "Bumper",
   BackBumperTriangle: "BumperTriangle",
   BackPortalUsed: "PortalUsed",
   BackFlipperLeft: "FlipperLeft",
   BackFlipperRight: "FlipperRight",
+  PlungerCharge: "PlungerCharge",
+  CapacityL2: "CapacityL2",
+  CapacityR2: "CapacityR2",
   BackBallSaverReady: "BallSaverReady",
   RailStart: "RailStart",
   RailEnd: "RailEnd",
@@ -99,8 +103,8 @@ export interface MenuBackEvent {
 }
 
 export interface UltimateActivatedEvent {
-  event_type: "ultimate_activated"
-  payload: { player: number }
+  event_type: "UltimateActivated"
+  payload: { player_id: string }
 }
 
 export interface BumperHitEvent {
@@ -134,15 +138,18 @@ export interface ComboActivatedEvent {
   event_type: "ComboActivated"
   payload: {
     bonus_pts: number
-    sequence: ComboDirection[]
-    multiplier?: number
-    duration_ms?: number
+    sequence: string[]
   }
 }
 
 export interface MultiplierUpdateEvent {
   event_type: "MultiplierUpdate"
   payload: { multiplier: number; duration_ms?: number }
+}
+
+export interface BossUpdateEvent {
+  event_type: "BossUpdate"
+  payload: { boss_id: number; boss_hp: number; boss_max_hp: number }
 }
 
 export interface BackBumperEvent {
@@ -162,12 +169,27 @@ export interface BackPortalUsedEvent {
 
 export interface BackFlipperLeftEvent {
   event_type: "FlipperLeft"
-  payload: Record<string, never>
+  payload: { state: number }
 }
 
 export interface BackFlipperRightEvent {
   event_type: "FlipperRight"
-  payload: Record<string, never>
+  payload: { state: number }
+}
+
+export interface PlungerChargeEvent {
+  event_type: "PlungerCharge"
+  payload: { state: number }
+}
+
+export interface CapacityL2Event {
+  event_type: "CapacityL2"
+  payload: null
+}
+
+export interface CapacityR2Event {
+  event_type: "CapacityR2"
+  payload: null
 }
 
 export interface BackBallSaverReadyEvent {
@@ -234,11 +256,15 @@ export type ScreenEvent =
   | MultiballTriggeredEvent
   | ComboActivatedEvent
   | MultiplierUpdateEvent
+  | BossUpdateEvent
   | BackBumperEvent
   | BackBumperTriangleEvent
   | BackPortalUsedEvent
   | BackFlipperLeftEvent
   | BackFlipperRightEvent
+  | PlungerChargeEvent
+  | CapacityL2Event
+  | CapacityR2Event
   | BackBallSaverReadyEvent
   | RailStartEvent
   | RailEndEvent

@@ -24,7 +24,7 @@ import {
 } from "./slimBumperConfig"
 import { BALL_MIN_NORMAL_SPEED, BALL_MAX_NORMAL_SPEED } from "../balls/ballConfig"
 import useScreenShakeStore from "@/stores/useScreenShakeStore"
-import { SHAKE_INTENSITY } from "@/components/screenShake/shakeIntensity"
+import { SHAKE_INTENSITY } from "@/components/screenShake/screenShakeConfig"
 
 interface SlimBumperProps {
   position: PositionType

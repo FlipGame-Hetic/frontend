@@ -3,6 +3,7 @@ import { AdditiveBlending, Color, DoubleSide, type Mesh, ShaderMaterial } from "
 import { useFrame } from "@react-three/fiber"
 import { VERTEX_SHADER, FRAGMENT_SHADER } from "./tractorBeamShader"
 import { TOP_TUNNEL_ENTRY_TRACTOR } from "./topTunnelAssistConfig"
+import { PLUNGER_VFX_HDR_FACTOR } from "../plunger/plungerVfxConfig"
 
 const TRACTOR_BEAM_COLOR: [number, number, number] = [0.0, 0.5, 1.0]
 
@@ -13,11 +14,13 @@ const createTractorBeamMaterial = () => {
     uniforms: {
       uTime: { value: 0 },
       uColor: { value: new Color().setRGB(...TRACTOR_BEAM_COLOR) },
+      uHdr: { value: PLUNGER_VFX_HDR_FACTOR },
     },
     transparent: true,
     depthWrite: false,
     blending: AdditiveBlending,
     side: DoubleSide,
+    toneMapped: false,
   })
 }
 

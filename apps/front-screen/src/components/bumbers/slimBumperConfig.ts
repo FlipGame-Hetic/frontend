@@ -7,3 +7,6 @@ export const SLIM_BUMPER_UNSTICK_IMPULSE = 5
 export const SLIM_BUMPER_BOUNCE_DURATION = 0.5
 export const SLIM_BUMPER_BOUNCE_FREQ = 25
 export const SLIM_BUMPER_BOUNCE_AMP = 0.08
+
+export const SLIM_BUMPER_BLOOM_COLOR = "#00eaff"
+export const SLIM_BUMPER_BLOOM_INTENSITY = 2.2

@@ -4,6 +4,7 @@ import { useGameSocket } from "@frontend/ws"
 import { StatusBar } from "@/components/StatusBar"
 import { TerminalLog } from "@/components/TerminalLog"
 import type { LogEntry } from "@/components/TerminalLog"
+import { PhaseSwitcher } from "@/components/PhaseSwitcher"
 import SceneRouter from "@/scenes/SceneRouter"
 import { useScreenHubClient } from "@/hooks/useScreenHubClient"
 import { useKeyboardInput } from "@/hooks/useKeyboardInput"
@@ -54,8 +55,9 @@ function App() {
   }
 
   return (
-    <div className="h-screen w-screen overflow-hidden">
+    <div className="relative h-screen w-screen overflow-hidden">
       <SceneRouter />
+      <PhaseSwitcher />
     </div>
   )
 }

@@ -21,8 +21,7 @@ export interface ButtonPayload {
 
 export interface PlungerPayload {
   _type: "Plunger"
-  position: number
-  released: boolean
+  state: number
   ts: number
 }
 

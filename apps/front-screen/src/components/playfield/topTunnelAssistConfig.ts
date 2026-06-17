@@ -29,7 +29,7 @@ export interface TopTunnelAssistCornerBlendConfig {
 }
 
 export const TOP_TUNNEL_ENTRY_TRACTOR: TopTunnelEntryTractorConfig = {
-  halfHeight: 1.5,
+  halfHeight: 1,
   radius: 0.65,
   position: [3, 1.95, -4],
   rotation: [-1.5, -0.7, -0.15],

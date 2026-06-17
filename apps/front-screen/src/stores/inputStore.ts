@@ -1,6 +1,6 @@
 /**
  * Module-level singleton for pressed keys.
- * Both useKeyboard (hardware) and useIoTInputs (WebSocket) write here.
+ * Keyboard and cabinet ScreenHub events write here.
  * Components read via useKeyboard() which returns a ref to this set.
  */
 const pressedKeys = new Set<string>()
@@ -33,16 +33,21 @@ const clampPlungerPosition = (position: number): number => {
   return Math.min(Math.max(position, 0), 1)
 }
 
-export const setPlungerPosition = (position: number): void => {
+const setPlungerPosition = (position: number): void => {
   plungerInput.position = clampPlungerPosition(position)
   plungerInput.released = false
 }
 
-export const setPlungerReleased = (released: boolean): void => {
+const setPlungerReleased = (released: boolean): void => {
   if (released) {
     plungerInput.releaseToken += 1
   }
   plungerInput.released = released
+}
+
+export const triggerPlungerMaxLaunch = (): void => {
+  setPlungerPosition(1)
+  setPlungerReleased(true)
 }
 
 export const getPlungerInputSnapshot = (): PlungerInputSnapshot => {

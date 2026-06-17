@@ -7,7 +7,7 @@ import type { CollisionPayload, RapierRigidBody } from "@react-three/rapier"
 import { useCallback, useRef } from "react"
 import type { Group, Mesh, Vector3 } from "three"
 import { normalizedPlayfieldDirection } from "../physics/playfieldPlane"
-import { SHAKE_INTENSITY } from "../screenShake/shakeIntensity"
+import { SHAKE_INTENSITY } from "../screenShake/screenShakeConfig"
 import {
   clampPlungerPosition,
   PLUNGER_KEY,

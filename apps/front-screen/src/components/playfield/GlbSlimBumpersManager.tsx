@@ -1,5 +1,7 @@
 import { useMemo } from "react"
 import SlimBumper from "../bumbers/SlimBumper"
+import { SLIM_BUMPER_BLOOM_COLOR, SLIM_BUMPER_BLOOM_INTENSITY } from "../bumbers/slimBumperConfig"
+import { cloneMaterialWithBloom } from "./playfieldBloomMaterials"
 import {
   cloneWithWorldOrientation,
   getWorldPosition,
@@ -9,11 +11,19 @@ import {
 const GlbSlimBumpersManager = ({ nodes }: { nodes: PlayfieldNodes }) => {
   const bumpers = useMemo(
     () =>
-      nodes.slimBumpers.map((mesh, i) => ({
-        id: i,
-        position: getWorldPosition(mesh),
-        clone: cloneWithWorldOrientation(mesh),
-      })),
+      nodes.slimBumpers.map((mesh, i) => {
+        const clone = cloneWithWorldOrientation(mesh)
+        clone.material = cloneMaterialWithBloom(clone.material, {
+          emissiveColor: SLIM_BUMPER_BLOOM_COLOR,
+          emissiveIntensity: SLIM_BUMPER_BLOOM_INTENSITY,
+        })
+
+        return {
+          id: i,
+          position: getWorldPosition(mesh),
+          clone,
+        }
+      }),
     [nodes],
   )
 

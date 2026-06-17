@@ -10,10 +10,17 @@ const BallSection = ({ onDispatch }: Props) => {
   return (
     <Section title="Ball" color="red">
       <div className="grid grid-cols-2 gap-2">
-        <CyberBtn label="Plunger" event="ball:plunger" color="red" onDispatch={onDispatch} />
+        <CyberBtn
+          label="Plunger"
+          event="Command"
+          payload={{ cmd: "plunger_release", params: {} }}
+          color="red"
+          onDispatch={onDispatch}
+        />
         <CyberBtn
           label="Death / Ball Lost"
-          event="ball:death"
+          event="GameState"
+          payload={{ state: "ball_lost", ball_number: 1, score: 0, player: 1, total_players: 1 }}
           color="red"
           onDispatch={onDispatch}
         />
