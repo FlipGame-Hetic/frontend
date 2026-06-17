@@ -11,7 +11,9 @@ type WsEnv = Partial<Record<WsEnvKey, string>>
 type RuntimeLocation = Pick<Location, "hostname" | "protocol">
 
 const readEnv = (): WsEnv => {
-  return (import.meta as unknown as { env?: WsEnv }).env ?? {}
+  const buildEnv = (import.meta as unknown as { env?: WsEnv }).env ?? {}
+  const runtimeEnv = ((globalThis as Record<string, unknown>).__ENV__ as WsEnv | undefined) ?? {}
+  return { ...buildEnv, ...runtimeEnv }
 }
 
 const readLocation = (): RuntimeLocation | undefined => {
