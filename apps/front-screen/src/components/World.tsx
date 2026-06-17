@@ -1,6 +1,7 @@
 import PostProcessing from "./postprocessing/PostProcessing"
 import { Canvas, type CameraProps } from "@react-three/fiber"
 import type { ReactNode } from "react"
+import NightCityEnvironment from "./environment/NightCityEnvironment"
 
 interface WorldProps {
   cameraSettings: CameraProps
@@ -18,6 +19,7 @@ const World = ({ cameraSettings, children }: WorldProps) => {
         }}
       >
         <color attach="background" args={["#0a0a12"]} />
+        <NightCityEnvironment />
         <PostProcessing />
         {children}
       </Canvas>
