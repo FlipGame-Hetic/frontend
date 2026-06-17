@@ -1,7 +1,6 @@
 import { BALL_RADIUS } from "@/components/balls/ballConfig"
 import {
   MULTIBALL_GATE_CLOSE_DURATION_MS,
-  MULTIBALL_GATE_CLOSE_TRIGGER_Z,
   MULTIBALL_GATE_HALF_EXTENTS,
   MULTIBALL_GATE_OPEN_DURATION_MS,
   MULTIBALL_GATE_REOPEN_DELAY_MS,
@@ -28,10 +27,6 @@ export type MultiballGateTraversal = "entry-to-bonus" | "exit-to-playfield" | "n
 interface MultiballGateVector {
   x: number
   y: number
-  z: number
-}
-
-interface MultiballGateZVector {
   z: number
 }
 
@@ -121,15 +116,7 @@ export const advanceMultiballGateState = (
   return { ...state, closedAmount: 0, colliderActive: false }
 }
 
-export const hasClearedMultiballGate = (
-  position: MultiballGateZVector | null | undefined,
-  triggerZ = MULTIBALL_GATE_CLOSE_TRIGGER_Z,
-): boolean => {
-  if (!position) return false
-  return position.z <= triggerZ
-}
-
-export const isWithinMultiballGateCrossingBounds = (
+const isWithinMultiballGateCrossingBounds = (
   position: MultiballGateVector,
   halfExtents = MULTIBALL_GATE_HALF_EXTENTS,
   margin = BALL_RADIUS,

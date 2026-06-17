@@ -31,7 +31,7 @@ const GlbFlippers = ({ nodes }: { nodes: PlayfieldNodes }) => {
   return (
     <>
       {flippers.map((f) => (
-        <FlipperJoints key={f.name} position={f.position} side={f.side} meshOverride={f.clone} />
+        <FlipperJoints key={f.name} position={f.position} side={f.side} mesh={f.clone} />
       ))}
     </>
   )

@@ -1,5 +1,6 @@
 import { button, useControls } from "leva"
 import { useEffect, useRef, type ReactNode } from "react"
+import { runtimeEnvironment } from "@/config/runtimeEnvironment"
 import { requestFrontScreenStartGame } from "@/hooks/useScreenHub"
 import useMultiballStore from "@/stores/useMultiballStore"
 import useBallStore from "@/stores/useBallStore"
@@ -23,7 +24,7 @@ const DebugProvider = ({ children }: { children: ReactNode }) => {
   const mainControls = useControls(
     "Main",
     {
-      enabled: { value: true, label: "Orbit controls" },
+      enabled: { value: !runtimeEnvironment.isProduction, label: "Orbit controls" },
       autoMode: false,
       "Start Game": button(requestFrontScreenStartGame),
     },

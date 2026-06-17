@@ -13,6 +13,10 @@ import type {
   ScreenEvent,
   StartGameEvent,
 } from "@frontend/types"
+import { LEFT_KEYS, RIGHT_KEYS } from "@/components/flipperJoints/jointsConfig"
+import { PLUNGER_KEY } from "@/components/plunger/plungerConfig"
+import { triggerUltimate } from "@/gameplay/ultimate"
+import { pressKey, releaseKey, triggerPlungerMaxLaunch } from "@/stores/inputStore"
 import useGameStore, { CHARACTER_ID_BY_TYPE } from "@/stores/useGameStore"
 import useScorePopupsStore from "@/stores/useScorePopupsStore"
 
@@ -23,9 +27,48 @@ const DEFAULT_START_CHARACTER: CharacterType = "striker"
 const TOKEN =
   (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_SCREEN_TOKEN ?? ""
 
+let cabinetPlungerHeld = false
+
+const applyKeysState = (keys: string[], state: number): void => {
+  const apply = state > 0 ? pressKey : releaseKey
+  keys.forEach(apply)
+}
+
 const handleScreenEvent = (envelope: ScreenEnvelope): void => {
   const { selectMode, selectCharacter, startGame, setPhase, restartGame, setScore, menuBack } =
     useGameStore.getState()
+
+  if (isScreenEvent(envelope, "FlipperLeft")) {
+    applyKeysState(LEFT_KEYS, envelope.payload.state)
+    return
+  }
+
+  if (isScreenEvent(envelope, "FlipperRight")) {
+    applyKeysState(RIGHT_KEYS, envelope.payload.state)
+    return
+  }
+
+  if (isScreenEvent(envelope, "PlungerCharge")) {
+    if (envelope.payload.state > 0) {
+      cabinetPlungerHeld = true
+      pressKey(PLUNGER_KEY)
+      return
+    }
+
+    if (cabinetPlungerHeld) {
+      cabinetPlungerHeld = false
+      releaseKey(PLUNGER_KEY)
+      return
+    }
+
+    triggerPlungerMaxLaunch()
+    return
+  }
+
+  if (isScreenEvent(envelope, "CapacityL2") || isScreenEvent(envelope, "CapacityR2")) {
+    triggerUltimate(useGameStore.getState().currentPlayer)
+    return
+  }
 
   if (envelope.event_type === "ScoreUpdate") {
     const payload = envelope.payload as { score: number }

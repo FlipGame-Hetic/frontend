@@ -44,7 +44,13 @@ describe("decorationMaterials", () => {
 
     applyGlobeBloomMaterialConfig(group)
 
+    if (!Array.isArray(mesh.material)) throw new Error("expected material array")
     const [landClone, plainClone] = mesh.material
+    if (!landClone || !plainClone) throw new Error("expected cloned materials")
+    if (!(landClone instanceof MeshStandardMaterial)) {
+      throw new Error("expected the configured material to remain standard")
+    }
+
     expect(landClone).not.toBe(land)
     expect(plainClone).not.toBe(plain)
     expect(landClone.emissiveIntensity).toBe(0)

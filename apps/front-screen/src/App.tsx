@@ -1,9 +1,11 @@
 import DebugProvider from "@/debug/DebugProvider"
+import { runtimeEnvironment } from "@/config/runtimeEnvironment"
 import type { CameraProps } from "@react-three/fiber"
 import { Leva } from "leva"
 import { Suspense } from "react"
 import ReactiveAmbientLight from "./components/audioReactive/ReactiveAmbientLight"
 import BallsManager from "./components/balls/BallsManager"
+import CabinetCamera from "./components/CabinetCamera"
 import DebugCamera from "./components/DebugCamera"
 import Drain from "./components/drain/Drain"
 import TronGridFloor from "./components/environment/TronGridFloor"
@@ -13,7 +15,6 @@ import PlayfieldScene from "./components/playfield/PlayfieldScene"
 import TopTunnelAssistManager from "./components/playfield/TopTunnelAssistManager"
 import PlungerLaneGate from "./components/plunger/PlungerLaneGate"
 import PortalsManager from "./components/portal/PortalsManager"
-import ProductionCamera from "./components/ProductionCamera"
 import ScorePopupsManager from "./components/scorePopups/ScorePopupsManager"
 import ScreenShakeController from "./components/screenShake/ScreenShakeController"
 import { GUTTER_DRAIN_ASSIST_SENSORS } from "./components/sensors/directionalAccelerationSensorsConfig"
@@ -22,15 +23,13 @@ import SoundManager from "./components/sound/SoundManager"
 import World from "./components/World"
 import { useDebugKeys } from "./hooks/useDebugKeys"
 import { useFlipperButtonRelay } from "./hooks/useFlipperButtonRelay"
-import { useIoTInputs } from "./hooks/useIoTInputs"
 import { useScreenHub } from "./hooks/useScreenHub"
 import WebsocketTest from "./websocket-test/WebsocketTest"
 
-const isProduction = import.meta.env.VITE_ENVIRONMENT === "production"
-const isWsTest = !isProduction && new URLSearchParams(window.location.search).has("wstest")
+const isWsTest =
+  !runtimeEnvironment.isProduction && new URLSearchParams(window.location.search).has("wstest")
 
 const App = () => {
-  useIoTInputs()
   useScreenHub()
   useDebugKeys()
   useFlipperButtonRelay()
@@ -43,7 +42,7 @@ const App = () => {
     <DebugProvider>
       <SoundManager />
       <Leva
-        hidden={false}
+        hidden={runtimeEnvironment.isProduction}
         titleBar={{ title: "Tweaks GUI" }}
         theme={{ sizes: { rootWidth: "350px" } }}
       />
@@ -63,14 +62,14 @@ const App = () => {
           shadow-bias={-0.001}
           shadow-normalBias={0.1}
         />
-        {isProduction ? (
-          <ProductionCamera />
+        {runtimeEnvironment.isProductionCabinet ? (
+          <CabinetCamera />
         ) : (
           <DebugCamera cameraPosition={cameraSettings.position} cameraFov={cameraSettings.fov} />
         )}
         <ScreenShakeController />
         <TronGridFloor />
-        <PhysicsManager isDebug={!isProduction}>
+        <PhysicsManager isDebug={!runtimeEnvironment.isProduction}>
           <BallsManager />
           <Drain />
           <DirectionalAccelerationSensorsManager sensors={GUTTER_DRAIN_ASSIST_SENSORS} />
