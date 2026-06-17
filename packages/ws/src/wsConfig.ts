@@ -1,6 +1,5 @@
 export const RECONNECT_DELAY_MS = 3000
 
-const DEFAULT_WS_PORT = ""
 const GAME_WS_PATH = "/ws/bridge"
 const LOOPBACK_HOSTNAMES = new Set(["localhost", "127.0.0.1", "::1"])
 
@@ -37,9 +36,8 @@ const defaultScreenHubUrl = (): string => {
   const location = readLocation()
   const protocol = location?.protocol === "https:" ? "wss:" : "ws:"
   const hostname = readRuntimeHostname()
-  const port = isLoopbackHostname(hostname) ? `:${DEFAULT_WS_PORT}` : ""
 
-  return `${protocol}//${hostname}${port}`
+  return `${protocol}//${hostname}`
 }
 
 const defaultGameWsUrl = (): string => {

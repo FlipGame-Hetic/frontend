@@ -4,7 +4,7 @@ import { requestFrontScreenStartGame } from "@/hooks/useScreenHub"
 import useMultiballStore from "@/stores/useMultiballStore"
 import useBallStore from "@/stores/useBallStore"
 import useScreenShakeStore from "@/stores/useScreenShakeStore"
-import { SHAKE_INTENSITY } from "@/components/screenShake/shakeIntensity"
+import { SHAKE_INTENSITY } from "@/components/screenShake/screenShakeConfig"
 import { playSfx } from "@/audio/soundEngine"
 import { broadcastEvent } from "@frontend/ws"
 import {

@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useRef } from "react"
 import { Box3, MathUtils, Quaternion, Vector3, type Mesh } from "three"
 import { cloneWithWorldOrientation } from "../playfield/usePlayfieldModel"
 import useScreenShakeStore from "@/stores/useScreenShakeStore"
-import { SHAKE_INTENSITY } from "@/components/screenShake/shakeIntensity"
+import { SHAKE_INTENSITY } from "@/components/screenShake/screenShakeConfig"
 
 interface TargetProps {
   mesh: Mesh

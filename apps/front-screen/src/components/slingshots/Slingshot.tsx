@@ -30,7 +30,7 @@ import {
   SLINGSHOT_UNSTICK_IMPULSE,
 } from "./slingshotConfig"
 import useScreenShakeStore from "@/stores/useScreenShakeStore"
-import { SHAKE_INTENSITY } from "@/components/screenShake/shakeIntensity"
+import { SHAKE_INTENSITY } from "@/components/screenShake/screenShakeConfig"
 
 interface SlingshotProps {
   position: PositionType

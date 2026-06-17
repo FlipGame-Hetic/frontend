@@ -11,6 +11,7 @@ import {
   SCORE_POPUP_FONT,
   SCORE_POPUP_FONT_SIZE,
   SCORE_POPUP_GLITCH_DURATION,
+  SCORE_POPUP_GLITCH_HOLD,
   SCORE_POPUP_GLITCH_JITTER,
   SCORE_POPUP_GLITCH_SPLIT,
   SCORE_POPUP_GLITCH_STEP_RATE,
@@ -53,6 +54,13 @@ const setLayerPosition = (ref: RefObject<Group | null>, offset: Offset, x = 0, y
   ref.current?.position.set(offset[0] + x, offset[1] + y, offset[2])
 }
 
+const getGlitchStrength = (elapsed: number): number => {
+  if (elapsed <= SCORE_POPUP_GLITCH_HOLD) return 1
+
+  const decayDuration = Math.max(0.001, SCORE_POPUP_GLITCH_DURATION - SCORE_POPUP_GLITCH_HOLD)
+  return Math.max(0, 1 - (elapsed - SCORE_POPUP_GLITCH_HOLD) / decayDuration)
+}
+
 const getLayerGlitchOpacity = (
   role: ScorePopupLayerRole,
   strength: number,
@@ -62,10 +70,10 @@ const getLayerGlitchOpacity = (
   if (strength <= 0) return 1
 
   const pulse = Math.max(0, signedNoise(id * 29 + step * 11))
-  if (role === "main") return Math.max(0.82, 1 - pulse * 0.16 * strength)
+  if (role === "main") return Math.max(0.68, 1 - pulse * 0.32 * strength)
   if (role === "black") return 1
 
-  return Math.min(1.35, 1 + pulse * 0.5 * strength)
+  return Math.min(2.1, 1 + (0.85 + pulse * 0.75) * strength)
 }
 
 const setTextMaterialOpacity = (
@@ -149,8 +157,7 @@ const ScorePopup = ({ id, amount, position, color: targetColor }: ScorePopupProp
     const elapsed = (performance.now() - startTime.current) / 1000
     const progress = elapsed / SCORE_POPUP_DURATION
     const shouldGlitch = amount >= SCORE_POPUP_GLITCH_THRESHOLD
-    const glitchProgress = shouldGlitch ? elapsed / SCORE_POPUP_GLITCH_DURATION : 1
-    const glitchStrength = shouldGlitch ? Math.max(0, 1 - glitchProgress) : 0
+    const glitchStrength = shouldGlitch ? getGlitchStrength(elapsed) : 0
     const glitchStep = Math.floor(elapsed * SCORE_POPUP_GLITCH_STEP_RATE)
 
     if (progress >= 1) {
@@ -177,9 +184,15 @@ const ScorePopup = ({ id, amount, position, color: targetColor }: ScorePopupProp
       signedNoise(id * 17 + glitchStep * 3) * SCORE_POPUP_GLITCH_JITTER * glitchStrength
     const jitterY =
       signedNoise(id * 23 + glitchStep * 5) * SCORE_POPUP_GLITCH_JITTER * 0.65 * glitchStrength
+    const stretchNoise = Math.max(0, signedNoise(id * 31 + glitchStep * 7))
     const split = SCORE_POPUP_GLITCH_SPLIT * glitchStrength
 
-    setLayerPosition(mainTextRef, [0, 0, 0], jitterX * 0.14, jitterY * 0.14)
+    setLayerPosition(mainTextRef, [0, 0, 0], jitterX * 0.42, jitterY * 0.42)
+    mainTextRef.current?.scale.set(
+      1 + stretchNoise * 0.16 * glitchStrength,
+      1 - stretchNoise * 0.08 * glitchStrength,
+      1,
+    )
     setLayerPosition(redShadowRef, SCORE_POPUP_SHADOW_RED.offset, split + jitterX, jitterY)
     setLayerPosition(
       cyanShadowRef,

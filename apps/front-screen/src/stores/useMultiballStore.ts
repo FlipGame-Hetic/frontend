@@ -1,5 +1,5 @@
 import { playSfx } from "@/audio/soundEngine"
-import { SHAKE_INTENSITY } from "@/components/screenShake/shakeIntensity"
+import { SHAKE_INTENSITY } from "@/components/screenShake/screenShakeConfig"
 import useBallStore from "@/stores/useBallStore"
 import useScreenShakeStore from "@/stores/useScreenShakeStore"
 import { broadcastEvent } from "@frontend/ws"

@@ -1,7 +1,7 @@
 import type { Vector3Tuple } from "three"
 import { BALL_RADIUS } from "@/components/balls/ballConfig"
 
-export const BONUS_ZONE_RESTITUTION = 1
+export const BONUS_ZONE_RESTITUTION = 2
 export const BONUS_ZONE_BOUNCE_THRESHOLD = 9
 export const BONUS_ZONE_COOLDOWN_MS = 8000
 export const MULTIBALL_SPAWN_POSITION1: Vector3Tuple = [-2.7, 1.6, -4.1]
@@ -15,7 +15,7 @@ export const BONUS_ZONE_BUMPER_BASE_NAMES = [
   "c_bumper_base_03",
 ] as const
 
-export const MULTIBALL_GATE_REOPEN_DELAY_MS = 2000
+export const MULTIBALL_GATE_REOPEN_DELAY_MS = 3000
 export const MULTIBALL_GATE_CLOSE_DURATION_MS = 140
 export const MULTIBALL_GATE_OPEN_DURATION_MS = 260
 export const MULTIBALL_GATE_OPEN_DISTANCE = 0.3
