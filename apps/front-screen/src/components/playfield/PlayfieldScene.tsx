@@ -1,14 +1,13 @@
-import { usePlayfieldModel } from "./usePlayfieldModel"
-import StaticPlayfield from "./StaticPlayfield"
+import GlbBallSaversManager from "./GlbBallSaversManager"
 import GlbBumpersManager from "./GlbBumpersManager"
+import GlbFlippers from "./GlbFlippers"
+import GlbPlunger from "./GlbPlunger"
 import GlbSlimBumpersManager from "./GlbSlimBumpersManager"
 import GlbSlingshotsManager from "./GlbSlingshotsManager"
-import GlbFlippers from "./GlbFlippers"
 import GlbTargetsManager from "./GlbTargetsManager"
-import GlbPlunger from "./GlbPlunger"
-import GlbSpinnerManager from "./GlbSpinnerManager"
-import GlbBallSaversManager from "./GlbBallSaversManager"
 import MultiballGate from "./MultiballGate"
+import StaticPlayfield from "./StaticPlayfield"
+import { usePlayfieldModel } from "./usePlayfieldModel"
 
 const PlayfieldScene = () => {
   const nodes = usePlayfieldModel()
@@ -23,7 +22,6 @@ const PlayfieldScene = () => {
       <GlbTargetsManager nodes={nodes} />
       <GlbBallSaversManager nodes={nodes} />
       <GlbPlunger nodes={nodes} />
-      <GlbSpinnerManager nodes={nodes} />
     </>
   )
 }
