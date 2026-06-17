@@ -3,10 +3,14 @@
   "tags": ["-lintignore"],
   "workspaces": {
     ".": {},
-    "apps/back-screen": {},
-    "apps/dmd-screen": {},
+    "apps/back-screen": {
+      "ignore": ["public/config.js"]
+    },
+    "apps/dmd-screen": {
+      "ignore": ["public/config.js"]
+    },
     "apps/front-screen": {
-      "ignore": ["scripts/**"]
+      "ignore": ["scripts/**", "public/config.js"]
     },
     "packages/*": {}
   }
