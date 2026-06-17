@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "@frontend/assets/rajdhani.css";
 @import "@frontend/tailwind-config/theme.css";
 @source "../../../packages/ui/src";
 

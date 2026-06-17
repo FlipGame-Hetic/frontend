@@ -1,0 +1,10 @@
+{
+  "name": "@frontend/assets",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    "./font-urls": "./src/fontUrls.ts",
+    "./rajdhani.css": "./src/rajdhani.css"
+  }
+}
