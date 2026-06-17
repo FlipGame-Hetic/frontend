@@ -6,7 +6,9 @@ import { useBackScreenStore } from "@/stores/useBackScreenStore"
 
 const SCREEN_ID = "back_screen" as const
 const TOKEN =
-  (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_SCREEN_TOKEN ?? ""
+  (globalThis as Record<string, Record<string, string> | undefined>).__ENV__?.VITE_SCREEN_TOKEN ??
+  (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_SCREEN_TOKEN ??
+  ""
 
 export function useScreenHubClient(): void {
   const setPhase = useBackScreenStore((s) => s.setPhase)
