@@ -21,7 +21,7 @@ export default function GameOverScene() {
           <div className="h-px w-40 bg-[rgba(197,0,60,0.25)]" />
 
           <div className="flex items-baseline gap-4">
-            <div className="font-display text-[clamp(2rem,5.5vw,4.5rem)] font-bold tracking-widest text-[#55EAD4] tabular-nums [text-shadow:2px_3px_0px_rgba(0,0,0,0.95)]">
+            <div className="font-display text-[clamp(2rem,5.5vw,4.5rem)] font-bold tracking-widest text-[#55EAD4] tabular-nums [text-shadow:3px_0_rgba(197,0,60,0.55),-3px_0_rgba(85,234,212,0.5),0_4px_0_rgba(0,0,0,0.95)]">
               {String(score)
                 .padStart(6, "0")
                 .replace(/(\d{3})(\d{3})/, "$1.$2")}

@@ -16,7 +16,7 @@ export default [
     languageOptions: {
       parserOptions: {
         projectService: {
-          allowDefaultProject: ["eslint.config.js", "packages/assets/src/fontUrls.ts"],
+          allowDefaultProject: ["eslint.config.js"],
         },
         tsconfigRootDir: import.meta.dirname,
       },

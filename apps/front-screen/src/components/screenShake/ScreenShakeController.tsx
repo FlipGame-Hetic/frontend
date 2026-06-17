@@ -4,8 +4,8 @@ import { useRef } from "react"
 import { Vector3 } from "three"
 
 const TRAUMA_DECAY = 1.8
-const MAX_OFFSET = 0.5
-const MAX_OFFSET_Z = 0.5
+const MAX_OFFSET = 0.25
+const MAX_OFFSET_Z = 0.25
 const MAX_OFFSET_Y = 0.05
 
 const ScreenShakeController = () => {
