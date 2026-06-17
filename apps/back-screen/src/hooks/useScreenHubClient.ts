@@ -6,7 +6,8 @@ import { useBackScreenStore } from "@/stores/useBackScreenStore"
 
 const SCREEN_ID = "back_screen" as const
 const TOKEN =
-  (globalThis as Record<string, Record<string, string> | undefined>).__ENV__?.VITE_SCREEN_TOKEN ??
+  (globalThis as unknown as Record<string, Record<string, string> | undefined>).__ENV__
+    ?.VITE_SCREEN_TOKEN ??
   (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_SCREEN_TOKEN ??
   ""
 

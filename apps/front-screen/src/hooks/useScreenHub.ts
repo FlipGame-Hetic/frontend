@@ -26,7 +26,8 @@ const DEFAULT_START_MODE: GameMode = "solo"
 const DEFAULT_START_CHARACTER: CharacterType = "striker"
 
 const TOKEN =
-  (globalThis as Record<string, Record<string, string> | undefined>).__ENV__?.VITE_SCREEN_TOKEN ??
+  (globalThis as unknown as Record<string, Record<string, string> | undefined>).__ENV__
+    ?.VITE_SCREEN_TOKEN ??
   (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_SCREEN_TOKEN ??
   ""
 
