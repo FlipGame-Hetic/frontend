@@ -4,6 +4,7 @@ import {
   registerScreenSender,
   sendEventTo,
   useScreenHub as useScreenHubBase,
+  wsLog,
 } from "@frontend/ws"
 import { isScreenEvent, makeEnvelope } from "@frontend/types"
 import type {
@@ -35,6 +36,8 @@ const applyKeysState = (keys: string[], state: number): void => {
 }
 
 const handleScreenEvent = (envelope: ScreenEnvelope): void => {
+  wsLog("front-screen", `handleScreenEvent "${envelope.event_type}"`, envelope)
+
   const { selectMode, selectCharacter, startGame, setPhase, restartGame, setScore, menuBack } =
     useGameStore.getState()
 

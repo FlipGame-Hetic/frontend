@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import type { ConnectionStatus, GameMessage } from "@frontend/types"
 import { RECONNECT_DELAY_MS, resolveGameWsUrl } from "./wsConfig"
+import { wsLog, wsWarn } from "./wsLog"
+
+const SCOPE = "bridge"
 
 export interface UseGameSocketOptions {
   url?: string
@@ -27,7 +30,10 @@ export function useGameSocket(options?: UseGameSocketOptions): UseGameSocketRetu
   const send = useCallback((message: GameMessage) => {
     const ws = wsRef.current
     if (ws?.readyState === WebSocket.OPEN) {
+      wsLog(SCOPE, "send →", message)
       ws.send(JSON.stringify(message))
+    } else {
+      wsWarn(SCOPE, `send dropped (socket not open, readyState=${String(ws?.readyState)})`, message)
     }
   }, [])
 
@@ -37,6 +43,7 @@ export function useGameSocket(options?: UseGameSocketOptions): UseGameSocketRetu
     function connect() {
       if (disposed) return
       setStatus("connecting")
+      wsLog(SCOPE, "connecting to", wsUrl)
 
       const ws = new WebSocket(wsUrl)
       wsRef.current = ws
@@ -44,6 +51,7 @@ export function useGameSocket(options?: UseGameSocketOptions): UseGameSocketRetu
       ws.onopen = () => {
         if (disposed) return
         setStatus("connected")
+        wsLog(SCOPE, "OPEN ✓", wsUrl)
       }
 
       ws.onmessage = (event: MessageEvent) => {
@@ -51,8 +59,10 @@ export function useGameSocket(options?: UseGameSocketOptions): UseGameSocketRetu
         const raw = typeof event.data === "string" ? event.data : ""
         try {
           const parsed = JSON.parse(raw) as GameMessage
+          wsLog(SCOPE, "recv ←", parsed)
           onMessageRef.current?.(parsed)
         } catch {
+          wsWarn(SCOPE, "recv ← (unparseable raw frame)", raw)
           onMessageRef.current?.({
             dir: "inbound",
             device_id: "unknown",
@@ -62,14 +72,19 @@ export function useGameSocket(options?: UseGameSocketOptions): UseGameSocketRetu
         }
       }
 
-      ws.onclose = () => {
+      ws.onclose = (event: CloseEvent) => {
         if (disposed) return
         setStatus("disconnected")
+        wsWarn(
+          SCOPE,
+          `CLOSED code=${String(event.code)} reason="${event.reason}" wasClean=${String(event.wasClean)} — reconnecting in ${String(RECONNECT_DELAY_MS)}ms`,
+        )
         reconnectTimer.current = setTimeout(connect, RECONNECT_DELAY_MS)
       }
 
       ws.onerror = () => {
         // onerror is always followed by onclose — let onclose handle reconnect
+        wsWarn(SCOPE, "ERROR on", wsUrl)
         ws.close()
       }
     }
