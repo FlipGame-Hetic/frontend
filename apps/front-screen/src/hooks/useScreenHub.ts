@@ -15,6 +15,8 @@ import type {
 } from "@frontend/types"
 import useGameStore, { CHARACTER_ID_BY_TYPE } from "@/stores/useGameStore"
 import useScorePopupsStore from "@/stores/useScorePopupsStore"
+import { pressKey, releaseKey } from "@/stores/inputStore"
+import { LEFT_KEYS, RIGHT_KEYS } from "@/components/flipperJoints/jointsConfig"
 
 const SCREEN_ID = "front_screen" as const
 const DEFAULT_START_MODE: GameMode = "solo"
@@ -26,6 +28,26 @@ const TOKEN =
 const handleScreenEvent = (envelope: ScreenEnvelope): void => {
   const { selectMode, selectCharacter, startGame, setPhase, restartGame, setScore, menuBack } =
     useGameStore.getState()
+
+  if (envelope.event_type === "button_start") {
+    const store = useGameStore.getState()
+    if (store.phase === "playing") store.pause()
+    else if (store.phase === "paused") store.resume()
+    return
+  }
+
+  if (envelope.event_type === "FlipperLeft") {
+    const state = (envelope.payload as { state?: number })?.state ?? 0
+    if (state > 0) LEFT_KEYS.forEach(pressKey)
+    else LEFT_KEYS.forEach(releaseKey)
+    return
+  }
+  if (envelope.event_type === "FlipperRight") {
+    const state = (envelope.payload as { state?: number })?.state ?? 0
+    if (state > 0) RIGHT_KEYS.forEach(pressKey)
+    else RIGHT_KEYS.forEach(releaseKey)
+    return
+  }
 
   if (envelope.event_type === "ScoreUpdate") {
     const payload = envelope.payload as { score: number }
