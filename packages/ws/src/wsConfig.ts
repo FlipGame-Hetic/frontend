@@ -1,6 +1,7 @@
+import { wsLog, wsWarn } from "./wsLog"
+
 export const RECONNECT_DELAY_MS = 3000
 
-const DEFAULT_WS_PORT = ""
 const GAME_WS_PATH = "/ws/bridge"
 const LOOPBACK_HOSTNAMES = new Set(["localhost", "127.0.0.1", "::1"])
 
@@ -10,7 +11,9 @@ type WsEnv = Partial<Record<WsEnvKey, string>>
 type RuntimeLocation = Pick<Location, "hostname" | "protocol">
 
 const readEnv = (): WsEnv => {
-  return (import.meta as unknown as { env?: WsEnv }).env ?? {}
+  const buildEnv = (import.meta as unknown as { env?: WsEnv }).env ?? {}
+  const runtimeEnv = ((globalThis as Record<string, unknown>).__ENV__ as WsEnv | undefined) ?? {}
+  return { ...buildEnv, ...runtimeEnv }
 }
 
 const readLocation = (): RuntimeLocation | undefined => {
@@ -37,9 +40,8 @@ const defaultScreenHubUrl = (): string => {
   const location = readLocation()
   const protocol = location?.protocol === "https:" ? "wss:" : "ws:"
   const hostname = readRuntimeHostname()
-  const port = isLoopbackHostname(hostname) ? `:${DEFAULT_WS_PORT}` : ""
 
-  return `${protocol}//${hostname}${port}`
+  return `${protocol}//${hostname}`
 }
 
 const defaultGameWsUrl = (): string => {
@@ -71,14 +73,32 @@ const shouldUseConfiguredUrl = (url: string): boolean => {
 const resolveUrl = (key: WsEnvKey, fallback: () => string, override?: string): string => {
   const overrideUrl = cleanUrl(override)
 
-  if (overrideUrl) return overrideUrl
+  if (overrideUrl) {
+    wsLog("config", `resolved ${key} from OVERRIDE`, overrideUrl)
+    return overrideUrl
+  }
 
   const env = readEnv()
   const envUrl = cleanUrl(env[key])
 
-  if (envUrl && shouldUseConfiguredUrl(envUrl)) return envUrl
+  if (envUrl && shouldUseConfiguredUrl(envUrl)) {
+    wsLog("config", `resolved ${key} from ENV`, envUrl)
+    return envUrl
+  }
 
-  return fallback()
+  const fallbackUrl = fallback()
+
+  if (envUrl) {
+    wsWarn(
+      "config",
+      `${key} env value "${envUrl}" ignored (loopback host on non-loopback runtime "${readRuntimeHostname()}") — falling back to default`,
+      fallbackUrl,
+    )
+  } else {
+    wsLog("config", `resolved ${key} from DEFAULT (no env set)`, fallbackUrl)
+  }
+
+  return fallbackUrl
 }
 
 export const DEFAULT_SCREEN_HUB_URL = defaultScreenHubUrl()

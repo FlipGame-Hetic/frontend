@@ -15,6 +15,7 @@
   "dependencies": {
     "@frontend/types": "workspace:*",
     "@frontend/utils": "workspace:*",
+    "@frontend/assets": "workspace:*",
     "@frontend/ws": "workspace:*",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",

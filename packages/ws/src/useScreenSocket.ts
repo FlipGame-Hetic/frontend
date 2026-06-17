@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import type { ConnectionStatus, ScreenEnvelope, ScreenId } from "@frontend/types"
 import { DEFAULT_SCREEN_HUB_URL, RECONNECT_DELAY_MS, resolveScreenHubUrl } from "./wsConfig"
+import { redactToken, wsLog, wsWarn } from "./wsLog"
 
 export interface UseScreenSocketOptions {
   screenId: ScreenId
@@ -17,6 +18,8 @@ export interface UseScreenSocketReturn {
 export function useScreenSocket(options: UseScreenSocketOptions): UseScreenSocketReturn {
   const { screenId, token } = options
 
+  const scope = `screen:${screenId}`
+
   const baseUrl = token ? resolveScreenHubUrl(options.baseUrl) : DEFAULT_SCREEN_HUB_URL
 
   const wsUrl = `${baseUrl}/ws/screen/${screenId}?token=${token}`
@@ -30,21 +33,37 @@ export function useScreenSocket(options: UseScreenSocketOptions): UseScreenSocke
     onMessageRef.current = options.onMessage
   })
 
-  const send = useCallback((envelope: ScreenEnvelope) => {
-    const ws = wsRef.current
-    if (ws?.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify(envelope))
-    }
-  }, [])
+  const send = useCallback(
+    (envelope: ScreenEnvelope) => {
+      const ws = wsRef.current
+      if (ws?.readyState === WebSocket.OPEN) {
+        wsLog(scope, "send →", envelope)
+        ws.send(JSON.stringify(envelope))
+      } else {
+        wsWarn(
+          scope,
+          `send dropped (socket not open, readyState=${String(ws?.readyState)})`,
+          envelope,
+        )
+      }
+    },
+    [scope],
+  )
 
   useEffect(() => {
-    if (!token) return
+    if (!token) {
+      wsWarn(scope, "NOT connecting — VITE_SCREEN_TOKEN is empty, screen hub disabled")
+      return
+    }
+
+    wsLog(scope, `token=${redactToken(token)}`)
 
     let disposed = false
 
     function connect() {
       if (disposed) return
       setStatus("connecting")
+      wsLog(scope, "connecting to", wsUrl)
 
       const ws = new WebSocket(wsUrl)
       wsRef.current = ws
@@ -52,6 +71,7 @@ export function useScreenSocket(options: UseScreenSocketOptions): UseScreenSocke
       ws.onopen = () => {
         if (disposed) return
         setStatus("connected")
+        wsLog(scope, "OPEN ✓", wsUrl)
       }
 
       ws.onmessage = (event: MessageEvent) => {
@@ -59,19 +79,25 @@ export function useScreenSocket(options: UseScreenSocketOptions): UseScreenSocke
         const raw = typeof event.data === "string" ? event.data : ""
         try {
           const parsed = JSON.parse(raw) as ScreenEnvelope
+          wsLog(scope, "recv ←", parsed)
           onMessageRef.current?.(parsed)
         } catch {
-          // ignore malformed frames
+          wsWarn(scope, "recv ← (malformed frame, ignored)", raw)
         }
       }
 
-      ws.onclose = () => {
+      ws.onclose = (event: CloseEvent) => {
         if (disposed) return
         setStatus("disconnected")
+        wsWarn(
+          scope,
+          `CLOSED code=${String(event.code)} reason="${event.reason}" wasClean=${String(event.wasClean)} — reconnecting in ${String(RECONNECT_DELAY_MS)}ms`,
+        )
         reconnectTimer.current = setTimeout(connect, RECONNECT_DELAY_MS)
       }
 
       ws.onerror = () => {
+        wsWarn(scope, "ERROR on", wsUrl)
         ws.close()
       }
     }
@@ -83,7 +109,7 @@ export function useScreenSocket(options: UseScreenSocketOptions): UseScreenSocke
       clearTimeout(reconnectTimer.current)
       wsRef.current?.close()
     }
-  }, [wsUrl, token])
+  }, [wsUrl, token, scope])
 
   return { status, send }
 }

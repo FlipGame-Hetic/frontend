@@ -51,9 +51,5 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            VITE_WS_URL=${{ secrets.VITE_WS_URL }}
-            VITE_SCREEN_HUB_URL=${{ secrets.VITE_SCREEN_HUB_URL }}
-            VITE_SCREEN_TOKEN=${{ secrets.VITE_SCREEN_TOKEN }}
           cache-from: type=registry,ref=ghcr.io/flipgame-hetic/${{ matrix.app }}:buildcache
           cache-to: type=registry,ref=ghcr.io/flipgame-hetic/${{ matrix.app }}:buildcache,mode=max

@@ -10,3 +10,5 @@ export const BUMPER_STUCK_VELOCITY = 0.5
 export const BUMPER_UNSTICK_IMPULSE = 5
 
 export const BUMPER_SCALE_FACTOR = 1.2
+export const BUMPER_RUBBER_BLOOM_COLOR = "#00eaff"
+export const BUMPER_RUBBER_BLOOM_INTENSITY = 2.4

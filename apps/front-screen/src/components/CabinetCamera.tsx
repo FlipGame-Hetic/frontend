@@ -3,11 +3,11 @@ import { useControls } from "leva"
 import { useLayoutEffect } from "react"
 import { PerspectiveCamera } from "three"
 
-const ProductionCamera = () => {
+const CabinetCamera = () => {
   const get = useThree((s) => s.get)
   const size = useThree((s) => s.size)
 
-  const { fov, posX, posY, posZ, rotX, rotY, rotZ } = useControls("Production Camera", {
+  const { fov, posX, posY, posZ, rotX, rotY, rotZ } = useControls("Cabinet Camera", {
     fov: { value: 28, min: 10, max: 200, step: 0.5 },
     posX: { value: 0, min: -50, max: 50, step: 0.1, label: "pos X" },
     posY: { value: 25.3, min: -50, max: 50, step: 0.1, label: "pos Y" },
@@ -30,4 +30,4 @@ const ProductionCamera = () => {
   return null
 }
 
-export default ProductionCamera
+export default CabinetCamera

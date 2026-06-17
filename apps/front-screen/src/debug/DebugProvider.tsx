@@ -1,10 +1,11 @@
 import { button, useControls } from "leva"
 import { useEffect, useRef, type ReactNode } from "react"
+import { runtimeEnvironment } from "@/config/runtimeEnvironment"
 import { requestFrontScreenStartGame } from "@/hooks/useScreenHub"
 import useMultiballStore from "@/stores/useMultiballStore"
 import useBallStore from "@/stores/useBallStore"
 import useScreenShakeStore from "@/stores/useScreenShakeStore"
-import { SHAKE_INTENSITY } from "@/components/screenShake/shakeIntensity"
+import { SHAKE_INTENSITY } from "@/components/screenShake/screenShakeConfig"
 import { playSfx } from "@/audio/soundEngine"
 import { broadcastEvent } from "@frontend/ws"
 import {
@@ -23,7 +24,7 @@ const DebugProvider = ({ children }: { children: ReactNode }) => {
   const mainControls = useControls(
     "Main",
     {
-      enabled: { value: true, label: "Orbit controls" },
+      enabled: { value: !runtimeEnvironment.isProduction, label: "Orbit controls" },
       autoMode: false,
       "Start Game": button(requestFrontScreenStartGame),
     },

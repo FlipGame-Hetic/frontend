@@ -7,10 +7,6 @@ USER node
 WORKDIR /home/node/app
 
 ARG NODE_ENV=production
-# Vite bakes VITE_* vars into the bundle at build time, pass them via --build-arg
-ARG VITE_WS_URL
-ARG VITE_SCREEN_HUB_URL
-ARG VITE_SCREEN_TOKEN
 
 COPY --chown=node:node pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY --chown=node:node apps/front-screen/package.json ./apps/front-screen/
@@ -21,11 +17,8 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
 
 COPY --chown=node:node apps/front-screen/ ./apps/front-screen/
 
-RUN VITE_WS_URL=$VITE_WS_URL \
-    VITE_SCREEN_HUB_URL=$VITE_SCREEN_HUB_URL \
-    VITE_SCREEN_TOKEN=$VITE_SCREEN_TOKEN \
-    pnpm --filter @frontend/front-screen build
+RUN pnpm --filter @frontend/front-screen build
 
 EXPOSE 80
 
-CMD ["pnpm", "--filter", "@frontend/front-screen", "preview", "--host", "0.0.0.0", "--port", "80"]
+CMD ["/bin/sh", "apps/front-screen/entrypoint.sh"]

@@ -1,5 +1,7 @@
 import { create } from "zustand"
 import { getAnyBallPosition, getBallPosition } from "@/components/balls/ballPositionRegistry"
+import { getBallColorForCharacter } from "@/config/characterColors"
+import useGameStore from "./useGameStore"
 
 interface Position {
   x: number
@@ -11,10 +13,12 @@ interface ScorePopup {
   id: number
   amount: number
   position: Position
+  color: string
 }
 
 interface HitRecord {
   ballId?: string
+  color: string
   reason?: string
   position: Position
   ts: number
@@ -40,12 +44,21 @@ const pruneHits = (hits: HitRecord[], now: number): HitRecord[] => {
   return fresh.length > HITS_CAP ? fresh.slice(fresh.length - HITS_CAP) : fresh
 }
 
+const getCurrentBallColor = (): string => {
+  const { currentPlayer, selectedPlayers } = useGameStore.getState()
+  const character = selectedPlayers.find((player) => player.player === currentPlayer)?.character
+
+  return getBallColorForCharacter(character)
+}
+
 const useScorePopupsStore = create<ScorePopupsState>((set, get) => ({
   popups: [],
   recentHits: [],
   addPopup: (amount, position) => {
+    const color = getCurrentBallColor()
+
     set((state) => ({
-      popups: [...state.popups, { id: nextId++, amount, position }],
+      popups: [...state.popups, { id: nextId++, amount, position, color }],
     }))
   },
   removePopup: (id) => {
@@ -53,8 +66,13 @@ const useScorePopupsStore = create<ScorePopupsState>((set, get) => ({
   },
   recordHit: (position, ballId, reason) => {
     const now = performance.now()
+    const color = getCurrentBallColor()
+
     set((state) => ({
-      recentHits: pruneHits([...state.recentHits, { ballId, reason, position, ts: now }], now),
+      recentHits: pruneHits(
+        [...state.recentHits, { ballId, color, reason, position, ts: now }],
+        now,
+      ),
     }))
   },
   spawnPopupFromDelta: (amount, reason, ballId) => {
@@ -97,11 +115,12 @@ const useScorePopupsStore = create<ScorePopupsState>((set, get) => ({
       position = (ballId ? getBallPosition(ballId) : undefined) ??
         getAnyBallPosition() ?? { x: 0, y: 0, z: 0 }
     }
+    const color = matchedHit?.color ?? getCurrentBallColor()
     const remainingHits = index >= 0 ? hits.filter((_, i) => i !== index) : hits
 
     set((state) => ({
       recentHits: remainingHits,
-      popups: [...state.popups, { id: nextId++, amount, position }],
+      popups: [...state.popups, { id: nextId++, amount, position, color }],
     }))
   },
 }))

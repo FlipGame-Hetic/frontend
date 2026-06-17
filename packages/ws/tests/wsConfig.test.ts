@@ -3,10 +3,10 @@ import { resolveGameWsUrl, resolveScreenHubUrl } from "../src/wsConfig"
 
 const originalLocation = (globalThis as unknown as { location?: Location }).location
 
-function setRuntimeLocation(protocol: "http:" | "https:", hostname: string): void {
+function setRuntimeLocation(protocol: "http:" | "https:", hostname: string, host = hostname): void {
   Object.defineProperty(globalThis, "location", {
     configurable: true,
-    value: { protocol, hostname },
+    value: { protocol, host, hostname },
   })
 }
 
@@ -25,6 +25,13 @@ afterEach(() => {
 describe("wsConfig", () => {
   it("builds localhost fallback websocket URLs through the reverse proxy", () => {
     setRuntimeLocation("http:", "localhost")
+
+    expect(resolveScreenHubUrl()).toBe("ws://localhost")
+    expect(resolveGameWsUrl()).toBe("ws://localhost/ws/bridge")
+  })
+
+  it("does not inherit the frontend page port for localhost fallback websocket URLs", () => {
+    setRuntimeLocation("http:", "localhost", "localhost:3000")
 
     expect(resolveScreenHubUrl()).toBe("ws://localhost")
     expect(resolveGameWsUrl()).toBe("ws://localhost/ws/bridge")

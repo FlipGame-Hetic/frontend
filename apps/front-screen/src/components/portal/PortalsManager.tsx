@@ -38,7 +38,7 @@ import {
 import PortalGhost from "./PortalGhost"
 import PortalSurface from "./PortalSurface"
 import useScreenShakeStore from "@/stores/useScreenShakeStore"
-import { SHAKE_INTENSITY } from "@/components/screenShake/shakeIntensity"
+import { SHAKE_INTENSITY } from "@/components/screenShake/screenShakeConfig"
 
 const extractBallId = (payload: CollisionPayload): string | null => {
   const obj = payload.other.rigidBodyObject

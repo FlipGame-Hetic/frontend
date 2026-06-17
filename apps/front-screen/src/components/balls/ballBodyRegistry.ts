@@ -10,6 +10,6 @@ export const unregisterBallBody = (id: string) => {
   registry.delete(id)
 }
 
-export const getBallBodies = (): RapierRigidBody[] => {
-  return [...registry.values()]
+export const getBallBodyEntries = (): [string, RapierRigidBody][] => {
+  return [...registry.entries()]
 }

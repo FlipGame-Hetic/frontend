@@ -1,5 +1,7 @@
 import { useMemo } from "react"
 import FlipperJoints from "../flipperJoints/FlipperJoints"
+import { FLIPPER_BLOOM_EMISSIVE_INTENSITY } from "../flipperJoints/jointsConfig"
+import { cloneMaterialWithBloom } from "./playfieldBloomMaterials"
 import {
   getWorldPosition,
   cloneWithWorldOrientation,
@@ -11,11 +13,16 @@ const GlbFlippers = ({ nodes }: { nodes: PlayfieldNodes }) => {
     () =>
       nodes.flippers.map((mesh) => {
         const side: "left" | "right" = mesh.scale.x < 0 ? "left" : "right"
+        const clone = cloneWithWorldOrientation(mesh)
+        clone.material = cloneMaterialWithBloom(clone.material, {
+          emissiveIntensity: FLIPPER_BLOOM_EMISSIVE_INTENSITY,
+        })
+
         return {
           name: mesh.name,
           side,
           position: getWorldPosition(mesh),
-          clone: cloneWithWorldOrientation(mesh),
+          clone,
         }
       }),
     [nodes],
@@ -24,7 +31,7 @@ const GlbFlippers = ({ nodes }: { nodes: PlayfieldNodes }) => {
   return (
     <>
       {flippers.map((f) => (
-        <FlipperJoints key={f.name} position={f.position} side={f.side} meshOverride={f.clone} />
+        <FlipperJoints key={f.name} position={f.position} side={f.side} mesh={f.clone} />
       ))}
     </>
   )

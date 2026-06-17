@@ -1,9 +1,10 @@
 import { useCallback, useState } from "react"
 import type { ButtonId, ButtonPayload, GameMessage } from "@frontend/types"
-import { useGameSocket } from "@frontend/ws"
+import { useGameSocket, wsLog } from "@frontend/ws"
 import { StatusBar } from "@/components/StatusBar"
 import { TerminalLog } from "@/components/TerminalLog"
 import type { LogEntry } from "@/components/TerminalLog"
+import { PhaseSwitcher } from "@/components/PhaseSwitcher"
 import SceneRouter from "@/scenes/SceneRouter"
 import { useScreenHubClient } from "@/hooks/useScreenHubClient"
 import { useKeyboardInput } from "@/hooks/useKeyboardInput"
@@ -23,7 +24,11 @@ function App() {
   const onMessage = useCallback((message: GameMessage) => {
     if (message._type === "Button") {
       const { id, state } = message as GameMessage & ButtonPayload
-      if (state === 1) handleMenuButton(id as ButtonId)
+      wsLog("back-screen", `Button id=${id} state=${String(state)}`)
+      if (state === 1) {
+        wsLog("back-screen", `→ handleMenuButton(${id})`)
+        handleMenuButton(id as ButtonId)
+      }
     }
 
     if (!isDebug) return
@@ -54,8 +59,9 @@ function App() {
   }
 
   return (
-    <div className="h-screen w-screen overflow-hidden">
+    <div className="relative h-screen w-screen overflow-hidden">
       <SceneRouter />
+      <PhaseSwitcher />
     </div>
   )
 }

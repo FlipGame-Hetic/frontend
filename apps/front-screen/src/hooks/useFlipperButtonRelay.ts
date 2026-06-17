@@ -9,9 +9,9 @@ export const useFlipperButtonRelay = (): void => {
       if (e.repeat) return
       if (useBallStore.getState().playingBallIds.length === 0) return
       if (LEFT_KEYS.includes(e.code)) {
-        broadcastEvent({ event_type: "FlipperLeft", payload: {} })
+        broadcastEvent({ event_type: "FlipperLeft", payload: { state: 1 } })
       } else if (RIGHT_KEYS.includes(e.code)) {
-        broadcastEvent({ event_type: "FlipperRight", payload: {} })
+        broadcastEvent({ event_type: "FlipperRight", payload: { state: 1 } })
       }
     }
     window.addEventListener("keydown", handler)

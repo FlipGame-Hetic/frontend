@@ -2,11 +2,7 @@ import useScreenShakeStore from "@/stores/useScreenShakeStore"
 import { useFrame } from "@react-three/fiber"
 import { useRef } from "react"
 import { Vector3 } from "three"
-
-const TRAUMA_DECAY = 1.8
-const MAX_OFFSET = 0.5
-const MAX_OFFSET_Z = 0.5
-const MAX_OFFSET_Y = 0.05
+import { MAX_OFFSET, MAX_OFFSET_Y, MAX_OFFSET_Z, TRAUMA_DECAY } from "./screenShakeConfig"
 
 const ScreenShakeController = () => {
   const lastOffset = useRef(new Vector3())

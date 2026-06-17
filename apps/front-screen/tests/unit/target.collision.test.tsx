@@ -118,14 +118,14 @@ describe("Target — drop target collisions", () => {
     expect(handlers.rigidBodyProps?.colliders).toBe("hull")
   })
 
-  it("activates the target and keeps collider enabled immediately after hit", () => {
+  it("activates the target and disables the collider immediately after hit", () => {
     renderTarget()
     mockSetEnabled.mockClear()
 
     callCollision()
 
     expect(useTargetStore.getState().activatedTargetIds).toContain("l_target_02")
-    expect(mockSetEnabled).not.toHaveBeenCalledWith(false)
+    expect(mockSetEnabled).toHaveBeenCalledWith(false)
   })
 
   it("does not re-record a hit while the drop target is already activated", () => {
@@ -137,20 +137,23 @@ describe("Target — drop target collisions", () => {
     expect(useTargetStore.getState().targetHits).toHaveLength(1)
   })
 
-  it("disables the collider only after the drop animation completes", () => {
+  it("keeps the collider disabled while the drop animation completes", () => {
     renderTarget()
     mockSetEnabled.mockClear()
 
     callCollision()
+    expect(mockSetEnabled).toHaveBeenCalledWith(false)
+
+    mockSetEnabled.mockClear()
     currentTime = 1139
     runFrame()
 
-    expect(mockSetEnabled).not.toHaveBeenCalledWith(false)
+    expect(mockSetEnabled).not.toHaveBeenCalledWith(true)
 
     currentTime = 1140
     runFrame()
 
-    expect(mockSetEnabled).toHaveBeenCalledWith(false)
+    expect(mockSetEnabled).not.toHaveBeenCalledWith(true)
   })
 
   it("reenables the collider only after the target reset animation completes", () => {
