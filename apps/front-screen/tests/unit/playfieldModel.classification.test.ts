@@ -11,6 +11,47 @@ const PLAYFIELD_MODEL_PATH = join(
   "../../public/models/playfield.glb",
 )
 
+interface GlbJson {
+  nodes?: { name?: string }[]
+  animations?: { name?: string }[]
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null
+
+const parseGlbJson = (source: string): GlbJson => {
+  const parsed: unknown = JSON.parse(source)
+
+  if (
+    !isRecord(parsed) ||
+    (parsed.nodes !== undefined && !Array.isArray(parsed.nodes)) ||
+    (parsed.animations !== undefined && !Array.isArray(parsed.animations))
+  ) {
+    throw new Error("Invalid JSON chunk in playfield.glb")
+  }
+
+  return parsed as GlbJson
+}
+
+const readPlayfieldModelJson = (): GlbJson => {
+  const model = readFileSync(PLAYFIELD_MODEL_PATH)
+  let offset = 12
+
+  while (offset < model.length) {
+    const chunkLength = model.readUInt32LE(offset)
+    const chunkType = model.toString("utf8", offset + 4, offset + 8)
+    const chunkStart = offset + 8
+
+    if (chunkType === "JSON") {
+      return parseGlbJson(model.toString("utf8", chunkStart, chunkStart + chunkLength))
+    }
+
+    offset = chunkStart + chunkLength
+  }
+
+  throw new Error("Missing JSON chunk in playfield.glb")
+}
+
 const createNamedMesh = (name: string) => {
   const mesh = new Mesh(new BoxGeometry(1, 1, 1), new MeshBasicMaterial())
   mesh.name = name
@@ -35,6 +76,10 @@ describe("usePlayfieldModel — ball saver classification", () => {
     expect(classifyMesh("arch")).toBe("multiballGateFrame")
     expect(classifyMesh("door_top")).toBe("multiballGateDoors")
     expect(classifyMesh("door_bottom")).toBe("multiballGateDoors")
+  })
+
+  it("keeps the animated globe root in a dedicated bucket", () => {
+    expect(classifyMesh("globe")).toBe("animatedGroups")
   })
 
   it("uses multiball gate names in the playfield model asset", () => {
@@ -73,6 +118,35 @@ describe("usePlayfieldModel — ball saver classification", () => {
     }
   })
 
+  it("collects the animated globe root without leaking descendants into cabinet", () => {
+    const scene = new Group()
+    const cabinetMesh = createNamedMesh("main_frame")
+    const globe = new Group()
+    const root = new Group()
+    const animatedMeshes = ["Circle", "Circle.455", "Circle.643", "Sphere.002", "TERRE1"].map(
+      createNamedMesh,
+    )
+
+    globe.name = "globe"
+    root.name = "Root"
+    root.add(...animatedMeshes)
+    globe.add(root)
+    scene.add(cabinetMesh, globe)
+
+    const nodes = collectPlayfieldNodes(scene)
+
+    expect(nodes.animatedGroups).toEqual([globe])
+    expect(nodes.cabinet).toEqual([cabinetMesh])
+    expect(nodes.cabinet.map((node) => node.name)).not.toEqual(
+      expect.arrayContaining(animatedMeshes.map((mesh) => mesh.name)),
+    )
+
+    for (const mesh of animatedMeshes) {
+      expect(mesh.castShadow).toBe(true)
+      expect(mesh.receiveShadow).toBe(true)
+    }
+  })
+
   it("classifies only renamed saver meshes as ball savers", () => {
     expect(classifyMesh("l_ball_saver")).toBe("ballSavers")
     expect(classifyMesh("r_ball_saver")).toBe("ballSavers")
@@ -84,6 +158,13 @@ describe("usePlayfieldModel — ball saver classification", () => {
     const modelText = model.toString("utf8")
 
     expect(modelText).toContain("central_bonus_zone_inter")
+  })
+
+  it("uses the animated globe group and clip in the playfield model asset", () => {
+    const modelJson = readPlayfieldModelJson()
+
+    expect(modelJson.nodes?.map((node) => node.name)).toContain("globe")
+    expect(modelJson.animations?.map((animation) => animation.name)).toContain("globe_spining")
   })
 
   it("uses saver names in the playfield model asset", () => {

@@ -89,7 +89,7 @@ const Target = ({ mesh, worldPosition }: TargetProps) => {
       } else if (resetStartedAtRef.current === null) {
         setCollidersEnabled(true)
       }
-    } else if (hitTime.current === null) {
+    } else {
       resetStartedAtRef.current = null
       setCollidersEnabled(false)
     }
@@ -117,9 +117,10 @@ const Target = ({ mesh, worldPosition }: TargetProps) => {
       useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.targetDrop)
       resetStartedAtRef.current = null
       hitTime.current = performance.now()
+      setCollidersEnabled(false)
       targetStore.activateTarget(mesh.name)
     },
-    [mesh.name, isStandup],
+    [mesh.name, isStandup, setCollidersEnabled],
   )
 
   useFrame(() => {

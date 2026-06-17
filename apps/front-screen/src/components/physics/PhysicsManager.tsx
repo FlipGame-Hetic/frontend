@@ -51,7 +51,7 @@ const PhysicsManager = ({ children, isDebug }: PhysicsManagerProps) => {
 
   return (
     <Physics
-      debug={false}
+      debug={isDebug}
       gravity={[0, GRAVITY_Y, GRAVITY_Z]}
       timeStep={TIME_STEP}
       paused={slowMotion}

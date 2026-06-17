@@ -1,3 +1,4 @@
+import GlbAnimatedGroups from "./GlbAnimatedGroups"
 import GlbBallSaversManager from "./GlbBallSaversManager"
 import GlbBumpersManager from "./GlbBumpersManager"
 import GlbFlippers from "./GlbFlippers"
@@ -10,10 +11,11 @@ import StaticPlayfield from "./StaticPlayfield"
 import { usePlayfieldModel } from "./usePlayfieldModel"
 
 const PlayfieldScene = () => {
-  const nodes = usePlayfieldModel()
+  const { nodes, animations } = usePlayfieldModel()
   return (
     <>
       <StaticPlayfield nodes={nodes} />
+      <GlbAnimatedGroups nodes={nodes} animations={animations} />
       <MultiballGate nodes={nodes} />
       <GlbBumpersManager nodes={nodes} />
       <GlbSlimBumpersManager nodes={nodes} />

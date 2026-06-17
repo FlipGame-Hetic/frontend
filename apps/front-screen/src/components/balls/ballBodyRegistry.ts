@@ -13,3 +13,7 @@ export const unregisterBallBody = (id: string) => {
 export const getBallBodies = (): RapierRigidBody[] => {
   return [...registry.values()]
 }
+
+export const getBallBodyEntries = (): [string, RapierRigidBody][] => {
+  return [...registry.entries()]
+}

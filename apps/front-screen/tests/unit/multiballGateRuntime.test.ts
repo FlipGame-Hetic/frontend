@@ -1,38 +1,71 @@
 import { describe, expect, it } from "vitest"
+import { BALL_RADIUS } from "@/components/balls/ballConfig"
 import {
   MULTIBALL_GATE_CLOSE_DURATION_MS,
-  MULTIBALL_GATE_CLOSE_TRIGGER_Z,
+  MULTIBALL_GATE_HALF_EXTENTS,
   MULTIBALL_GATE_OPEN_DURATION_MS,
   MULTIBALL_GATE_REOPEN_DELAY_MS,
 } from "@/components/playfield/bonusZoneConfig"
 import {
   advanceMultiballGateState,
+  classifyMultiballGateTraversal,
   createOpenMultiballGateState,
-  hasClearedMultiballGate,
-  shouldCloseMultiballGateFromSensor,
+  shouldKeepMultiballGateExitSuppression,
   triggerMultiballGateClose,
 } from "@/components/playfield/multiballGateRuntime"
 
-const makeSensorPayload = (name: string, zVelocity: number | null) =>
-  ({
-    other: {
-      rigidBodyObject: { name },
-      rigidBody:
-        zVelocity === null
-          ? null
-          : {
-              linvel: () => ({ x: 0, y: 0, z: zVelocity }),
-            },
-    },
-  }) as never
-
 describe("multiballGateRuntime", () => {
-  it("closes only for balls moving from +Z toward -Z", () => {
-    expect(shouldCloseMultiballGateFromSensor(makeSensorPayload("wall", 4))).toBe(false)
-    expect(shouldCloseMultiballGateFromSensor(makeSensorPayload("ball", null))).toBe(false)
-    expect(shouldCloseMultiballGateFromSensor(makeSensorPayload("ball", 0))).toBe(false)
-    expect(shouldCloseMultiballGateFromSensor(makeSensorPayload("ball", 2))).toBe(false)
-    expect(shouldCloseMultiballGateFromSensor(makeSensorPayload("ball", -2))).toBe(true)
+  it("closes for a fast ball crossing from +Z into the bonus zone in one step", () => {
+    const traversal = classifyMultiballGateTraversal(
+      { x: 0, y: 0, z: 0.8 },
+      { x: 0, y: 0, z: -0.8 },
+    )
+
+    expect(traversal).toBe("entry-to-bonus")
+
+    const open = createOpenMultiballGateState()
+    const closed = traversal === "entry-to-bonus" ? triggerMultiballGateClose(open, 100) : open
+
+    expect(closed.phase).toBe("closing")
+    expect(closed.colliderActive).toBe(true)
+  })
+
+  it("does not close for a ball exiting the bonus zone toward +Z", () => {
+    const traversal = classifyMultiballGateTraversal(
+      { x: 0, y: 0, z: -0.8 },
+      { x: 0, y: 0, z: 0.8 },
+    )
+
+    expect(traversal).toBe("exit-to-playfield")
+  })
+
+  it("ignores crossings outside the gate bounds", () => {
+    const outsideX = MULTIBALL_GATE_HALF_EXTENTS[0] + BALL_RADIUS + 0.01
+
+    expect(
+      classifyMultiballGateTraversal({ x: outsideX, y: 0, z: 0.8 }, { x: outsideX, y: 0, z: -0.8 }),
+    ).toBe("none")
+  })
+
+  it("keeps suppressing close when an exiting ball bounces back inside the gate volume", () => {
+    const exiting = classifyMultiballGateTraversal({ x: 0, y: 0, z: -0.3 }, { x: 0, y: 0, z: 0 })
+    expect(exiting).toBe("exit-to-playfield")
+    expect(shouldKeepMultiballGateExitSuppression({ x: 0, y: 0, z: 0 })).toBe(true)
+
+    const bounceBack = classifyMultiballGateTraversal(
+      { x: 0, y: 0, z: 0 },
+      { x: 0, y: 0, z: -0.25 },
+    )
+    expect(bounceBack).toBe("entry-to-bonus")
+    expect(shouldKeepMultiballGateExitSuppression({ x: 0, y: 0, z: -0.25 })).toBe(true)
+
+    expect(
+      shouldKeepMultiballGateExitSuppression({
+        x: 0,
+        y: 0,
+        z: MULTIBALL_GATE_HALF_EXTENTS[2] + BALL_RADIUS + 0.01,
+      }),
+    ).toBe(false)
   })
 
   it("activates the collider immediately and disables it when reopening starts", () => {
@@ -78,12 +111,5 @@ describe("multiballGateRuntime", () => {
     expect(retriggered).toBe(reopening)
     expect(retriggered.phase).toBe("opening")
     expect(retriggered.colliderActive).toBe(false)
-  })
-
-  it("waits until the ball center has cleared the gate before closing", () => {
-    expect(hasClearedMultiballGate(null)).toBe(false)
-    expect(hasClearedMultiballGate({ z: MULTIBALL_GATE_CLOSE_TRIGGER_Z + 0.01 })).toBe(false)
-    expect(hasClearedMultiballGate({ z: MULTIBALL_GATE_CLOSE_TRIGGER_Z })).toBe(true)
-    expect(hasClearedMultiballGate({ z: MULTIBALL_GATE_CLOSE_TRIGGER_Z - 0.01 })).toBe(true)
   })
 })
