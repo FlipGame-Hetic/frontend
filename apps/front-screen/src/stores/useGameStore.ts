@@ -2,10 +2,10 @@ import { create } from "zustand"
 import type { CharacterType, GameMode, GamePhase } from "@frontend/types"
 
 export const CHARACTER_ID_BY_TYPE: Record<CharacterType, number> = {
-  striker: 0,
-  defender: 1,
-  trickster: 2,
-  heavy: 3,
+  keenu: 0,
+  viper: 1,
+  ghost: 2,
+  oracle: 3,
 }
 import { PLUNGER_BALL_SPAWN } from "@/components/plunger/plungerConfig"
 import useBallStore from "./useBallStore"
