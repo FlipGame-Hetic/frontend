@@ -13,6 +13,7 @@ import { useCallback, useEffect, useMemo, useRef } from "react"
 import { Box3, MathUtils, type Mesh, Vector3 } from "three"
 import { hasBallId } from "@/components/balls/ballUserData"
 import useBallStore from "@/stores/useBallStore"
+import useBallSaverPhaseStore from "@/stores/useBallSaverPhaseStore"
 import { cloneWithWorldOrientation } from "../playfield/usePlayfieldModel"
 import {
   areBallSaverTargetsDown,
@@ -24,6 +25,7 @@ import {
   BALL_SAVER_RETRACT_DURATION_MS,
   BALL_SAVER_TARGET_IDS,
   BALL_SAVER_VISIBLE_HEIGHT,
+  type BallSaverPhase,
   type BallSaverSide,
 } from "./ballSaverConfig"
 
@@ -33,7 +35,6 @@ interface BallSaverProps {
   worldPosition: PositionType
 }
 
-type BallSaverPhase = "down" | "rising" | "active" | "retracting" | "cooldown"
 type BallCollisionTarget = CollisionEnterPayload["other"]
 
 const easeOutCubic = (t: number) => {
@@ -73,6 +74,8 @@ const BallSaver = ({ mesh, side, worldPosition }: BallSaverProps) => {
   const retractStartYOffsetRef = useRef(0)
   const phaseStartedAtRef = useRef(0)
   const phaseRef = useRef<BallSaverPhase>("down")
+  const publishPhase = useBallSaverPhaseStore((state) => state.setPhase)
+  const publishCooldownEndsAt = useBallSaverPhaseStore((state) => state.setCooldownEndsAt)
 
   const targetsDown = useTargetStore((state) =>
     areBallSaverTargetsDown(side, state.activatedTargetIds),
@@ -85,16 +88,29 @@ const BallSaver = ({ mesh, side, worldPosition }: BallSaverProps) => {
     return Math.max(size.y - BALL_SAVER_VISIBLE_HEIGHT, size.y * BALL_SAVER_MIN_DROP_RATIO)
   }, [clone])
 
-  const setPhase = useCallback((nextPhase: BallSaverPhase, now = performance.now()) => {
-    phaseRef.current = nextPhase
-    phaseStartedAtRef.current = now
-  }, [])
+  const setPhase = useCallback(
+    (nextPhase: BallSaverPhase, now = performance.now()) => {
+      const previousPhase = phaseRef.current
+      phaseRef.current = nextPhase
+      phaseStartedAtRef.current = now
+      if (previousPhase !== nextPhase) publishPhase(side, nextPhase)
+    },
+    [publishPhase, side],
+  )
 
   const setCollidersEnabled = useCallback((enabled: boolean) => {
     if (!bodyRef.current || collidersEnabledRef.current === enabled) return
     setBodyCollidersEnabled(bodyRef.current, enabled)
     collidersEnabledRef.current = enabled
   }, [])
+
+  useEffect(() => {
+    publishPhase(side, "down")
+
+    return () => {
+      publishPhase(side, "down")
+    }
+  }, [publishPhase, side])
 
   const resetSideTargets = useCallback(() => {
     const targetStore = useTargetStore.getState()
@@ -212,11 +228,13 @@ const BallSaver = ({ mesh, side, worldPosition }: BallSaverProps) => {
         yOffset = dropDistance
         currentYOffsetRef.current = yOffset
         setPhase("cooldown", now)
+        publishCooldownEndsAt(side, now + BALL_SAVER_COOLDOWN_MS)
       }
     } else if (phaseRef.current === "cooldown") {
       if (elapsed >= BALL_SAVER_COOLDOWN_MS) {
         resetSideTargets()
         setPhase("down", now)
+        publishCooldownEndsAt(side, null)
       }
       yOffset = dropDistance
     }
