@@ -29,7 +29,7 @@ export const RAIL_ENTRY_SENSORS: RailSensorConfig[] = [
   {
     id: "top-tunnel-entrance",
     source: "sensor-top-tunnel-entrance",
-    position: [3.15, 1.75, -4.5],
+    position: [3.15, 2.4, -6],
     halfExtents: [0.15, 0.2, 0.2],
   },
 ]

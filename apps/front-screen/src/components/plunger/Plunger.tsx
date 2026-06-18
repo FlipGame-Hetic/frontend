@@ -1,4 +1,6 @@
 import useKeyboard from "@/hooks/useKeyboard"
+import { getCharacterMaterialColor } from "@/config/characterColors"
+import useGameStore from "@/stores/useGameStore"
 import { CuboidCollider, RigidBody } from "@react-three/rapier"
 import { useMemo } from "react"
 import { Vector3 } from "three"
@@ -31,6 +33,10 @@ const toVector3 = (position: [number, number, number]): Vector3 => {
 
 const Plunger = ({ position = PLUNGER_POSITION, tipMesh, ringMeshes = [] }: PlungerProps) => {
   const pressedKeys = useKeyboard()
+  const character = useGameStore(
+    (s) => s.selectedPlayers.find((p) => p.player === s.currentPlayer)?.character,
+  )
+  const vfxColor = getCharacterMaterialColor(character)
 
   const rootPosition = useMemo(() => toVector3(position), [position])
   const tipRestPosition = useMemo(
@@ -78,7 +84,7 @@ const Plunger = ({ position = PLUNGER_POSITION, tipMesh, ringMeshes = [] }: Plun
       </RigidBody>
 
       <group ref={tipGroupRef} position={tipMesh?.position ?? [0, 0, 0]}>
-        <PlungerNeonTip mesh={tipMesh?.mesh} chargeRef={chargeRef} />
+        <PlungerNeonTip mesh={tipMesh?.mesh} chargeRef={chargeRef} color={vfxColor} />
       </group>
 
       <PlungerEnergyRings
@@ -86,9 +92,10 @@ const Plunger = ({ position = PLUNGER_POSITION, tipMesh, ringMeshes = [] }: Plun
         launchRef={launchRef}
         restPositions={ringRestPositions}
         movementAxis={movementAxis}
+        color={vfxColor}
       />
-      <PlungerBeam launchRef={launchRef} movementAxis={movementAxis} />
-      <PlungerShockwave launchRef={launchRef} movementAxis={movementAxis} />
+      <PlungerBeam launchRef={launchRef} movementAxis={movementAxis} color={vfxColor} />
+      <PlungerShockwave launchRef={launchRef} movementAxis={movementAxis} color={vfxColor} />
     </group>
   )
 }

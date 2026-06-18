@@ -1,14 +1,16 @@
-import { getBallId } from "@/components/balls/ballUserData"
+import { getBallId, getCurrentBallColor } from "@/components/balls/ballUserData"
 import type { PositionType } from "@/types/worldTypes"
 import { useFrame } from "@react-three/fiber"
 import type { CollisionEnterPayload, CollisionPayload, RapierRigidBody } from "@react-three/rapier"
 import { CuboidCollider, RigidBody } from "@react-three/rapier"
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react"
 import type { Material, Object3D } from "three"
-import { Box3, Euler, Matrix4, Mesh, Plane, Vector3 } from "three"
+import { Box3, Color, Euler, Matrix4, Mesh, Plane, Vector3 } from "three"
 import {
   BONUS_ZONE_RESTITUTION,
   MULTIBALL_GATE_ARCH_BLOOM_INTENSITY,
+  MULTIBALL_GATE_ARCH_CLOSED_BLOOM_INTENSITY,
+  MULTIBALL_GATE_ARCH_OPEN_COLOR,
   MULTIBALL_GATE_HALF_EXTENTS,
   MULTIBALL_GATE_OPEN_DISTANCE,
   MULTIBALL_GATE_POSITION,
@@ -23,7 +25,12 @@ import {
   shouldTrackMultiballGateSensorBall,
   triggerMultiballGateClose,
 } from "./multiballGateRuntime"
-import { cloneMaterialWithBloom, type BloomMaterialOptions } from "./playfieldBloomMaterials"
+import {
+  cloneMaterialWithBloom,
+  hasEmissiveControls,
+  type BloomMaterialOptions,
+  type EmissiveMaterial,
+} from "./playfieldBloomMaterials"
 import { cloneAtWorldTransform, type PlayfieldNodes } from "./usePlayfieldModel"
 
 interface PreparedGate {
@@ -37,6 +44,7 @@ interface PreparedGate {
   colliderPosition: PositionType
   colliderRotation: PositionType
   frameColliders: GateFrameCollider[]
+  archBloomMaterials: EmissiveMaterial[]
 }
 
 interface GateFrameCollider {
@@ -46,6 +54,12 @@ interface GateFrameCollider {
 }
 
 const toTuple = (v: Vector3): PositionType => [v.x, v.y, v.z]
+const ARCH_OPEN_COLOR = new Color(MULTIBALL_GATE_ARCH_OPEN_COLOR)
+const ARCH_CLOSED_COLOR = new Color()
+
+const isMultiballGateArchBloomMaterial = (material: Material): boolean => {
+  return material.name === "softbluelight"
+}
 
 const clonePlainMaterial = (material: Material | Material[]) => {
   return Array.isArray(material) ? material.map((m) => m.clone()) : material.clone()
@@ -85,6 +99,22 @@ const cloneMaterials = (
     if (!isMesh(node)) return
     node.material = cloneMaterial(node.material, clippingPlane, bloomOptions)
   })
+}
+
+const collectArchBloomMaterials = (object: Object3D): EmissiveMaterial[] => {
+  const materials: EmissiveMaterial[] = []
+
+  object.traverse((node) => {
+    if (!isMesh(node)) return
+    const nodeMaterials = Array.isArray(node.material) ? node.material : [node.material]
+    for (const material of nodeMaterials) {
+      if (!isMultiballGateArchBloomMaterial(material)) continue
+      if (!hasEmissiveControls(material)) continue
+      materials.push(material)
+    }
+  })
+
+  return materials
 }
 
 const getLocalObjectBox = (object: Object3D): Box3 => {
@@ -187,12 +217,15 @@ const prepareGate = (nodes: PlayfieldNodes): PreparedGate | null => {
   const topDoor = cloneAtWorldTransform(topSource)
   const bottomDoor = cloneAtWorldTransform(bottomSource)
   const topClipPlane = getTopDoorClipPlane(topDoor, frame)
+  let archBloomMaterials: EmissiveMaterial[] = []
 
   if (frame) {
     cloneMaterials(frame, undefined, {
       emissiveIntensity: MULTIBALL_GATE_ARCH_BLOOM_INTENSITY,
-      shouldApply: (material) => material.name === "softbluelight",
+      emissiveColor: MULTIBALL_GATE_ARCH_OPEN_COLOR,
+      shouldApply: isMultiballGateArchBloomMaterial,
     })
+    archBloomMaterials = collectArchBloomMaterials(frame)
   }
   cloneMaterials(topDoor, topClipPlane)
   cloneMaterials(bottomDoor)
@@ -229,6 +262,7 @@ const prepareGate = (nodes: PlayfieldNodes): PreparedGate | null => {
     colliderPosition: toTuple(colliderPosition),
     colliderRotation: [colliderEuler.x, colliderEuler.y, colliderEuler.z],
     frameColliders: getGateFrameColliders(frame, topDoor, bottomDoor),
+    archBloomMaterials,
   }
 }
 
@@ -240,6 +274,20 @@ const applyGateAnimation = (gate: PreparedGate, closedAmount: number) => {
   gate.bottomDoor.position
     .copy(gate.bottomClosedPosition)
     .addScaledVector(gate.openAxis, -MULTIBALL_GATE_OPEN_DISTANCE * openAmount)
+}
+
+const applyGateArchBloom = (gate: PreparedGate, closedAmount: number) => {
+  const intensity =
+    MULTIBALL_GATE_ARCH_BLOOM_INTENSITY +
+    (MULTIBALL_GATE_ARCH_CLOSED_BLOOM_INTENSITY - MULTIBALL_GATE_ARCH_BLOOM_INTENSITY) *
+      closedAmount
+  ARCH_CLOSED_COLOR.set(getCurrentBallColor())
+
+  for (const material of gate.archBloomMaterials) {
+    material.emissive.lerpColors(ARCH_OPEN_COLOR, ARCH_CLOSED_COLOR, closedAmount)
+    material.emissiveIntensity = intensity
+    material.needsUpdate = true
+  }
 }
 
 const PreparedMultiballGate = ({ gate }: { gate: PreparedGate }) => {
@@ -260,6 +308,7 @@ const PreparedMultiballGate = ({ gate }: { gate: PreparedGate }) => {
       gateStateRef.current = state
       syncColliderActive(state.colliderActive)
       applyGateAnimation(gate, state.closedAmount)
+      applyGateArchBloom(gate, state.closedAmount)
     },
     [gate, syncColliderActive],
   )
@@ -270,6 +319,7 @@ const PreparedMultiballGate = ({ gate }: { gate: PreparedGate }) => {
     colliderActiveRef.current = openState.colliderActive
     pendingGateBallsRef.current.clear()
     applyGateAnimation(gate, openState.closedAmount)
+    applyGateArchBloom(gate, openState.closedAmount)
   }, [gate])
 
   const closeGateIfOpen = useCallback(
@@ -338,7 +388,11 @@ const PreparedMultiballGate = ({ gate }: { gate: PreparedGate }) => {
       if (other.rigidBodyObject?.name !== "ball") return
       const ballId = getBallId(other.rigidBodyObject.userData)
       if (!ballId) return
-      registerBonusHit(ballId)
+      const position = other.rigidBody?.translation()
+      registerBonusHit(
+        ballId,
+        position ? { x: position.x, y: position.y, z: position.z } : undefined,
+      )
     },
     [registerBonusHit],
   )
