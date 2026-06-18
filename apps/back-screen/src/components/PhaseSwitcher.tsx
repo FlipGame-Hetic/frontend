@@ -23,8 +23,10 @@ const LABELS: Record<GamePhase, string> = {
 export function PhaseSwitcher() {
   const phase = useBackScreenStore((s) => s.phase)
   const setPhase = useBackScreenStore((s) => s.setPhase)
+  const bossActive = useBackScreenStore((s) => s.bossActive)
 
   if (!import.meta.env.DEV) return null
+  if (bossActive) return null
 
   return (
     <div className="absolute top-1/2 right-4 z-50 flex w-[68px] -translate-y-1/2 flex-col overflow-hidden border border-[rgba(243,230,0,0.2)] bg-[rgba(8,11,18,0.95)] shadow-[0_0_24px_rgba(0,0,0,0.7)] backdrop-blur-[8px]">
@@ -37,7 +39,9 @@ export function PhaseSwitcher() {
         return (
           <button
             key={p}
-            onClick={() => { setPhase(p); }}
+            onClick={() => {
+              setPhase(p)
+            }}
             className={cn(
               "w-full cursor-pointer border-l-2 py-2 font-mono text-[8px] tracking-wider uppercase transition-colors duration-150",
               isActive

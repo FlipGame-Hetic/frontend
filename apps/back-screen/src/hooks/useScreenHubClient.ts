@@ -15,6 +15,8 @@ export function useScreenHubClient(): void {
   const setPhase = useBackScreenStore((s) => s.setPhase)
   const setScore = useBackScreenStore((s) => s.setScore)
   const setBallNumber = useBackScreenStore((s) => s.setBallNumber)
+  const setBoss = useBackScreenStore((s) => s.setBoss)
+  const markBossDefeated = useBackScreenStore((s) => s.markBossDefeated)
 
   const { send } = useScreenHub({
     screenId: SCREEN_ID,
@@ -29,6 +31,15 @@ export function useScreenHubClient(): void {
       if (isScreenEvent(envelope, "ScoreUpdate")) {
         setScore(envelope.payload.score)
         if (envelope.payload.ball !== undefined) setBallNumber(envelope.payload.ball)
+        return
+      }
+      if (isScreenEvent(envelope, "BossUpdate")) {
+        const { boss_id, boss_hp, boss_max_hp } = envelope.payload
+        setBoss({ bossId: boss_id, bossHp: boss_hp, bossMaxHp: boss_max_hp })
+        return
+      }
+      if (isScreenEvent(envelope, "BossDefeated")) {
+        markBossDefeated()
       }
     },
   })
