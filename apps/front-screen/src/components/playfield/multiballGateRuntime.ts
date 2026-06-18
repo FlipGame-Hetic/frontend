@@ -1,9 +1,10 @@
-import { BALL_RADIUS } from "@/components/balls/ballConfig"
+import type { CollisionPayload } from "@react-three/rapier"
 import {
   MULTIBALL_GATE_CLOSE_DURATION_MS,
-  MULTIBALL_GATE_HALF_EXTENTS,
+  MULTIBALL_GATE_CLOSE_TRIGGER_Z,
   MULTIBALL_GATE_OPEN_DURATION_MS,
   MULTIBALL_GATE_REOPEN_DELAY_MS,
+  MULTIBALL_GATE_TRIGGER_MIN_Z_VELOCITY,
 } from "./bonusZoneConfig"
 
 type MultiballGatePhase = "open" | "closing" | "closed" | "opening"
@@ -22,11 +23,7 @@ export interface MultiballGateTiming {
   openDurationMs: number
 }
 
-export type MultiballGateTraversal = "entry-to-bonus" | "exit-to-playfield" | "none"
-
-interface MultiballGateVector {
-  x: number
-  y: number
+interface MultiballGateZVector {
   z: number
 }
 
@@ -34,7 +31,6 @@ const DEFAULT_TIMING: MultiballGateTiming = {
   closeDurationMs: MULTIBALL_GATE_CLOSE_DURATION_MS,
   openDurationMs: MULTIBALL_GATE_OPEN_DURATION_MS,
 }
-const MULTIBALL_GATE_LOCAL_CLOSE_Z = -BALL_RADIUS
 
 const progress = (startedAt: number, now: number, durationMs: number): number => {
   if (durationMs <= 0) return 1
@@ -116,53 +112,54 @@ export const advanceMultiballGateState = (
   return { ...state, closedAmount: 0, colliderActive: false }
 }
 
-const isWithinMultiballGateCrossingBounds = (
-  position: MultiballGateVector,
-  halfExtents = MULTIBALL_GATE_HALF_EXTENTS,
-  margin = BALL_RADIUS,
+export const isMultiballGateClosingVelocity = (
+  velocity: MultiballGateZVector | null | undefined,
+  minZVelocity = MULTIBALL_GATE_TRIGGER_MIN_Z_VELOCITY,
 ): boolean => {
-  return (
-    Math.abs(position.x) <= halfExtents[0] + margin &&
-    Math.abs(position.y) <= halfExtents[1] + margin
-  )
+  if (!velocity) return false
+  return velocity.z < -Math.abs(minZVelocity)
 }
 
-export const classifyMultiballGateTraversal = (
-  previous: MultiballGateVector | null | undefined,
-  current: MultiballGateVector | null | undefined,
-  closePlaneZ = MULTIBALL_GATE_LOCAL_CLOSE_Z,
-): MultiballGateTraversal => {
-  if (!previous || !current) return "none"
-
-  const deltaZ = current.z - previous.z
-  if (deltaZ === 0) return "none"
-
-  const entersBonus = previous.z > closePlaneZ && current.z <= closePlaneZ
-  const exitsToPlayfield = previous.z < closePlaneZ && current.z >= closePlaneZ
-  if (!entersBonus && !exitsToPlayfield) return "none"
-
-  const t = (closePlaneZ - previous.z) / deltaZ
-  if (t < 0 || t > 1) return "none"
-
-  const crossingPoint = {
-    x: previous.x + (current.x - previous.x) * t,
-    y: previous.y + (current.y - previous.y) * t,
-    z: closePlaneZ,
-  }
-  if (!isWithinMultiballGateCrossingBounds(crossingPoint)) return "none"
-
-  return entersBonus ? "entry-to-bonus" : "exit-to-playfield"
+export const isMultiballGateOpeningVelocity = (
+  velocity: MultiballGateZVector | null | undefined,
+  minZVelocity = MULTIBALL_GATE_TRIGGER_MIN_Z_VELOCITY,
+): boolean => {
+  if (!velocity) return false
+  return velocity.z > Math.abs(minZVelocity)
 }
 
-export const shouldKeepMultiballGateExitSuppression = (
-  position: MultiballGateVector,
-  halfExtents = MULTIBALL_GATE_HALF_EXTENTS,
-  margin = BALL_RADIUS,
+export const hasClearedMultiballGate = (
+  position: MultiballGateZVector | null | undefined,
+  triggerZ = MULTIBALL_GATE_CLOSE_TRIGGER_Z,
 ): boolean => {
-  return (
-    Math.abs(position.x) <= halfExtents[0] + margin &&
-    Math.abs(position.y) <= halfExtents[1] + margin &&
-    position.z > -halfExtents[2] - margin &&
-    position.z < halfExtents[2] + margin
-  )
+  if (!position) return false
+  return position.z <= triggerZ
+}
+
+export const shouldCloseMultiballGateFromSensor = (
+  payload: CollisionPayload,
+  minZVelocity = MULTIBALL_GATE_TRIGGER_MIN_Z_VELOCITY,
+): boolean => {
+  if (payload.other.rigidBodyObject?.name !== "ball") return false
+
+  const velocity = payload.other.rigidBody?.linvel()
+  return isMultiballGateClosingVelocity(velocity, minZVelocity)
+}
+
+export const shouldTrackMultiballGateSensorBall = (
+  payload: CollisionPayload,
+  minZVelocity = MULTIBALL_GATE_TRIGGER_MIN_Z_VELOCITY,
+): boolean => {
+  if (payload.other.rigidBodyObject?.name !== "ball") return false
+
+  const velocity = payload.other.rigidBody?.linvel()
+  return !!velocity && !isMultiballGateOpeningVelocity(velocity, minZVelocity)
+}
+
+export const shouldCloseMultiballGateFromSensorExit = (
+  position: MultiballGateZVector | null | undefined,
+  velocity: MultiballGateZVector | null | undefined,
+  minZVelocity = MULTIBALL_GATE_TRIGGER_MIN_Z_VELOCITY,
+): boolean => {
+  return hasClearedMultiballGate(position) && isMultiballGateClosingVelocity(velocity, minZVelocity)
 }
