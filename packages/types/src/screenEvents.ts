@@ -1,5 +1,5 @@
+import type { CharacterType } from "./character"
 import type { ScreenEnvelope, ScreenId, ScreenTarget } from "./screen"
-import type { CharacterType } from "./player"
 
 export const SCREEN_EVENT_TYPES = {
   PhaseChange: "phase_change",

@@ -1,3 +1,5 @@
+import type { CharacterType } from "./character"
+
 export interface Player {
   id: string
   name: string
@@ -5,5 +7,3 @@ export interface Player {
   hp: number
   score: number
 }
-
-export type CharacterType = "enforcer" | "viper" | "ghost" | "oracle"

@@ -1,4 +1,4 @@
-import type { CharacterType } from "./player"
+export type CharacterType = "keenu" | "viper" | "ghost" | "oracle"
 
 export interface CharacterConfig {
   id: CharacterType
@@ -15,7 +15,7 @@ type NonEmptyArray<T> = [T, ...T[]]
 
 export const CHARACTER_OPTIONS: NonEmptyArray<CharacterConfig> = [
   {
-    id: "enforcer",
+    id: "keenu",
     label: "KEENU",
     description: "On adore regarder des gens comme lui lutter pour leur survie.",
     color: "#FF8C00",
@@ -58,4 +58,4 @@ export const CHARACTER_OPTIONS: NonEmptyArray<CharacterConfig> = [
   },
 ]
 
-export const DEFAULT_CHARACTER: CharacterType = "enforcer"
+export const DEFAULT_CHARACTER: CharacterType = "keenu"

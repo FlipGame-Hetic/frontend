@@ -3,7 +3,7 @@ import { getBallColorForCharacter } from "@/config/characterColors"
 
 describe("getBallColorForCharacter", () => {
   it("returns orange for enforcer", () => {
-    expect(getBallColorForCharacter("enforcer")).toBe("#FFAA00")
+    expect(getBallColorForCharacter("keenu")).toBe("#FFAA00")
   })
 
   it("returns green for viper", () => {
