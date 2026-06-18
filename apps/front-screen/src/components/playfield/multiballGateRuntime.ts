@@ -120,7 +120,7 @@ export const isMultiballGateClosingVelocity = (
   return velocity.z < -Math.abs(minZVelocity)
 }
 
-export const isMultiballGateOpeningVelocity = (
+const isMultiballGateOpeningVelocity = (
   velocity: MultiballGateZVector | null | undefined,
   minZVelocity = MULTIBALL_GATE_TRIGGER_MIN_Z_VELOCITY,
 ): boolean => {
