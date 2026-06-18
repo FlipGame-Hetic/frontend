@@ -42,7 +42,7 @@ const App = () => {
     <DebugProvider>
       <SoundManager />
       <Leva
-        hidden={runtimeEnvironment.isProduction}
+        // hidden={runtimeEnvironment.isProduction}
         titleBar={{ title: "Tweaks GUI" }}
         theme={{ sizes: { rootWidth: "350px" } }}
       />
