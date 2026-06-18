@@ -1,5 +1,5 @@
 import type { ButtonId } from "./buttons"
-import type { CharacterType } from "./character"
+import type { CharacterType, UltiId, UltiPayload, UltiShape } from "./character"
 import type { ScreenEnvelope, ScreenId, ScreenTarget } from "./screen"
 
 export const SCREEN_EVENT_TYPES = {
@@ -13,7 +13,8 @@ export const SCREEN_EVENT_TYPES = {
   MenuNext: "menu_next",
   MenuPrev: "menu_prev",
   MenuBack: "menu_back",
-  UltimateActivated: "UltimateActivated",
+  UltimateTriggered: "UltimateTriggered",
+  UltimateStopped: "UltimateStopped",
   BumperHit: "bumper_hit",
   SlingshotHit: "slingshot_hit",
   BallLost: "ball_lost",
@@ -107,9 +108,21 @@ export interface MenuBackEvent {
   payload: Record<string, never>
 }
 
-export interface UltimateActivatedEvent {
-  event_type: "UltimateActivated"
-  payload: { player_id: string }
+export interface UltimateTriggeredEvent {
+  event_type: "UltimateTriggered"
+  payload: {
+    character: CharacterType
+    ulti_id: UltiId
+    shape: UltiShape
+    cancellable: boolean
+    duration_ms?: number
+    payload?: UltiPayload
+  }
+}
+
+export interface UltimateStoppedEvent {
+  event_type: "UltimateStopped"
+  payload: { ulti_id: UltiId; ultimate_charge: number }
 }
 
 export interface BumperHitEvent {
@@ -234,12 +247,21 @@ export interface BackEndGameEvent {
 
 export interface BackStartGameEvent {
   event_type: "StartGame"
-  payload: { player_id: string; character_id: number }
+  payload: { player_id: string; character: string }
 }
 
 export interface BackScoreUpdateEvent {
   event_type: "ScoreUpdate"
-  payload: { score: number; multiplier?: number; player?: string | number; ball?: number }
+  payload: {
+    score: number
+    multiplier?: number
+    player?: string | number
+    ball?: number
+    ultimate_charge?: number
+    ultimate_max?: number
+    ulti_ready?: boolean
+    next_ulti_id?: CharacterType
+  }
 }
 
 export interface BackScoreDeltaEvent {
@@ -281,7 +303,8 @@ export type ScreenEvent =
   | MenuNextEvent
   | MenuPrevEvent
   | MenuBackEvent
-  | UltimateActivatedEvent
+  | UltimateTriggeredEvent
+  | UltimateStoppedEvent
   | BumperHitEvent
   | SlingshotHitEvent
   | BallLostEvent

@@ -1,9 +1,9 @@
 import { LEFT_KEYS, RIGHT_KEYS } from "@/components/flipperJoints/jointsConfig"
 import { PLUNGER_KEY } from "@/components/plunger/plungerConfig"
-import { triggerUltimate } from "@/gameplay/ultimate"
 import { pressKey, releaseKey, triggerPlungerMaxLaunch } from "@/stores/inputStore"
-import useGameStore, { CHARACTER_ID_BY_TYPE } from "@/stores/useGameStore"
+import useGameStore from "@/stores/useGameStore"
 import useScorePopupsStore from "@/stores/useScorePopupsStore"
+import useUltimateStore from "@/stores/useUltimateStore"
 import type { GameMode, ScreenEnvelope, ScreenEvent, StartGameEvent } from "@frontend/types"
 import { DEFAULT_CHARACTER, isScreenEvent, makeEnvelope } from "@frontend/types"
 import {
@@ -64,14 +64,25 @@ const handleScreenEvent = (envelope: ScreenEnvelope): void => {
     return
   }
 
-  if (isScreenEvent(envelope, "CapacityL2") || isScreenEvent(envelope, "CapacityR2")) {
-    triggerUltimate(useGameStore.getState().currentPlayer)
+  if (isScreenEvent(envelope, "ScoreUpdate")) {
+    const { score, ultimate_charge, ultimate_max, ulti_ready, next_ulti_id } = envelope.payload
+    setScore(score)
+    useUltimateStore.getState().setChargeFromScore({
+      ultimate_charge,
+      ultimate_max,
+      ulti_ready,
+      next_ulti_id,
+    })
     return
   }
 
-  if (envelope.event_type === "ScoreUpdate") {
-    const payload = envelope.payload as { score: number }
-    setScore(payload.score)
+  if (isScreenEvent(envelope, "UltimateTriggered")) {
+    useUltimateStore.getState().onTriggered(envelope.payload)
+    return
+  }
+
+  if (isScreenEvent(envelope, "UltimateStopped")) {
+    useUltimateStore.getState().onStopped(envelope.payload)
     return
   }
 
@@ -116,7 +127,7 @@ const handleScreenEvent = (envelope: ScreenEnvelope): void => {
         event_type: "StartGame",
         payload: {
           player_id: String(player.player),
-          character_id: CHARACTER_ID_BY_TYPE[player.character],
+          character: player.character,
         },
       })
     }

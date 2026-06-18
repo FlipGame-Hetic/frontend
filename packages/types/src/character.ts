@@ -1,4 +1,32 @@
-export type CharacterType = "keenu" | "viper" | "ghost" | "oracle"
+export type CharacterType = "enforcer" | "viper" | "ghost" | "oracle"
+
+export type UltiId = "multiball_split" | "rampage" | "time_slow" | "mimic"
+
+export type UltiShape = "instant" | "sustained" | "inherited"
+
+export interface UltiPayload {
+  multiplier?: number
+  slow_factor?: number
+}
+
+export interface CharacterChargeProfile {
+  weight_bumper: number
+  weight_rail: number
+  weight_combo: number
+  weight_other: number
+  time_rate: number
+}
+
+export interface CharacterGameplay {
+  id: CharacterType
+  ulti_id: UltiId
+  shape: UltiShape
+  cancellable?: boolean
+  duration_ms?: number
+  charge_max: number
+  payload?: UltiPayload
+  charge_profile: CharacterChargeProfile
+}
 
 export interface CharacterConfig {
   id: CharacterType
@@ -15,7 +43,7 @@ type NonEmptyArray<T> = [T, ...T[]]
 
 export const CHARACTER_OPTIONS: NonEmptyArray<CharacterConfig> = [
   {
-    id: "keenu",
+    id: "enforcer",
     label: "KEENU",
     description: "On adore regarder des gens comme lui lutter pour leur survie.",
     color: "#FF8C00",
@@ -58,4 +86,66 @@ export const CHARACTER_OPTIONS: NonEmptyArray<CharacterConfig> = [
   },
 ]
 
-export const DEFAULT_CHARACTER: CharacterType = "keenu"
+export const DEFAULT_CHARACTER: CharacterType = "enforcer"
+
+export const GAMEPLAY_FALLBACK: Record<CharacterType, CharacterGameplay> = {
+  enforcer: {
+    id: "enforcer",
+    ulti_id: "multiball_split",
+    shape: "instant",
+    cancellable: false,
+    charge_max: 320,
+    charge_profile: {
+      weight_bumper: 1.0,
+      weight_rail: 0.3,
+      weight_combo: 1.0,
+      weight_other: 1.0,
+      time_rate: 0.0,
+    },
+  },
+  viper: {
+    id: "viper",
+    ulti_id: "rampage",
+    shape: "sustained",
+    cancellable: false,
+    duration_ms: 8000,
+    charge_max: 360,
+    payload: { multiplier: 5.0 },
+    charge_profile: {
+      weight_bumper: 1.0,
+      weight_rail: 1.0,
+      weight_combo: 1.0,
+      weight_other: 1.0,
+      time_rate: 0.0,
+    },
+  },
+  ghost: {
+    id: "ghost",
+    ulti_id: "mimic",
+    shape: "inherited",
+    charge_max: 300,
+    charge_profile: {
+      weight_bumper: 1.0,
+      weight_rail: 1.0,
+      weight_combo: 1.0,
+      weight_other: 1.0,
+      time_rate: 0.0,
+    },
+  },
+  oracle: {
+    id: "oracle",
+    ulti_id: "time_slow",
+    shape: "sustained",
+    cancellable: true,
+    duration_ms: 5000,
+    charge_max: 240,
+    payload: { slow_factor: 0.25 },
+    charge_profile: {
+      weight_bumper: 1.0,
+      weight_rail: 1.0,
+      weight_combo: 1.0,
+      weight_other: 1.0,
+      time_rate: 1.0,
+    },
+  },
+}

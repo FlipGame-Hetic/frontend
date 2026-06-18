@@ -21,6 +21,8 @@ vi.mock("@frontend/ws", () => ({
   registerScreenSender: registerScreenSenderMock,
   sendEventTo: vi.fn(),
   useScreenHub: useScreenHubBaseMock,
+  wsLog: vi.fn(),
+  wsWarn: vi.fn(),
 }))
 
 function ScreenHubHarness() {
@@ -185,7 +187,7 @@ describe("front-screen useScreenHub", () => {
     })
   })
 
-  it("turns capacity cabinet events into backend UltimateActivated events", () => {
+  it("no longer reacts to capacity cabinet events (back is the ultimate state machine)", () => {
     render(<ScreenHubHarness />)
 
     const options = lastScreenHubOptions()
@@ -199,9 +201,26 @@ describe("front-screen useScreenHub", () => {
       })
     })
 
+    expect(broadcastEventMock).not.toHaveBeenCalled()
+  })
+
+  it("broadcasts StartGame with the character slug", () => {
+    render(<ScreenHubHarness />)
+
+    const options = lastScreenHubOptions()
+
+    act(() => {
+      options.onEvent?.({
+        from: "backend",
+        to: { kind: "screen", id: "front_screen" },
+        event_type: "start_game",
+        payload: { mode: "solo", players: [{ player: 1, character: "viper" }] },
+      })
+    })
+
     expect(broadcastEventMock).toHaveBeenCalledWith({
-      event_type: "UltimateActivated",
-      payload: { player_id: "1" },
+      event_type: "StartGame",
+      payload: { player_id: "1", character: "viper" },
     })
   })
 })

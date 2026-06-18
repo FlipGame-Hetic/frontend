@@ -2,7 +2,7 @@ import DebugProvider from "@/debug/DebugProvider"
 import { runtimeEnvironment } from "@/config/runtimeEnvironment"
 import type { CameraProps } from "@react-three/fiber"
 import { Leva } from "leva"
-import { Suspense } from "react"
+import { Suspense, useEffect } from "react"
 import ReactiveAmbientLight from "./components/audioReactive/ReactiveAmbientLight"
 import BallsManager from "./components/balls/BallsManager"
 import CabinetCamera from "./components/CabinetCamera"
@@ -20,10 +20,13 @@ import ScreenShakeController from "./components/screenShake/ScreenShakeControlle
 import { GUTTER_DRAIN_ASSIST_SENSORS } from "./components/sensors/directionalAccelerationSensorsConfig"
 import DirectionalAccelerationSensorsManager from "./components/sensors/DirectionalAccelerationSensorsManager"
 import SoundManager from "./components/sound/SoundManager"
+import UltimateBar from "./components/ultimate/UltimateBar"
+import UltimateOverlay from "./components/ultimate/UltimateOverlay"
 import World from "./components/World"
 import { useDebugKeys } from "./hooks/useDebugKeys"
 import { useFlipperButtonRelay } from "./hooks/useFlipperButtonRelay"
 import { useScreenHub } from "./hooks/useScreenHub"
+import useCharactersStore from "./stores/useCharactersStore"
 import WebsocketTest from "./websocket-test/WebsocketTest"
 
 const isWsTest =
@@ -33,6 +36,10 @@ const App = () => {
   useScreenHub()
   useDebugKeys()
   useFlipperButtonRelay()
+
+  useEffect(() => {
+    void useCharactersStore.getState().load()
+  }, [])
 
   const cameraSettings = { position: [0, 13, 15] as [number, number, number], fov: 35 }
 
@@ -82,7 +89,9 @@ const App = () => {
             <PlayfieldScene />
           </Suspense>
         </PhysicsManager>
+        <UltimateBar />
       </World>
+      <UltimateOverlay />
     </DebugProvider>
   )
 }

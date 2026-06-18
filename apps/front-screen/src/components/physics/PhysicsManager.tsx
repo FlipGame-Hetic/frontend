@@ -2,6 +2,7 @@ import { Stats } from "@react-three/drei"
 import { Physics } from "@react-three/rapier"
 import { useControls } from "leva"
 import { useEffect, useRef, type ReactNode } from "react"
+import useUltimateStore from "@/stores/useUltimateStore"
 import { GRAVITY_Y, GRAVITY_Z, SLOW_MOTION_SPEED, TIME_STEP } from "./physicsConfig"
 import SlowMotionStepper from "./SlowMotionStepper"
 
@@ -25,6 +26,11 @@ const PhysicsManager = ({ children, isDebug }: PhysicsManagerProps) => {
     }),
     { order: 3 },
   )
+
+  const ultiTimeScale = useUltimateStore((state) => state.timeScale)
+  const isUltiTimeActive = ultiTimeScale !== 1
+  const stepperActive = slowMotion || isUltiTimeActive
+  const stepperSpeed = isUltiTimeActive ? ultiTimeScale : slowMotionSpeed
 
   const slowMotionRef = useRef(slowMotion)
   useEffect(() => {
@@ -54,10 +60,10 @@ const PhysicsManager = ({ children, isDebug }: PhysicsManagerProps) => {
       debug={isDebug}
       gravity={[0, GRAVITY_Y, GRAVITY_Z]}
       timeStep={TIME_STEP}
-      paused={slowMotion}
+      paused={stepperActive}
     >
       {isDebug && <Stats showPanel={0} />}
-      {slowMotion && <SlowMotionStepper speed={slowMotionSpeed} />}
+      {stepperActive && <SlowMotionStepper speed={stepperSpeed} />}
       {children}
     </Physics>
   )

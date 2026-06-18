@@ -1,16 +1,10 @@
 import { create } from "zustand"
 import type { CharacterType, GameMode, GamePhase } from "@frontend/types"
-
-export const CHARACTER_ID_BY_TYPE: Record<CharacterType, number> = {
-  keenu: 0,
-  viper: 1,
-  ghost: 2,
-  oracle: 3,
-}
 import { PLUNGER_BALL_SPAWN } from "@/components/plunger/plungerConfig"
 import useBallStore from "./useBallStore"
 import useMultiballStore from "./useMultiballStore"
 import useTargetStore from "./useTargetStore"
+import useUltimateStore from "./useUltimateStore"
 
 interface SelectedPlayer {
   player: number
@@ -85,6 +79,7 @@ const useGameStore = create<GameStore>()((set) => ({
     useTargetStore.getState().resetTargets()
     useBallStore.getState().resetBalls()
     useMultiballStore.getState().reset()
+    useUltimateStore.getState().reset()
     useBallStore.getState().spawnBall(PLUNGER_BALL_SPAWN, { isPlaying: false })
 
     set((state) => {
@@ -148,6 +143,7 @@ const useGameStore = create<GameStore>()((set) => ({
     useTargetStore.getState().resetTargets()
     useBallStore.getState().resetBalls()
     useMultiballStore.getState().reset()
+    useUltimateStore.getState().reset()
     set(INITIAL_STATE)
   },
 
@@ -155,6 +151,7 @@ const useGameStore = create<GameStore>()((set) => ({
     useTargetStore.getState().resetTargets()
     useBallStore.getState().resetBalls()
     useMultiballStore.getState().reset()
+    useUltimateStore.getState().reset()
     set({ ...INITIAL_STATE, phase: "mode_select" as GamePhase })
   },
 }))
