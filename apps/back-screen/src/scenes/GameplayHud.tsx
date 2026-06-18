@@ -1,5 +1,6 @@
 import { useBackScreenStore } from "@/stores/useBackScreenStore"
 import { RetroBackground } from "@/components/RetroBackground"
+import { formatScore } from "@/utils/formatScore"
 
 export default function GameplayHud() {
   const ballNumber = useBackScreenStore((s) => s.ballNumber)
@@ -38,12 +39,6 @@ export default function GameplayHud() {
       </div>
     </div>
   )
-}
-
-function formatScore(n: number): string {
-  return String(n)
-    .padStart(6, "0")
-    .replace(/(\d{3})(\d{3})/, "$1.$2")
 }
 
 function BallIndicator({ current, total }: { current: number; total: number }) {

@@ -5,7 +5,7 @@ export const RECONNECT_DELAY_MS = 3000
 const GAME_WS_PATH = "/ws/bridge"
 const LOOPBACK_HOSTNAMES = new Set(["localhost", "127.0.0.1", "::1"])
 
-type WsEnvKey = "VITE_WS_URL" | "VITE_SCREEN_HUB_URL"
+type WsEnvKey = "VITE_WS_URL" | "VITE_SCREEN_HUB_URL" | "VITE_API_URL"
 type WsEnv = Partial<Record<WsEnvKey, string>>
 
 type RuntimeLocation = Pick<Location, "hostname" | "protocol">
@@ -46,6 +46,14 @@ const defaultScreenHubUrl = (): string => {
 
 const defaultGameWsUrl = (): string => {
   return `${defaultScreenHubUrl()}${GAME_WS_PATH}`
+}
+
+const defaultApiUrl = (): string => {
+  const location = readLocation()
+  const protocol = location?.protocol === "https:" ? "https:" : "http:"
+  const hostname = readRuntimeHostname()
+
+  return `${protocol}//${hostname}`
 }
 
 const readUrlHostname = (value: string): string | undefined => {
@@ -109,4 +117,8 @@ export const resolveGameWsUrl = (override?: string): string => {
 
 export const resolveScreenHubUrl = (override?: string): string => {
   return resolveUrl("VITE_SCREEN_HUB_URL", defaultScreenHubUrl, override)
+}
+
+export const resolveApiUrl = (override?: string): string => {
+  return resolveUrl("VITE_API_URL", defaultApiUrl, override)
 }

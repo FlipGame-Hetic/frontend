@@ -1,5 +1,5 @@
 import { create } from "zustand"
-import type { GamePhase, GameMode, CharacterType } from "@frontend/types"
+import type { GamePhase, GameMode, CharacterType, ScoreEntry } from "@frontend/types"
 
 interface BackScreenStore {
   phase: GamePhase
@@ -8,6 +8,7 @@ interface BackScreenStore {
   selectedCharacter: CharacterType | null
   score: number
   ballNumber: number
+  leaderboard: ScoreEntry[]
 
   setPhase: (phase: GamePhase) => void
   setMenuIndex: (index: number) => void
@@ -15,6 +16,7 @@ interface BackScreenStore {
   setSelectedCharacter: (character: CharacterType) => void
   setScore: (score: number) => void
   setBallNumber: (n: number) => void
+  setLeaderboard: (entries: ScoreEntry[]) => void
 }
 
 export const useBackScreenStore = create<BackScreenStore>()((set) => ({
@@ -24,6 +26,7 @@ export const useBackScreenStore = create<BackScreenStore>()((set) => ({
   selectedCharacter: null,
   score: 0,
   ballNumber: 1,
+  leaderboard: [],
 
   setPhase: (phase) => {
     set({ phase, menuIndex: 0 })
@@ -42,5 +45,8 @@ export const useBackScreenStore = create<BackScreenStore>()((set) => ({
   },
   setBallNumber: (ballNumber) => {
     set({ ballNumber })
+  },
+  setLeaderboard: (leaderboard) => {
+    set({ leaderboard })
   },
 }))
