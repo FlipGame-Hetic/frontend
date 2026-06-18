@@ -1,4 +1,4 @@
-export const BIG_DAMAGE_RATIO = 0.05
+const BIG_DAMAGE_RATIO = 0.05
 
 export function isBigDamage(delta: number, maxHp: number): boolean {
   if (delta <= 0 || maxHp <= 0) return false

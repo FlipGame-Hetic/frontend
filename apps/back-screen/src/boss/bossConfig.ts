@@ -1,4 +1,4 @@
-export type BossRendererKind = "video-shader" | "model"
+type BossRendererKind = "video-shader" | "model"
 
 export interface BossClips {
   idle: string[]

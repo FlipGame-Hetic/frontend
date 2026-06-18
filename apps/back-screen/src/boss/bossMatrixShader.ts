@@ -1,6 +1,6 @@
 import { ShaderMaterial, Vector2, type Texture } from "three"
 
-export const VERTEX_SHADER = /* glsl */ `
+const VERTEX_SHADER = /* glsl */ `
 varying vec2 vUv;
 
 void main() {
@@ -9,7 +9,7 @@ void main() {
 }
 `
 
-export const FRAGMENT_SHADER = /* glsl */ `
+const FRAGMENT_SHADER = /* glsl */ `
 precision highp float;
 
 uniform vec2 iResolution;
