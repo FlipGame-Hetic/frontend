@@ -1,7 +1,10 @@
+import { getBallColorForCharacter } from "@/config/characterColors"
 import useKeyboard from "@/hooks/useKeyboard"
+import useGameStore from "@/stores/useGameStore"
 import { CuboidCollider, RigidBody } from "@react-three/rapier"
 import { useMemo } from "react"
 import { Vector3 } from "three"
+import PlungerBeam from "./PlungerBeam"
 import {
   PLUNGER_LANE_FRICTION,
   PLUNGER_POSITION,
@@ -11,7 +14,6 @@ import {
   PLUNGER_SPRING_SPACING,
   PLUNGER_SPRING_TORUS_COUNT,
 } from "./plungerConfig"
-import PlungerBeam from "./PlungerBeam"
 import PlungerEnergyRings from "./PlungerEnergyRings"
 import PlungerNeonTip from "./PlungerNeonTip"
 import PlungerShockwave from "./PlungerShockwave"
@@ -31,6 +33,10 @@ const toVector3 = (position: [number, number, number]): Vector3 => {
 
 const Plunger = ({ position = PLUNGER_POSITION, tipMesh, ringMeshes = [] }: PlungerProps) => {
   const pressedKeys = useKeyboard()
+  const character = useGameStore(
+    (s) => s.selectedPlayers.find((p) => p.player === s.currentPlayer)?.character,
+  )
+  const vfxColor = getBallColorForCharacter(character)
 
   const rootPosition = useMemo(() => toVector3(position), [position])
   const tipRestPosition = useMemo(
@@ -78,7 +84,7 @@ const Plunger = ({ position = PLUNGER_POSITION, tipMesh, ringMeshes = [] }: Plun
       </RigidBody>
 
       <group ref={tipGroupRef} position={tipMesh?.position ?? [0, 0, 0]}>
-        <PlungerNeonTip mesh={tipMesh?.mesh} chargeRef={chargeRef} />
+        <PlungerNeonTip mesh={tipMesh?.mesh} chargeRef={chargeRef} color={vfxColor} />
       </group>
 
       <PlungerEnergyRings
@@ -86,9 +92,10 @@ const Plunger = ({ position = PLUNGER_POSITION, tipMesh, ringMeshes = [] }: Plun
         launchRef={launchRef}
         restPositions={ringRestPositions}
         movementAxis={movementAxis}
+        color={vfxColor}
       />
-      <PlungerBeam launchRef={launchRef} movementAxis={movementAxis} />
-      <PlungerShockwave launchRef={launchRef} movementAxis={movementAxis} />
+      <PlungerBeam launchRef={launchRef} movementAxis={movementAxis} color={vfxColor} />
+      <PlungerShockwave launchRef={launchRef} movementAxis={movementAxis} color={vfxColor} />
     </group>
   )
 }

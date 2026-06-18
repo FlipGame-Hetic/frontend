@@ -2,23 +2,23 @@ import { describe, it, expect } from "vitest"
 import { getBallColorForCharacter } from "@/config/characterColors"
 
 describe("getBallColorForCharacter", () => {
-  it("returns orange for striker", () => {
-    expect(getBallColorForCharacter("striker")).toBe("#FFAA00")
+  it("returns orange for enforcer", () => {
+    expect(getBallColorForCharacter("keenu")).toBe("#FFAA00")
   })
 
-  it("returns blue for defender", () => {
-    expect(getBallColorForCharacter("defender")).toBe("#0088FF")
+  it("returns green for viper", () => {
+    expect(getBallColorForCharacter("viper")).toBe("#7FFF00")
   })
 
-  it("returns teal for trickster", () => {
-    expect(getBallColorForCharacter("trickster")).toBe("#00AAAA")
+  it("returns pink for ghost", () => {
+    expect(getBallColorForCharacter("ghost")).toBe("#FF2D78")
   })
 
-  it("returns grey for heavy", () => {
-    expect(getBallColorForCharacter("heavy")).toBe("#556677")
+  it("returns silver for oracle", () => {
+    expect(getBallColorForCharacter("oracle")).toBe("#C8D8E8")
   })
 
-  it("returns striker color when character is undefined", () => {
+  it("returns enforcer color when character is undefined", () => {
     expect(getBallColorForCharacter(undefined)).toBe("#FFAA00")
   })
 })

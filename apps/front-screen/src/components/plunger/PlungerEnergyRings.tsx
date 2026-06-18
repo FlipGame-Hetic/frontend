@@ -25,6 +25,7 @@ interface PlungerEnergyRingsProps {
   launchRef: React.RefObject<PlungerLaunchState>
   restPositions: Vector3[]
   movementAxis: Vector3
+  color: string
 }
 
 const PlungerEnergyRings = ({
@@ -32,6 +33,7 @@ const PlungerEnergyRings = ({
   launchRef,
   restPositions,
   movementAxis,
+  color,
 }: PlungerEnergyRingsProps) => {
   const groupRefs = useRef<(Group | null)[]>([])
   const lastTokenRef = useRef(0)
@@ -39,8 +41,8 @@ const PlungerEnergyRings = ({
   const flashRef = useRef(0)
 
   const materials = useMemo(
-    () => restPositions.map((_, i) => createEnergyRingMaterial(i * 0.37)),
-    [restPositions],
+    () => restPositions.map((_, i) => createEnergyRingMaterial(i * 0.37, 1, color)),
+    [restPositions, color],
   )
 
   const orientation = useMemo(

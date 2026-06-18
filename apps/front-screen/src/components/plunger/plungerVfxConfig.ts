@@ -41,8 +41,8 @@ const COLOR_COLD = new Color(PLUNGER_RING_COLOR_COLD)
 const COLOR_HOT = new Color(PLUNGER_RING_COLOR_HOT)
 const COLOR_PEAK = new Color(PLUNGER_RING_COLOR_PEAK)
 
-export const getChargeColor = (charge: number, target: Color): Color => {
+export const getChargeColor = (charge: number, target: Color, hotColor = COLOR_HOT): Color => {
   const heat = Math.min(Math.max(charge / 0.7, 0), 1)
   const peak = Math.min(Math.max((charge - 0.7) / 0.3, 0), 1)
-  return target.copy(COLOR_COLD).lerp(COLOR_HOT, heat).lerp(COLOR_PEAK, peak)
+  return target.copy(COLOR_COLD).lerp(hotColor, heat).lerp(COLOR_PEAK, peak)
 }

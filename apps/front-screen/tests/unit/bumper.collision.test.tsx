@@ -127,6 +127,22 @@ describe("Bumper — handleCollision", () => {
       })
     })
 
+    it("does not broadcast score events when scoring is disabled", () => {
+      const ballBody = {
+        translation: () => ({ x: 1, y: 0, z: 1 }),
+        mass: () => 1,
+        applyImpulse: vi.fn(),
+        linvel: () => ({ x: 5, y: 2, z: 5 }),
+        setLinvel: vi.fn(),
+      }
+
+      render(<Bumper position={[0, 0, 0]} bumperId={3} awardScore={false} />)
+      callHandler(makeBallPayload({ rigidBody: ballBody }))
+
+      expect(mockBroadcastEvent).not.toHaveBeenCalled()
+      expect(ballBody.applyImpulse).toHaveBeenCalledOnce()
+    })
+
     it("includes ball id but not bumper id in payload", () => {
       render(<Bumper position={[0, 0, 0]} bumperId={0} />)
       callHandler(makeBallPayload({ ballId: "ball-left" }))

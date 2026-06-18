@@ -16,11 +16,12 @@ import type { PlungerLaunchState } from "./usePlungerSimulation"
 interface PlungerBeamProps {
   launchRef: React.RefObject<PlungerLaunchState>
   movementAxis: Vector3
+  color: string
 }
 
 const CORE_COLOR = new Color("#FFFFFF").multiplyScalar(PLUNGER_VFX_HDR_FACTOR)
 
-const PlungerBeam = ({ launchRef, movementAxis }: PlungerBeamProps) => {
+const PlungerBeam = ({ launchRef, movementAxis, color }: PlungerBeamProps) => {
   const groupRef = useRef<Group | null>(null)
   const coreMaterialRef = useRef<MeshBasicMaterial | null>(null)
   const outerMaterialRef = useRef<MeshBasicMaterial | null>(null)
@@ -32,6 +33,7 @@ const PlungerBeam = ({ launchRef, movementAxis }: PlungerBeamProps) => {
     () => new Quaternion().setFromUnitVectors(new Vector3(0, 0, 1), movementAxis),
     [movementAxis],
   )
+  const hotColor = useMemo(() => new Color(color), [color])
 
   useFrame((_, delta) => {
     const group = groupRef.current
@@ -44,7 +46,9 @@ const PlungerBeam = ({ launchRef, movementAxis }: PlungerBeamProps) => {
       lastTokenRef.current = launch.token
       lifeRef.current = PLUNGER_BEAM_DURATION
       launchChargeRef.current = launch.charge
-      getChargeColor(launch.charge, outerMaterial.color).multiplyScalar(PLUNGER_VFX_HDR_FACTOR)
+      getChargeColor(launch.charge, outerMaterial.color, hotColor).multiplyScalar(
+        PLUNGER_VFX_HDR_FACTOR,
+      )
     }
 
     if (lifeRef.current <= 0) {

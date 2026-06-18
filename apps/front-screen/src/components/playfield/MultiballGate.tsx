@@ -1,27 +1,36 @@
-import { getBallId } from "@/components/balls/ballUserData"
-import { getBallBodyEntries } from "@/components/balls/ballBodyRegistry"
+import { getBallId, getCurrentBallColor } from "@/components/balls/ballUserData"
 import type { PositionType } from "@/types/worldTypes"
 import { useFrame } from "@react-three/fiber"
-import type { CollisionEnterPayload } from "@react-three/rapier"
-import { CuboidCollider, RigidBody, useAfterPhysicsStep } from "@react-three/rapier"
+import type { CollisionEnterPayload, CollisionPayload, RapierRigidBody } from "@react-three/rapier"
+import { CuboidCollider, RigidBody } from "@react-three/rapier"
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react"
 import type { Material, Object3D } from "three"
-import { Box3, Euler, Matrix4, Mesh, Plane, Quaternion, Vector3 } from "three"
+import { Box3, Color, Euler, Matrix4, Mesh, Plane, Vector3 } from "three"
 import {
   BONUS_ZONE_RESTITUTION,
   MULTIBALL_GATE_ARCH_BLOOM_INTENSITY,
+  MULTIBALL_GATE_ARCH_CLOSED_BLOOM_INTENSITY,
+  MULTIBALL_GATE_ARCH_OPEN_COLOR,
+  MULTIBALL_GATE_HALF_EXTENTS,
   MULTIBALL_GATE_OPEN_DISTANCE,
   MULTIBALL_GATE_POSITION,
 } from "./bonusZoneConfig"
 import { useBonusZoneHitRegistrar } from "./bonusZoneHits"
 import {
   advanceMultiballGateState,
-  classifyMultiballGateTraversal,
   createOpenMultiballGateState,
-  shouldKeepMultiballGateExitSuppression,
+  hasClearedMultiballGate,
+  isMultiballGateClosingVelocity,
+  shouldCloseMultiballGateFromSensorExit,
+  shouldTrackMultiballGateSensorBall,
   triggerMultiballGateClose,
 } from "./multiballGateRuntime"
-import { cloneMaterialWithBloom, type BloomMaterialOptions } from "./playfieldBloomMaterials"
+import {
+  cloneMaterialWithBloom,
+  hasEmissiveControls,
+  type BloomMaterialOptions,
+  type EmissiveMaterial,
+} from "./playfieldBloomMaterials"
 import { cloneAtWorldTransform, type PlayfieldNodes } from "./usePlayfieldModel"
 
 interface PreparedGate {
@@ -35,6 +44,7 @@ interface PreparedGate {
   colliderPosition: PositionType
   colliderRotation: PositionType
   frameColliders: GateFrameCollider[]
+  archBloomMaterials: EmissiveMaterial[]
 }
 
 interface GateFrameCollider {
@@ -43,13 +53,13 @@ interface GateFrameCollider {
   position: PositionType
 }
 
-interface GateLocalPosition {
-  x: number
-  y: number
-  z: number
-}
-
 const toTuple = (v: Vector3): PositionType => [v.x, v.y, v.z]
+const ARCH_OPEN_COLOR = new Color(MULTIBALL_GATE_ARCH_OPEN_COLOR)
+const ARCH_CLOSED_COLOR = new Color()
+
+const isMultiballGateArchBloomMaterial = (material: Material): boolean => {
+  return material.name === "softbluelight"
+}
 
 const clonePlainMaterial = (material: Material | Material[]) => {
   return Array.isArray(material) ? material.map((m) => m.clone()) : material.clone()
@@ -89,6 +99,22 @@ const cloneMaterials = (
     if (!isMesh(node)) return
     node.material = cloneMaterial(node.material, clippingPlane, bloomOptions)
   })
+}
+
+const collectArchBloomMaterials = (object: Object3D): EmissiveMaterial[] => {
+  const materials: EmissiveMaterial[] = []
+
+  object.traverse((node) => {
+    if (!isMesh(node)) return
+    const nodeMaterials = Array.isArray(node.material) ? node.material : [node.material]
+    for (const material of nodeMaterials) {
+      if (!isMultiballGateArchBloomMaterial(material)) continue
+      if (!hasEmissiveControls(material)) continue
+      materials.push(material)
+    }
+  })
+
+  return materials
 }
 
 const getLocalObjectBox = (object: Object3D): Box3 => {
@@ -191,12 +217,15 @@ const prepareGate = (nodes: PlayfieldNodes): PreparedGate | null => {
   const topDoor = cloneAtWorldTransform(topSource)
   const bottomDoor = cloneAtWorldTransform(bottomSource)
   const topClipPlane = getTopDoorClipPlane(topDoor, frame)
+  let archBloomMaterials: EmissiveMaterial[] = []
 
   if (frame) {
     cloneMaterials(frame, undefined, {
       emissiveIntensity: MULTIBALL_GATE_ARCH_BLOOM_INTENSITY,
-      shouldApply: (material) => material.name === "softbluelight",
+      emissiveColor: MULTIBALL_GATE_ARCH_OPEN_COLOR,
+      shouldApply: isMultiballGateArchBloomMaterial,
     })
+    archBloomMaterials = collectArchBloomMaterials(frame)
   }
   cloneMaterials(topDoor, topClipPlane)
   cloneMaterials(bottomDoor)
@@ -233,6 +262,7 @@ const prepareGate = (nodes: PlayfieldNodes): PreparedGate | null => {
     colliderPosition: toTuple(colliderPosition),
     colliderRotation: [colliderEuler.x, colliderEuler.y, colliderEuler.z],
     frameColliders: getGateFrameColliders(frame, topDoor, bottomDoor),
+    archBloomMaterials,
   }
 }
 
@@ -246,29 +276,26 @@ const applyGateAnimation = (gate: PreparedGate, closedAmount: number) => {
     .addScaledVector(gate.openAxis, -MULTIBALL_GATE_OPEN_DISTANCE * openAmount)
 }
 
+const applyGateArchBloom = (gate: PreparedGate, closedAmount: number) => {
+  const intensity =
+    MULTIBALL_GATE_ARCH_BLOOM_INTENSITY +
+    (MULTIBALL_GATE_ARCH_CLOSED_BLOOM_INTENSITY - MULTIBALL_GATE_ARCH_BLOOM_INTENSITY) *
+      closedAmount
+  ARCH_CLOSED_COLOR.set(getCurrentBallColor())
+
+  for (const material of gate.archBloomMaterials) {
+    material.emissive.lerpColors(ARCH_OPEN_COLOR, ARCH_CLOSED_COLOR, closedAmount)
+    material.emissiveIntensity = intensity
+    material.needsUpdate = true
+  }
+}
+
 const PreparedMultiballGate = ({ gate }: { gate: PreparedGate }) => {
   const registerBonusHit = useBonusZoneHitRegistrar()
   const gateStateRef = useRef(createOpenMultiballGateState())
   const colliderActiveRef = useRef(false)
-  const previousGatePositionsRef = useRef(new Map<string, GateLocalPosition>())
-  const exitSuppressedBallIdsRef = useRef(new Set<string>())
+  const pendingGateBallsRef = useRef(new Map<string, RapierRigidBody>())
   const [colliderActive, setColliderActive] = useState(false)
-
-  const toGateLocalPosition = useMemo(() => {
-    const gateCenter = new Vector3(...MULTIBALL_GATE_POSITION)
-    const inverseRotation = new Quaternion()
-      .setFromEuler(
-        new Euler(gate.colliderRotation[0], gate.colliderRotation[1], gate.colliderRotation[2]),
-      )
-      .invert()
-
-    return (position: GateLocalPosition): GateLocalPosition => {
-      const local = new Vector3(position.x, position.y, position.z)
-        .sub(gateCenter)
-        .applyQuaternion(inverseRotation)
-      return { x: local.x, y: local.y, z: local.z }
-    }
-  }, [gate.colliderRotation])
 
   const syncColliderActive = useCallback((active: boolean) => {
     if (colliderActiveRef.current === active) return
@@ -281,6 +308,7 @@ const PreparedMultiballGate = ({ gate }: { gate: PreparedGate }) => {
       gateStateRef.current = state
       syncColliderActive(state.colliderActive)
       applyGateAnimation(gate, state.closedAmount)
+      applyGateArchBloom(gate, state.closedAmount)
     },
     [gate, syncColliderActive],
   )
@@ -289,71 +317,103 @@ const PreparedMultiballGate = ({ gate }: { gate: PreparedGate }) => {
     const openState = createOpenMultiballGateState()
     gateStateRef.current = openState
     colliderActiveRef.current = openState.colliderActive
-    previousGatePositionsRef.current.clear()
-    exitSuppressedBallIdsRef.current.clear()
+    pendingGateBallsRef.current.clear()
     applyGateAnimation(gate, openState.closedAmount)
+    applyGateArchBloom(gate, openState.closedAmount)
   }, [gate])
+
+  const closeGateIfOpen = useCallback(
+    (now: number): boolean => {
+      const current = advanceMultiballGateState(gateStateRef.current, now)
+      syncGateState(current)
+      if (current.phase !== "open") return false
+
+      pendingGateBallsRef.current.clear()
+      syncGateState(triggerMultiballGateClose(current, now))
+      return true
+    },
+    [syncGateState],
+  )
+
+  const handleSensorEnter = useCallback(
+    (payload: CollisionPayload) => {
+      if (!shouldTrackMultiballGateSensorBall(payload)) return
+      if (!payload.other.rigidBody) return
+
+      const ballId = getBallId(payload.other.rigidBodyObject?.userData)
+      if (!ballId) return
+
+      const now = performance.now()
+      const current = advanceMultiballGateState(gateStateRef.current, now)
+      syncGateState(current)
+      if (current.phase !== "open") return
+
+      if (
+        shouldCloseMultiballGateFromSensorExit(
+          payload.other.rigidBody.translation(),
+          payload.other.rigidBody.linvel(),
+        )
+      ) {
+        pendingGateBallsRef.current.clear()
+        syncGateState(triggerMultiballGateClose(current, now))
+        return
+      }
+
+      pendingGateBallsRef.current.set(ballId, payload.other.rigidBody)
+    },
+    [syncGateState],
+  )
+
+  const handleSensorExit = useCallback(
+    (payload: CollisionPayload) => {
+      const ballId = getBallId(payload.other.rigidBodyObject?.userData)
+      if (!ballId) return
+
+      const body = payload.other.rigidBody
+      if (
+        body &&
+        shouldCloseMultiballGateFromSensorExit(body.translation(), body.linvel()) &&
+        closeGateIfOpen(performance.now())
+      ) {
+        return
+      }
+
+      pendingGateBallsRef.current.delete(ballId)
+    },
+    [closeGateIfOpen],
+  )
 
   const handleGateCollision = useCallback(
     ({ other }: CollisionEnterPayload) => {
       if (other.rigidBodyObject?.name !== "ball") return
       const ballId = getBallId(other.rigidBodyObject.userData)
       if (!ballId) return
-      registerBonusHit(ballId)
+      const position = other.rigidBody?.translation()
+      registerBonusHit(
+        ballId,
+        position ? { x: position.x, y: position.y, z: position.z } : undefined,
+      )
     },
     [registerBonusHit],
   )
 
-  useAfterPhysicsStep(() => {
-    const now = performance.now()
-    let next = advanceMultiballGateState(gateStateRef.current, now)
-    const previousPositions = previousGatePositionsRef.current
-    const exitSuppressedBallIds = exitSuppressedBallIdsRef.current
-    const seenBallIds = new Set<string>()
-    let shouldClose = false
-
-    for (const [ballId, body] of getBallBodyEntries()) {
-      seenBallIds.add(ballId)
-
-      const current = toGateLocalPosition(body.translation())
-      const previous = previousPositions.get(ballId)
-      previousPositions.set(ballId, current)
-
-      if (exitSuppressedBallIds.has(ballId) && !shouldKeepMultiballGateExitSuppression(current)) {
-        exitSuppressedBallIds.delete(ballId)
-      }
-
-      const traversal = classifyMultiballGateTraversal(previous, current)
-      if (traversal === "exit-to-playfield") {
-        exitSuppressedBallIds.add(ballId)
-        continue
-      }
-
-      if (
-        traversal === "entry-to-bonus" &&
-        next.phase === "open" &&
-        !exitSuppressedBallIds.has(ballId)
-      ) {
-        shouldClose = true
-      }
-    }
-
-    for (const ballId of previousPositions.keys()) {
-      if (seenBallIds.has(ballId)) continue
-      previousPositions.delete(ballId)
-      exitSuppressedBallIds.delete(ballId)
-    }
-
-    if (shouldClose) {
-      next = triggerMultiballGateClose(next, now)
-    }
-
-    syncGateState(next)
-  })
-
   useFrame(() => {
     const now = performance.now()
-    const next = advanceMultiballGateState(gateStateRef.current, now)
+    let next = advanceMultiballGateState(gateStateRef.current, now)
+
+    if (next.phase === "open" && pendingGateBallsRef.current.size > 0) {
+      for (const body of pendingGateBallsRef.current.values()) {
+        if (
+          hasClearedMultiballGate(body.translation()) &&
+          isMultiballGateClosingVelocity(body.linvel())
+        ) {
+          pendingGateBallsRef.current.clear()
+          next = triggerMultiballGateClose(next, now)
+          break
+        }
+      }
+    }
+
     syncGateState(next)
   })
 
@@ -373,6 +433,15 @@ const PreparedMultiballGate = ({ gate }: { gate: PreparedGate }) => {
             friction={0}
           />
         ))}
+        <CuboidCollider
+          sensor
+          name="multiball-gate-sensor"
+          args={MULTIBALL_GATE_HALF_EXTENTS}
+          position={MULTIBALL_GATE_POSITION}
+          rotation={gate.colliderRotation}
+          onIntersectionEnter={handleSensorEnter}
+          onIntersectionExit={handleSensorExit}
+        />
         {colliderActive && (
           <CuboidCollider
             name="multiball-gate"

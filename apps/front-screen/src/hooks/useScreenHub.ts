@@ -1,4 +1,11 @@
-import { useEffect } from "react"
+import { LEFT_KEYS, RIGHT_KEYS } from "@/components/flipperJoints/jointsConfig"
+import { PLUNGER_KEY } from "@/components/plunger/plungerConfig"
+import { triggerUltimate } from "@/gameplay/ultimate"
+import { pressKey, releaseKey, triggerPlungerMaxLaunch } from "@/stores/inputStore"
+import useGameStore, { CHARACTER_ID_BY_TYPE } from "@/stores/useGameStore"
+import useScorePopupsStore from "@/stores/useScorePopupsStore"
+import type { GameMode, ScreenEnvelope, ScreenEvent, StartGameEvent } from "@frontend/types"
+import { DEFAULT_CHARACTER, isScreenEvent, makeEnvelope } from "@frontend/types"
 import {
   broadcastEvent,
   registerScreenSender,
@@ -6,24 +13,10 @@ import {
   useScreenHub as useScreenHubBase,
   wsLog,
 } from "@frontend/ws"
-import { isScreenEvent, makeEnvelope } from "@frontend/types"
-import type {
-  CharacterType,
-  GameMode,
-  ScreenEnvelope,
-  ScreenEvent,
-  StartGameEvent,
-} from "@frontend/types"
-import { LEFT_KEYS, RIGHT_KEYS } from "@/components/flipperJoints/jointsConfig"
-import { PLUNGER_KEY } from "@/components/plunger/plungerConfig"
-import { triggerUltimate } from "@/gameplay/ultimate"
-import { pressKey, releaseKey, triggerPlungerMaxLaunch } from "@/stores/inputStore"
-import useGameStore, { CHARACTER_ID_BY_TYPE } from "@/stores/useGameStore"
-import useScorePopupsStore from "@/stores/useScorePopupsStore"
+import { useEffect } from "react"
 
 const SCREEN_ID = "front_screen" as const
 const DEFAULT_START_MODE: GameMode = "solo"
-const DEFAULT_START_CHARACTER: CharacterType = "striker"
 
 const TOKEN =
   (globalThis as unknown as Record<string, Record<string, string> | undefined>).__ENV__
@@ -138,7 +131,7 @@ const getStartGamePayload = (): StartGameEvent["payload"] => {
     players:
       selectedPlayers.length > 0
         ? selectedPlayers.map((player) => ({ ...player }))
-        : [{ player: 1, character: DEFAULT_START_CHARACTER }],
+        : [{ player: 1, character: DEFAULT_CHARACTER }],
   }
 }
 

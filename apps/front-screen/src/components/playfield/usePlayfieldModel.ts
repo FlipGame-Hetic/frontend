@@ -225,7 +225,7 @@ export const collectPlayfieldNodes = (scene: Object3D): PlayfieldNodes => {
 }
 
 export const usePlayfieldModel = (): PlayfieldModel => {
-  const { scene, animations } = useGLTF("/models/playfield.glb")
+  const { scene, animations } = useGLTF("/models/playfield/playfield.glb")
   const nodes = useMemo(() => collectPlayfieldNodes(scene), [scene])
 
   return useMemo(() => ({ nodes, animations }), [animations, nodes])

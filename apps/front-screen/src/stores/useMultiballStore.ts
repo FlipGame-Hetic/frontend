@@ -8,6 +8,11 @@ import { create } from "zustand"
 
 const BOUNCE_DEBOUNCE_MS = 200
 
+export type MultiballBounceResult =
+  | { status: "ignored" }
+  | { status: "progress"; remaining: number }
+  | { status: "triggered" }
+
 interface MultiballStore {
   bounceCount: number
   cooldownActive: boolean
@@ -19,7 +24,7 @@ interface MultiballStore {
     spawnIntervalMs: number,
     cooldownMs: number,
     ballCount: number,
-  ) => void
+  ) => MultiballBounceResult
   reset: () => void
 }
 
@@ -42,11 +47,13 @@ const useMultiballStore = create<MultiballStore>()((set, get) => {
       ballCount,
     ) => {
       const state = get()
-      if (state.cooldownActive) return
+      if (state.cooldownActive) return { status: "ignored" }
 
       const now = performance.now()
-      const lastTime = lastBounceTimeByBall.get(ballId) ?? 0
-      if (now - lastTime < BOUNCE_DEBOUNCE_MS) return
+      const lastTime = lastBounceTimeByBall.get(ballId)
+      if (lastTime !== undefined && now - lastTime < BOUNCE_DEBOUNCE_MS) {
+        return { status: "ignored" }
+      }
       lastBounceTimeByBall.set(ballId, now)
 
       const nextCount = state.bounceCount + 1
@@ -56,7 +63,7 @@ const useMultiballStore = create<MultiballStore>()((set, get) => {
         playSfx(`hit${String(hitIndex)}`)
         useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.multiballBounce)
         set({ bounceCount: nextCount })
-        return
+        return { status: "progress", remaining: threshold - nextCount }
       }
 
       playSfx("multiball_triggered")
@@ -78,6 +85,8 @@ const useMultiballStore = create<MultiballStore>()((set, get) => {
         set({ cooldownActive: false })
         cooldownTimer = null
       }, cooldownMs)
+
+      return { status: "triggered" }
     },
 
     reset: () => {

@@ -1,9 +1,9 @@
-export interface Player {
-  id: string;
-  name: string;
-  character: CharacterType;
-  hp: number;
-  score: number;
-}
+import type { CharacterType } from "./character"
 
-export type CharacterType = "striker" | "defender" | "trickster" | "heavy";
+export interface Player {
+  id: string
+  name: string
+  character: CharacterType
+  hp: number
+  score: number
+}

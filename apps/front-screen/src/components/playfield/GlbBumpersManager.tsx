@@ -4,12 +4,10 @@ import { BUMPER_RUBBER_BLOOM_COLOR, BUMPER_RUBBER_BLOOM_INTENSITY } from "../bum
 import { cloneMaterialWithBloom } from "./playfieldBloomMaterials"
 import { buildModuleWithRubber, type PlayfieldNodes } from "./usePlayfieldModel"
 import { BONUS_ZONE_BUMPER_BASE_NAMES } from "./bonusZoneConfig"
-import { useBonusZoneHitRegistrar } from "./bonusZoneHits"
 
 const BONUS_ZONE_BUMPER_BASE_NAME_SET = new Set<string>(BONUS_ZONE_BUMPER_BASE_NAMES)
 
 const GlbBumpersManager = ({ nodes }: { nodes: PlayfieldNodes }) => {
-  const registerBonusHit = useBonusZoneHitRegistrar()
   const bumpers = useMemo(
     () =>
       nodes.bumpers.map((base, i) => {
@@ -26,7 +24,7 @@ const GlbBumpersManager = ({ nodes }: { nodes: PlayfieldNodes }) => {
 
         return {
           id: i,
-          isBonusZoneBumper: BONUS_ZONE_BUMPER_BASE_NAME_SET.has(base.name),
+          isCenterMultiballBumper: BONUS_ZONE_BUMPER_BASE_NAME_SET.has(base.name),
           ...module,
         }
       }),
@@ -35,14 +33,14 @@ const GlbBumpersManager = ({ nodes }: { nodes: PlayfieldNodes }) => {
 
   return (
     <>
-      {bumpers.map(({ id, position, baseClone, rubberClone, isBonusZoneBumper }) => (
+      {bumpers.map(({ id, position, baseClone, rubberClone, isCenterMultiballBumper }) => (
         <Bumper
           key={baseClone.uuid}
           position={position}
           bumperId={id}
           meshOverride={baseClone}
           rubberMesh={rubberClone}
-          onBonusHit={isBonusZoneBumper ? registerBonusHit : undefined}
+          awardScore={!isCenterMultiballBumper}
         />
       ))}
     </>

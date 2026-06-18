@@ -14,17 +14,17 @@ export default function CharacterSelectScene() {
       <div className="relative z-10 flex h-full w-full">
         <div className="flex flex-1 flex-col justify-between p-12">
           <div className="font-mono text-[clamp(0.32rem,0.65vw,0.46rem)] tracking-[0.28em] text-[rgba(85,234,212,0.4)] uppercase">
-            AGENT.IDENTIFICATION // SÉLECTION
+            FIGHTER.IDENTIFICATION // SÉLECTION
           </div>
 
           <div className="flex flex-col gap-5">
-            <div className="font-display text-[clamp(2rem,5vw,4.2rem)] leading-none font-bold tracking-[0.1em] text-[#F3E600] uppercase [text-shadow:2px_0_rgba(197,0,60,0.45),-2px_0_rgba(85,234,212,0.4),0_3px_0_rgba(0,0,0,0.95)]">
+            <div className="font-display text-[clamp(2rem,5vw,4.2rem)] leading-none font-bold tracking-widest text-[#F3E600] uppercase [text-shadow:2px_0_rgba(197,0,60,0.45),-2px_0_rgba(85,234,212,0.4),0_3px_0_rgba(0,0,0,0.95)]">
               {active.label}
             </div>
 
             <div className="h-px w-28 bg-[linear-gradient(90deg,rgba(243,230,0,0.3),transparent)]" />
 
-            <div className="max-w-[28ch] font-mono text-[clamp(0.58rem,1.15vw,0.78rem)] leading-relaxed text-[rgba(85,234,212,0.42)]">
+            <div className="font-mono text-[clamp(0.58rem,1.6vw,1rem)] leading-relaxed text-[rgba(85,234,212,0.42)]">
               {active.locked ? "DONNÉES NON DISPONIBLES." : active.description}
             </div>
           </div>

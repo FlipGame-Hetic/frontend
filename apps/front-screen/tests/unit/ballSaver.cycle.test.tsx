@@ -62,6 +62,7 @@ vi.mock("@react-three/rapier", () => {
 })
 
 import BallSaver from "@/components/ballSavers/BallSaver"
+import useBallSaverPhaseStore, { INITIAL_BALL_SAVER_PHASES } from "@/stores/useBallSaverPhaseStore"
 import useTargetStore from "@/stores/useTargetStore"
 
 let currentTime = 1000
@@ -166,6 +167,7 @@ describe("BallSaver — target-linked cycle", () => {
     handlers.onCollisionEnter = null
     handlers.onCollisionExit = null
     handlers.rigidBodyProps = null
+    useBallSaverPhaseStore.setState({ phases: INITIAL_BALL_SAVER_PHASES })
     useTargetStore.setState({ activatedTargetIds: [], targetHits: [] })
   })
 
@@ -297,6 +299,27 @@ describe("BallSaver — target-linked cycle", () => {
     )
     expect(useTargetStore.getState().activatedTargetIds).toEqual(
       expect.arrayContaining([...BALL_SAVER_TARGET_IDS.right]),
+    )
+  })
+
+  it("marks the status text consumed until the side targets reset", () => {
+    activateSaver("left")
+    expect(useBallSaverPhaseStore.getState().phases.left).toBe("active")
+
+    holdBallContact("a")
+    currentTime += BALL_SAVER_POST_EXIT_DELAY_MS
+    runFrame()
+    expect(useBallSaverPhaseStore.getState().phases.left).toBe("retracting")
+
+    currentTime += BALL_SAVER_RETRACT_DURATION_MS
+    runFrame()
+    expect(useBallSaverPhaseStore.getState().phases.left).toBe("cooldown")
+
+    currentTime += BALL_SAVER_COOLDOWN_MS
+    runFrame()
+    expect(useBallSaverPhaseStore.getState().phases.left).toBe("down")
+    expect(useTargetStore.getState().activatedTargetIds).not.toEqual(
+      expect.arrayContaining([...BALL_SAVER_TARGET_IDS.left]),
     )
   })
 })

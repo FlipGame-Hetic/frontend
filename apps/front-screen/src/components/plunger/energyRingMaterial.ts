@@ -53,7 +53,11 @@ const FRAGMENT_SHADER = `
   }
 `
 
-export const createEnergyRingMaterial = (phase: number, intensity = 1): THREE.ShaderMaterial =>
+export const createEnergyRingMaterial = (
+  phase: number,
+  intensity = 1,
+  hotColor = PLUNGER_RING_COLOR_HOT,
+): THREE.ShaderMaterial =>
   new THREE.ShaderMaterial({
     uniforms: {
       uTime: { value: 0 },
@@ -63,7 +67,7 @@ export const createEnergyRingMaterial = (phase: number, intensity = 1): THREE.Sh
       uIntensity: { value: intensity },
       uHdr: { value: PLUNGER_VFX_HDR_FACTOR },
       uColorCold: { value: new THREE.Color(PLUNGER_RING_COLOR_COLD) },
-      uColorHot: { value: new THREE.Color(PLUNGER_RING_COLOR_HOT) },
+      uColorHot: { value: new THREE.Color(hotColor) },
       uColorPeak: { value: new THREE.Color(PLUNGER_RING_COLOR_PEAK) },
     },
     vertexShader: VERTEX_SHADER,

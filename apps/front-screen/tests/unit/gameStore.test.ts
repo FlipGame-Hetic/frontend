@@ -14,7 +14,7 @@ describe("useGameStore", () => {
 
     useGameStore.getState().startGame({
       mode: "solo",
-      players: [{ player: 1, character: "striker" }],
+      players: [{ player: 1, character: "keenu" }],
     })
 
     const { balls, playingBallIds } = useBallStore.getState()
@@ -65,7 +65,7 @@ describe("useGameStore", () => {
   it("goes game over on the last ball without incrementing past totalBalls", () => {
     useGameStore.getState().startGame({
       mode: "solo",
-      players: [{ player: 1, character: "striker" }],
+      players: [{ player: 1, character: "keenu" }],
     })
 
     useGameStore.getState().nextBall()
