@@ -1,9 +1,10 @@
+import { getBallColorForCharacter } from "@/config/characterColors"
 import useKeyboard from "@/hooks/useKeyboard"
-import { getCharacterMaterialColor } from "@/config/characterColors"
 import useGameStore from "@/stores/useGameStore"
 import { CuboidCollider, RigidBody } from "@react-three/rapier"
 import { useMemo } from "react"
 import { Vector3 } from "three"
+import PlungerBeam from "./PlungerBeam"
 import {
   PLUNGER_LANE_FRICTION,
   PLUNGER_POSITION,
@@ -13,7 +14,6 @@ import {
   PLUNGER_SPRING_SPACING,
   PLUNGER_SPRING_TORUS_COUNT,
 } from "./plungerConfig"
-import PlungerBeam from "./PlungerBeam"
 import PlungerEnergyRings from "./PlungerEnergyRings"
 import PlungerNeonTip from "./PlungerNeonTip"
 import PlungerShockwave from "./PlungerShockwave"
@@ -36,7 +36,7 @@ const Plunger = ({ position = PLUNGER_POSITION, tipMesh, ringMeshes = [] }: Plun
   const character = useGameStore(
     (s) => s.selectedPlayers.find((p) => p.player === s.currentPlayer)?.character,
   )
-  const vfxColor = getCharacterMaterialColor(character)
+  const vfxColor = getBallColorForCharacter(character)
 
   const rootPosition = useMemo(() => toVector3(position), [position])
   const tipRestPosition = useMemo(
