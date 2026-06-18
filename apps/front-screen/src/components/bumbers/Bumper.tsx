@@ -29,6 +29,7 @@ interface BumperProps {
   bumperId: number
   meshOverride?: Mesh
   rubberMesh?: Mesh
+  awardScore?: boolean
   onBonusHit?: (ballId: string) => void
 }
 
@@ -37,6 +38,7 @@ const Bumper = ({
   bumperId: _bumperId,
   meshOverride,
   rubberMesh,
+  awardScore = true,
   onBonusHit,
 }: BumperProps) => {
   const bodyRef = useRef<RapierRigidBody>(null)
@@ -71,16 +73,20 @@ const Bumper = ({
       if (shouldSkipBumperHit(other.rigidBody)) return
 
       const ballId = getBallId(other.rigidBodyObject.userData) ?? ""
-      broadcastEvent({ event_type: "Bumper", payload: { ball_id: ballId } })
+      if (awardScore) {
+        broadcastEvent({ event_type: "Bumper", payload: { ball_id: ballId } })
+      }
       if (ballId) onBonusHit?.(ballId)
       playRandomSfx("bumpers")
       useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.bumper)
 
       const bumperPos = bodyRef.current.translation()
       const ballPos = other.rigidBody.translation()
-      useScorePopupsStore
-        .getState()
-        .recordHit({ x: ballPos.x, y: ballPos.y, z: ballPos.z }, ballId, "bumper")
+      if (awardScore) {
+        useScorePopupsStore
+          .getState()
+          .recordHit({ x: ballPos.x, y: ballPos.y, z: ballPos.z }, ballId, "bumper")
+      }
 
       const dir = normalizedPlayfieldDirection({
         x: ballPos.x - bumperPos.x,
@@ -100,7 +106,7 @@ const Bumper = ({
 
       stuckTracker.current.arm(other.rigidBody)
     },
-    [onBonusHit],
+    [awardScore, onBonusHit],
   )
 
   useFrame(() => {

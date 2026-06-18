@@ -13,9 +13,10 @@ import {
 interface PlungerNeonTipProps {
   mesh?: Mesh
   chargeRef: React.RefObject<number>
+  color: string
 }
 
-const PlungerNeonTip = ({ mesh, chargeRef }: PlungerNeonTipProps) => {
+const PlungerNeonTip = ({ mesh, chargeRef, color }: PlungerNeonTipProps) => {
   const bodyMaterial = useMemo(
     () =>
       new MeshStandardMaterial({
@@ -39,9 +40,9 @@ const PlungerNeonTip = ({ mesh, chargeRef }: PlungerNeonTipProps) => {
   const rimMaterials = useMemo(
     () =>
       PLUNGER_TIP_RIM_OFFSETS.map((_, i) =>
-        createEnergyRingMaterial(i * 0.5, PLUNGER_TIP_RIM_INTENSITY),
+        createEnergyRingMaterial(i * 0.5, PLUNGER_TIP_RIM_INTENSITY, color),
       ),
-    [],
+    [color],
   )
 
   useFrame((state) => {

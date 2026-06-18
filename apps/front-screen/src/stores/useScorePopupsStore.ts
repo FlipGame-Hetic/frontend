@@ -1,7 +1,6 @@
-import { create } from "zustand"
 import { getAnyBallPosition, getBallPosition } from "@/components/balls/ballPositionRegistry"
-import { getBallColorForCharacter } from "@/config/characterColors"
-import useGameStore from "./useGameStore"
+import { getCurrentBallColor } from "@/components/balls/ballUserData"
+import { create } from "zustand"
 
 interface Position {
   x: number
@@ -9,9 +8,13 @@ interface Position {
   z: number
 }
 
+type ScorePopupKind = "score" | "multiball-countdown" | "multiball-trigger"
+
 interface ScorePopup {
   id: number
-  amount: number
+  kind: ScorePopupKind
+  amount?: number
+  text?: string
   position: Position
   color: string
 }
@@ -31,6 +34,8 @@ interface ScorePopupsState {
   removePopup: (id: number) => void
   recordHit: (position: Position, ballId?: string, reason?: string) => void
   spawnPopupFromDelta: (amount: number, reason?: string, ballId?: string) => void
+  spawnMultiballCountdownPopup: (remaining: number, position: Position) => void
+  spawnMultiballTriggeredPopup: (position: Position) => void
 }
 
 let nextId = 0
@@ -44,13 +49,6 @@ const pruneHits = (hits: HitRecord[], now: number): HitRecord[] => {
   return fresh.length > HITS_CAP ? fresh.slice(fresh.length - HITS_CAP) : fresh
 }
 
-const getCurrentBallColor = (): string => {
-  const { currentPlayer, selectedPlayers } = useGameStore.getState()
-  const character = selectedPlayers.find((player) => player.player === currentPlayer)?.character
-
-  return getBallColorForCharacter(character)
-}
-
 const useScorePopupsStore = create<ScorePopupsState>((set, get) => ({
   popups: [],
   recentHits: [],
@@ -58,7 +56,7 @@ const useScorePopupsStore = create<ScorePopupsState>((set, get) => ({
     const color = getCurrentBallColor()
 
     set((state) => ({
-      popups: [...state.popups, { id: nextId++, amount, position, color }],
+      popups: [...state.popups, { id: nextId++, kind: "score", amount, position, color }],
     }))
   },
   removePopup: (id) => {
@@ -120,7 +118,39 @@ const useScorePopupsStore = create<ScorePopupsState>((set, get) => ({
 
     set((state) => ({
       recentHits: remainingHits,
-      popups: [...state.popups, { id: nextId++, amount, position, color }],
+      popups: [...state.popups, { id: nextId++, kind: "score", amount, position, color }],
+    }))
+  },
+  spawnMultiballCountdownPopup: (remaining, position) => {
+    const color = getCurrentBallColor()
+
+    set((state) => ({
+      popups: [
+        ...state.popups,
+        {
+          id: nextId++,
+          kind: "multiball-countdown",
+          text: String(remaining),
+          position,
+          color,
+        },
+      ],
+    }))
+  },
+  spawnMultiballTriggeredPopup: (position) => {
+    const color = getCurrentBallColor()
+
+    set((state) => ({
+      popups: [
+        ...state.popups,
+        {
+          id: nextId++,
+          kind: "multiball-trigger",
+          text: "MULTIBALL",
+          position,
+          color,
+        },
+      ],
     }))
   },
 }))

@@ -1,7 +1,7 @@
 import type { ColorRepresentation, Material } from "three"
 import { Color } from "three"
 
-interface EmissiveMaterial extends Material {
+export interface EmissiveMaterial extends Material {
   emissive: Color
   emissiveIntensity: number
 }
@@ -12,7 +12,7 @@ export interface BloomMaterialOptions {
   shouldApply?: (material: Material) => boolean
 }
 
-const hasEmissiveControls = (material: Material): material is EmissiveMaterial => {
+export const hasEmissiveControls = (material: Material): material is EmissiveMaterial => {
   const candidate = material as Partial<EmissiveMaterial>
   return candidate.emissive instanceof Color && typeof candidate.emissiveIntensity === "number"
 }

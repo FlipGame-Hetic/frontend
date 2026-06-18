@@ -55,7 +55,7 @@ const StaticPlayfield = ({ nodes }: { nodes: PlayfieldNodes }) => {
       const ballPosition = other.rigidBody?.translation()
       if (!ballPosition || !bonusZoneHitTester.containsPoint(ballPosition)) return
 
-      registerBonusHit(ballId)
+      registerBonusHit(ballId, { x: ballPosition.x, y: ballPosition.y, z: ballPosition.z })
     },
     [bonusZoneHitTester, registerBonusHit],
   )
