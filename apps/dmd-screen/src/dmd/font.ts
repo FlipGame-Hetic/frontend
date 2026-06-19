@@ -104,7 +104,7 @@ function drawCharScaled(
   }
 }
 
-export function drawStringScaled(
+function drawStringScaled(
   buffer: DotBuffer,
   cols: number,
   text: string,
@@ -121,7 +121,7 @@ export function drawStringScaled(
   }
 }
 
-export function measureStringScaled(text: string, scale: number, spacing = 1): number {
+function measureStringScaled(text: string, scale: number, spacing = 1): number {
   if (text.length === 0) return 0
   return text.length * CHAR_WIDTH * scale + (text.length - 1) * spacing
 }
