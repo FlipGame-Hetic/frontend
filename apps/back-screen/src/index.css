@@ -194,3 +194,25 @@ body {
 .boss-screen-glitch {
   animation: boss-screen-glitch 0.5s steps(2, end) forwards;
 }
+
+@keyframes boss-victory {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  12% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  20% {
+    transform: scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1.55);
+  }
+}
+
+.boss-victory {
+  animation: boss-victory 3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}

@@ -17,6 +17,7 @@ export function useScreenHubClient(): void {
   const setBallNumber = useBackScreenStore((s) => s.setBallNumber)
   const setBoss = useBackScreenStore((s) => s.setBoss)
   const markBossDefeated = useBackScreenStore((s) => s.markBossDefeated)
+  const clearBoss = useBackScreenStore((s) => s.clearBoss)
 
   const { send } = useScreenHub({
     screenId: SCREEN_ID,
@@ -40,6 +41,10 @@ export function useScreenHubClient(): void {
       }
       if (isScreenEvent(envelope, "BossDefeated")) {
         markBossDefeated()
+        return
+      }
+      if (isScreenEvent(envelope, "BossCleared")) {
+        clearBoss()
       }
     },
   })

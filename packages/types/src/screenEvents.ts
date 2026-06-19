@@ -22,6 +22,7 @@ export const SCREEN_EVENT_TYPES = {
   MultiplierUpdate: "MultiplierUpdate",
   BossUpdate: "BossUpdate",
   BossDefeated: "BossDefeated",
+  BossCleared: "BossCleared",
   BackBumper: "Bumper",
   BackBumperTriangle: "BumperTriangle",
   BackPortalUsed: "PortalUsed",
@@ -158,6 +159,11 @@ export interface BossDefeatedEvent {
   payload: { boss_id: number }
 }
 
+export interface BossClearedEvent {
+  event_type: "BossCleared"
+  payload: { boss_id: number }
+}
+
 export interface BackBumperEvent {
   event_type: "Bumper"
   payload: { ball_id: string }
@@ -264,6 +270,7 @@ export type ScreenEvent =
   | MultiplierUpdateEvent
   | BossUpdateEvent
   | BossDefeatedEvent
+  | BossClearedEvent
   | BackBumperEvent
   | BackBumperTriangleEvent
   | BackPortalUsedEvent

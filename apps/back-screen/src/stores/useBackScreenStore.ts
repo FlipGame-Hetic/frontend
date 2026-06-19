@@ -39,6 +39,7 @@ interface BackScreenStore {
   setBallNumber: (n: number) => void
   setBoss: (boss: BossState) => void
   markBossDefeated: () => void
+  clearBoss: () => void
   resetBoss: () => void
 }
 
@@ -90,11 +91,14 @@ export const useBackScreenStore = create<BackScreenStore>()((set) => ({
       const delta = state.bossActive ? state.bossHp - bossHp : 0
       const lastDamage =
         delta > 0 ? { at: Date.now(), delta, big: isBigDamage(delta, bossMaxHp) } : state.lastDamage
-      return { bossId, bossHp, bossMaxHp, bossActive: true, lastDamage }
+      return { bossId, bossHp, bossMaxHp, bossActive: true, lastDamage, phase: "playing" }
     })
   },
   markBossDefeated: () => {
     set({ bossDefeatedAt: Date.now() })
+  },
+  clearBoss: () => {
+    set({ bossActive: false, bossDefeatedAt: 0, lastDamage: NO_DAMAGE })
   },
   resetBoss: () => {
     set({

@@ -41,6 +41,13 @@ export default function BossHealthBar() {
           style={{ width: widthPct }}
         />
       </div>
+
+      <div
+        className="font-display text-[clamp(0.9rem,1.6vw,1.4rem)] leading-none font-bold tracking-[0.2em] tabular-nums"
+        style={{ color: "#F4F4F4", textShadow: "0 2px 0 rgba(0,0,0,0.9)" }}
+      >
+        {Math.max(0, Math.ceil(bossHp))} / {bossMaxHp}
+      </div>
     </div>
   )
 }

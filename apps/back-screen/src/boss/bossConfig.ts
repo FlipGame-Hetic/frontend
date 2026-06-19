@@ -18,7 +18,7 @@ export interface BossDefinition {
 export const BOSS_REGISTRY: [BossDefinition, ...BossDefinition[]] = [
   {
     id: 0,
-    name: "G.L.A.D.O.S",
+    name: "Sephi",
     renderer: "video-shader",
     themeColor: "#C5003C",
     clips: {
