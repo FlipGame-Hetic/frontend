@@ -4,6 +4,7 @@ import { isScreenEvent } from "@frontend/types"
 import type { ScreenEnvelope } from "@frontend/types"
 import { useBackScreenStore } from "@/stores/useBackScreenStore"
 import { fetchLeaderboard } from "@/api/leaderboard"
+import { handleMenuButton } from "@/menu/menuActions"
 
 const SCREEN_ID = "back_screen" as const
 const TOKEN =
@@ -22,6 +23,10 @@ export function useScreenHubClient(): void {
     screenId: SCREEN_ID,
     token: TOKEN,
     onEvent: (envelope: ScreenEnvelope) => {
+      if (isScreenEvent(envelope, "MenuButton")) {
+        if (envelope.payload.state > 0) handleMenuButton(envelope.payload.id)
+        return
+      }
       if (isScreenEvent(envelope, "phase_change")) {
         setPhase(envelope.payload.phase)
         if (envelope.payload.score !== undefined) setScore(envelope.payload.score)

@@ -1,3 +1,4 @@
+import type { ButtonId } from "./buttons"
 import type { CharacterType } from "./character"
 import type { ScreenEnvelope, ScreenId, ScreenTarget } from "./screen"
 
@@ -39,6 +40,7 @@ export const SCREEN_EVENT_TYPES = {
   BackScoreDelta: "ScoreDelta",
   BackLifeUpdate: "LifeUpdate",
   LeaderboardUpdate: "LeaderboardUpdate",
+  MenuButton: "MenuButton",
 } as const
 
 export type ScreenEventType = (typeof SCREEN_EVENT_TYPES)[keyof typeof SCREEN_EVENT_TYPES]
@@ -251,6 +253,11 @@ export interface LeaderboardUpdateEvent {
   payload: ScoreEntry[]
 }
 
+export interface MenuButtonEvent {
+  event_type: "MenuButton"
+  payload: { id: ButtonId; state: number }
+}
+
 export type ScreenEvent =
   | PhaseChangeEvent
   | ScoreUpdateEvent
@@ -289,6 +296,7 @@ export type ScreenEvent =
   | BackScoreDeltaEvent
   | BackLifeUpdateEvent
   | LeaderboardUpdateEvent
+  | MenuButtonEvent
 
 export function makeEnvelope(from: ScreenId, to: ScreenTarget, event: ScreenEvent): ScreenEnvelope {
   return { from, to, event_type: event.event_type, payload: event.payload }
