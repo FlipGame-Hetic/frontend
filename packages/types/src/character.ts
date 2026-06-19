@@ -86,7 +86,7 @@ export const CHARACTER_OPTIONS: NonEmptyArray<CharacterConfig> = [
   },
 ]
 
-export const DEFAULT_CHARACTER: CharacterType = "enforcer"
+export const DEFAULT_CHARACTER: CharacterConfig = CHARACTER_OPTIONS[0]
 
 export const GAMEPLAY_FALLBACK: Record<CharacterType, CharacterGameplay> = {
   enforcer: {

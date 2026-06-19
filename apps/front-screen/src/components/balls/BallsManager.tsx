@@ -26,10 +26,7 @@ const BallsManager = () => {
   const { balls, spawnBall } = useBallStore()
   const phase = useGameStore((s) => s.phase)
   const ballNumber = useGameStore((s) => s.ballNumber)
-  const character = useGameStore(
-    (s) => s.selectedPlayers.find((p) => p.player === s.currentPlayer)?.character,
-  )
-  const ballColor = getBallColorForCharacter(character)
+  const ballColor = getBallColorForCharacter()
   const [spawnPos, setSpawnPos] = useState<[number, number, number]>([
     DEFAULT_BALL_SPAWN[0],
     DEFAULT_BALL_SPAWN[1],

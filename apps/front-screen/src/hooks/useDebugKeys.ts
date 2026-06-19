@@ -10,7 +10,7 @@ const getCurrentCharacter = (): CharacterType => {
 
   return (
     selectedPlayers.find((player) => player.player === currentPlayer)?.character ??
-    DEFAULT_CHARACTER
+    DEFAULT_CHARACTER.id
   )
 }
 

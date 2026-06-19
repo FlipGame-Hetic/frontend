@@ -142,7 +142,7 @@ const getStartGamePayload = (): StartGameEvent["payload"] => {
     players:
       selectedPlayers.length > 0
         ? selectedPlayers.map((player) => ({ ...player }))
-        : [{ player: 1, character: DEFAULT_CHARACTER }],
+        : [{ player: 1, character: DEFAULT_CHARACTER.id }],
   }
 }
 

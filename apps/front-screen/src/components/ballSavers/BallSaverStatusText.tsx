@@ -1,8 +1,8 @@
+import useTargetStore from "@/stores/useTargetStore"
 import { Html } from "@react-three/drei"
 import { useFrame } from "@react-three/fiber"
-import { useEffect, useRef } from "react"
 import type { CSSProperties } from "react"
-import useTargetStore from "@/stores/useTargetStore"
+import { useEffect, useRef } from "react"
 import BallSaverCooldownRing from "./BallSaverCooldownRing"
 import {
   BALL_SAVER_READY_TEXT,

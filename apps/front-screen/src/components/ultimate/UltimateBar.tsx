@@ -51,7 +51,7 @@ const UltimateBar = () => {
 
   const character =
     selectedPlayers.find((player) => player.player === currentPlayer)?.character ??
-    DEFAULT_CHARACTER
+    DEFAULT_CHARACTER.id
   const config = configFor(character)
 
   const readyForDisplay = ready || DEBUG_FORCE_ULTIMATE_READY

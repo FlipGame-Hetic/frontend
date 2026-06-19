@@ -1,6 +1,5 @@
 import { getBallColorForCharacter } from "@/config/characterColors"
 import useKeyboard from "@/hooks/useKeyboard"
-import useGameStore from "@/stores/useGameStore"
 import { CuboidCollider, RigidBody } from "@react-three/rapier"
 import { useMemo } from "react"
 import { Vector3 } from "three"
@@ -33,10 +32,7 @@ const toVector3 = (position: [number, number, number]): Vector3 => {
 
 const Plunger = ({ position = PLUNGER_POSITION, tipMesh, ringMeshes = [] }: PlungerProps) => {
   const pressedKeys = useKeyboard()
-  const character = useGameStore(
-    (s) => s.selectedPlayers.find((p) => p.player === s.currentPlayer)?.character,
-  )
-  const vfxColor = getBallColorForCharacter(character)
+  const vfxColor = getBallColorForCharacter()
 
   const rootPosition = useMemo(() => toVector3(position), [position])
   const tipRestPosition = useMemo(

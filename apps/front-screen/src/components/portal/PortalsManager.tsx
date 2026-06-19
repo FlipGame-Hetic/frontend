@@ -1,5 +1,4 @@
 import useBallStore from "@/stores/useBallStore"
-import useGameStore from "@/stores/useGameStore"
 import usePortalTraversalStore from "@/stores/usePortalTraversalStore"
 import useScorePopupsStore from "@/stores/useScorePopupsStore"
 import { getBallColorForCharacter } from "@/config/characterColors"
@@ -80,10 +79,7 @@ const handlePortalExit = (portalId: PortalId, payload: CollisionPayload): void =
 
 const PortalsManager = () => {
   const ghostBallIds = usePortalTraversalStore((s) => s.ghostBallIds)
-  const character = useGameStore(
-    (s) => s.selectedPlayers.find((p) => p.player === s.currentPlayer)?.character,
-  )
-  const ballColor = getBallColorForCharacter(character)
+  const ballColor = getBallColorForCharacter()
 
   useFrame(() => {
     const traversals = getAllTraversals()
