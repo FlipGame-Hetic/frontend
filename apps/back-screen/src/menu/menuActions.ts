@@ -73,7 +73,7 @@ export function menuConfirm(): void {
       sendEventTo("front_screen", {
         event_type: "start_game",
         payload: {
-          mode: useBackScreenStore.getState().selectedMode ?? "solo",
+          mode: useBackScreenStore.getState().selectedMode ?? "boss",
           players: [{ player: 1, character }],
         },
       })

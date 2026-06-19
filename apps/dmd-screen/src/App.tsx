@@ -6,6 +6,7 @@ import { DEFAULT_DMD_CONFIG } from "@/dmd/config"
 import type { DmdConfig } from "@/dmd/config"
 import { DmdCanvas } from "@/dmd/DmdCanvas"
 import { ScoreScene } from "@/dmd/scenes/ScoreScene"
+import type { ScoreData } from "@/dmd/scenes/ScoreScene"
 import { IdleScene } from "@/dmd/scenes/IdleScene"
 import { PausedScene } from "@/dmd/scenes/PausedScene"
 import { ModeSelectScene } from "@/dmd/scenes/ModeSelectScene"
@@ -69,8 +70,10 @@ function App() {
         const score = envelope.payload.score
         const ball = envelope.payload.ball ?? 1
         const player = envelope.payload.player !== undefined ? Number(envelope.payload.player) : 1
-        const multiplier = envelope.payload.multiplier ?? 1
-        scenes.playing.update({ score, player, ballNumber: ball, multiplier })
+        const update: Partial<ScoreData> = { score, player, ballNumber: ball }
+        if (envelope.payload.multiplier !== undefined)
+          update.multiplier = envelope.payload.multiplier
+        scenes.playing.update(update)
         scenes.game_over.update(score)
         return
       }

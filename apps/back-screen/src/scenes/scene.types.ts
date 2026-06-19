@@ -13,19 +13,13 @@ type NonEmptyArray<T> = [T, ...T[]]
 
 export const MODE_OPTIONS: NonEmptyArray<ModeOption> = [
   {
-    id: "solo",
-    label: "SOLO",
-    description: "Une bille. Un joueur. Fais le score.",
+    id: "boss",
+    label: "BOSS",
+    description: "Affronte les I.A. du flipper. Détruis leur barre de vie avant de perdre.",
   },
   {
     id: "duo",
     label: "DUO",
-    description: "Bientôt disponible.",
-    locked: true,
-  },
-  {
-    id: "boss",
-    label: "BOSS RUSH",
     description: "Bientôt disponible.",
     locked: true,
   },

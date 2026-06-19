@@ -2,7 +2,7 @@ import { useBackScreenStore } from "@/stores/useBackScreenStore"
 import IdleScene from "./IdleScene"
 import ModeSelectScene from "./ModeSelectScene"
 import CharacterSelectScene from "./CharacterSelectScene"
-import GameplayHud from "./GameplayHud"
+import PlayingScene from "./PlayingScene"
 import PausedScene from "./PausedScene"
 import GameOverScene from "./GameOverScene"
 
@@ -15,7 +15,7 @@ export default function SceneRouter() {
     case "character_select":
       return <CharacterSelectScene />
     case "playing":
-      return <GameplayHud />
+      return <PlayingScene />
     case "paused":
       return <PausedScene />
     case "game_over":
