@@ -1,7 +1,7 @@
 import { Color, ShaderMaterial, Vector2, type Texture } from "three"
 import { BOSS_SHADER_CONFIG } from "./bossShaderConfig"
 
-export const VERTEX_SHADER = /* glsl */ `
+const VERTEX_SHADER = /* glsl */ `
 varying vec2 vUv;
 
 void main() {
@@ -10,7 +10,7 @@ void main() {
 }
 `
 
-export const FRAGMENT_SHADER = /* glsl */ `
+const FRAGMENT_SHADER = /* glsl */ `
 precision highp float;
 
 uniform vec2 iResolution;
