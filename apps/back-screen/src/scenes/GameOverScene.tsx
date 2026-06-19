@@ -10,9 +10,8 @@ export default function GameOverScene() {
   const leaderboard = useBackScreenStore((s) => s.leaderboard)
 
   const betterCount = leaderboard.filter((e) => e.score > score).length
-  const inTop = leaderboard.length < 10 || betterCount < 10
   const rank = betterCount + 1
-  const rankLabel = inTop ? `RANG #${String(rank).padStart(2, "0")}` : "HORS TOP 10"
+  const rankLabel = `RANG #${String(rank).padStart(2, "0")}`
 
   return (
     <div className="bg-arcade-black relative flex h-full w-full overflow-hidden">

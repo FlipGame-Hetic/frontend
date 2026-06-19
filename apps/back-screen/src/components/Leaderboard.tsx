@@ -11,7 +11,7 @@ interface LeaderboardProps {
 export function Leaderboard({
   entries,
   highlightScore,
-  max = 10,
+  max = 6,
   accentColor = "#55EAD4",
 }: LeaderboardProps) {
   const rows = entries.slice(0, max)
