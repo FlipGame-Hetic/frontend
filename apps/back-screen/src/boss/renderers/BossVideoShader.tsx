@@ -65,12 +65,12 @@ const BossVideoShader = ({ clips }: BossVideoShaderProps) => {
         .play()
         .then(() => {
           if (token !== fxToken) return
-          material.uniforms.iChannel0.value = fxTexture
+          if (material.uniforms.iChannel0) material.uniforms.iChannel0.value = fxTexture
           fxActiveRef.current = true
         })
         .catch(() => {
           if (token !== fxToken) return
-          material.uniforms.iChannel0.value = idleTexture
+          if (material.uniforms.iChannel0) material.uniforms.iChannel0.value = idleTexture
           fxActiveRef.current = false
         })
     }
@@ -150,7 +150,7 @@ const BossVideoShader = ({ clips }: BossVideoShaderProps) => {
           fxVideo.ended ||
           (fxVideo.duration > 0 && fxVideo.currentTime >= fxVideo.duration - FX_SWAP_LEAD)
         if (reachedEnd) {
-          material.uniforms.iChannel0.value = idleTexture
+          if (material.uniforms.iChannel0) material.uniforms.iChannel0.value = idleTexture
           fxActiveRef.current = false
         }
       }
