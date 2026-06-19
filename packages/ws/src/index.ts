@@ -5,4 +5,5 @@ export type { UseScreenSocketOptions, UseScreenSocketReturn } from "./useScreenS
 export { useScreenHub } from "./screenHub"
 export type { UseScreenHubOptions, UseScreenHubReturn } from "./screenHub"
 export { registerScreenSender, broadcastEvent, sendEventTo } from "./screenSender"
+export { resolveApiUrl } from "./wsConfig"
 export { wsLog, wsWarn } from "./wsLog"

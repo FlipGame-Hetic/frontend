@@ -38,6 +38,7 @@ export const SCREEN_EVENT_TYPES = {
   BackScoreUpdate: "ScoreUpdate",
   BackScoreDelta: "ScoreDelta",
   BackLifeUpdate: "LifeUpdate",
+  LeaderboardUpdate: "LeaderboardUpdate",
 } as const
 
 export type ScreenEventType = (typeof SCREEN_EVENT_TYPES)[keyof typeof SCREEN_EVENT_TYPES]
@@ -237,6 +238,19 @@ export interface BackLifeUpdateEvent {
   payload: { lives_remaining: number }
 }
 
+export interface ScoreEntry {
+  id: number
+  character_id: number
+  score: number
+  boss_reached: number
+  created_at: string | null
+}
+
+export interface LeaderboardUpdateEvent {
+  event_type: "LeaderboardUpdate"
+  payload: ScoreEntry[]
+}
+
 export type ScreenEvent =
   | PhaseChangeEvent
   | ScoreUpdateEvent
@@ -274,6 +288,7 @@ export type ScreenEvent =
   | BackScoreUpdateEvent
   | BackScoreDeltaEvent
   | BackLifeUpdateEvent
+  | LeaderboardUpdateEvent
 
 export function makeEnvelope(from: ScreenId, to: ScreenTarget, event: ScreenEvent): ScreenEnvelope {
   return { from, to, event_type: event.event_type, payload: event.payload }
