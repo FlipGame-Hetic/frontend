@@ -1,8 +1,17 @@
 import { useBackScreenStore } from "@/stores/useBackScreenStore"
 import { RetroBackground } from "@/components/RetroBackground"
+import { Leaderboard } from "@/components/Leaderboard"
+import { formatScore } from "@/utils/formatScore"
+
+const ACCENT = "#C5003C"
 
 export default function GameOverScene() {
   const score = useBackScreenStore((s) => s.score)
+  const leaderboard = useBackScreenStore((s) => s.leaderboard)
+
+  const betterCount = leaderboard.filter((e) => e.score > score).length
+  const rank = betterCount + 1
+  const rankLabel = `RANG #${String(rank).padStart(2, "0")}`
 
   return (
     <div className="bg-arcade-black relative flex h-full w-full overflow-hidden">
@@ -22,14 +31,18 @@ export default function GameOverScene() {
 
           <div className="flex items-baseline gap-4">
             <div className="font-display text-[clamp(2rem,5.5vw,4.5rem)] font-bold tracking-widest text-[#55EAD4] tabular-nums [text-shadow:3px_0_rgba(197,0,60,0.55),-3px_0_rgba(85,234,212,0.5),0_4px_0_rgba(0,0,0,0.95)]">
-              {String(score)
-                .padStart(6, "0")
-                .replace(/(\d{3})(\d{3})/, "$1.$2")}
+              {formatScore(score)}
             </div>
             <div className="font-mono text-[clamp(0.55rem,1.1vw,0.8rem)] tracking-widest text-[rgba(85,234,212,0.45)] uppercase">
               PTS
             </div>
           </div>
+
+          <div className="font-display text-[clamp(0.9rem,2vw,1.6rem)] font-bold tracking-[0.2em] text-[#C5003C] uppercase">
+            {rankLabel}
+          </div>
+
+          <Leaderboard entries={leaderboard} highlightScore={score} accentColor={ACCENT} />
         </div>
 
         <div className="cp-blink font-display text-[clamp(0.8rem,1.7vw,1.3rem)] font-bold tracking-[0.2em] text-[#F3E600] uppercase">

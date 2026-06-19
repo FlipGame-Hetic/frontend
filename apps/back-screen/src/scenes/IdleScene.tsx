@@ -1,6 +1,10 @@
 import { RetroBackground } from "@/components/RetroBackground"
+import { Leaderboard } from "@/components/Leaderboard"
+import { useBackScreenStore } from "@/stores/useBackScreenStore"
 
 export default function IdleScene() {
+  const leaderboard = useBackScreenStore((s) => s.leaderboard)
+
   return (
     <div className="bg-arcade-black relative flex h-full w-full overflow-hidden">
       <RetroBackground />
@@ -26,15 +30,8 @@ export default function IdleScene() {
           <div className="h-px w-16 bg-[rgba(243,230,0,0.1)]" />
         </div>
 
-        <div className="flex items-end justify-between">
-          <div className="flex flex-col gap-2">
-            <div className="font-mono text-[clamp(0.3rem,0.6vw,0.42rem)] tracking-[0.2em] text-[rgba(243,230,0,0.25)] uppercase">
-              {"// MEILLEUR SCORE //"}
-            </div>
-            <div className="font-display text-[clamp(1.2rem,2.6vw,2rem)] font-bold tracking-[0.12em] text-[rgba(243,230,0,0.18)] tabular-nums">
-              000.000
-            </div>
-          </div>
+        <div className="flex items-end justify-between gap-8">
+          <Leaderboard entries={leaderboard} />
 
           <div className="cp-blink font-display text-[clamp(0.8rem,1.8vw,1.4rem)] font-bold tracking-[0.22em] text-[#F3E600] uppercase">
             INSÉRER CRÉDIT
