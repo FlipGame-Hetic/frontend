@@ -1,14 +1,16 @@
 import type { RenderContext, Scene } from "../types"
 import { setPixel } from "../buffer"
-import { drawString, measureString } from "../font"
-import { drawBigString, measureBigString } from "../font-big"
+import { drawString, measureString, drawStringScaledCentered } from "../font"
 import { drawHearts } from "../icons"
+import { drawCorners } from "../frame"
 import { MAX_BALLS, heartsWidth } from "../constants"
 
 const BAR_WIDTH = 60
 const BAR_Y = 14
 const MULT_Y = 4
 const SCORE_Y_RATIO = 0.38
+const SCORE_SCALE = 2
+const SCORE_SPACING = 2
 const JITTER_THRESHOLD = 2.0
 const JITTER_MAX_INTENSITY = 2
 const HEARTS_MARGIN = 4
@@ -85,10 +87,8 @@ export class ScoreScene implements Scene {
     }
 
     const scoreText = String(score).padStart(6, "0")
-    const scoreWidth = measureBigString(scoreText)
-    const scoreX = Math.floor((cols - scoreWidth) / 2)
     const scoreY = Math.floor(rows * SCORE_Y_RATIO)
-    drawBigString(buffer, cols, scoreText, scoreX, scoreY)
+    drawStringScaledCentered(buffer, cols, scoreText, scoreY, SCORE_SCALE, SCORE_SPACING)
 
     const { lives, maxLives } = this.data
     const playerText = "PLAYER " + String(player)
@@ -99,11 +99,6 @@ export class ScoreScene implements Scene {
     const hx = cols - HEARTS_MARGIN - heartsWidth(maxLives)
     drawHearts(buffer, cols, hx, infoY, lives, maxLives)
 
-    for (let i = 0; i < 3; i++) {
-      setPixel(buffer, cols, i, 0, 0.3)
-      setPixel(buffer, cols, cols - 1 - i, 0, 0.3)
-      setPixel(buffer, cols, i, rows - 1, 0.3)
-      setPixel(buffer, cols, cols - 1 - i, rows - 1, 0.3)
-    }
+    drawCorners(buffer, cols, rows)
   }
 }

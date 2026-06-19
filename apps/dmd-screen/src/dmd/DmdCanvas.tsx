@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef } from "react"
 import type { DmdConfig } from "./config"
 import type { Scene } from "./types"
-import { clearBuffer, createBuffer, drawDotsToCanvas } from "./buffer"
+import { clearBuffer, createBuffer } from "./buffer"
+import { drawDotsToCanvas } from "./renderer"
 import { useAnimationFrame } from "./useAnimationFrame"
 
 interface DmdCanvasProps {

@@ -126,6 +126,21 @@ export function measureStringScaled(text: string, scale: number, spacing = 1): n
   return text.length * CHAR_WIDTH * scale + (text.length - 1) * spacing
 }
 
+/** Draws `text` horizontally centered within `cols` at row `y`. */
+export function drawStringScaledCentered(
+  buffer: DotBuffer,
+  cols: number,
+  text: string,
+  y: number,
+  scale: number,
+  spacing = 1,
+  brightness = 1.0,
+): void {
+  const width = measureStringScaled(text, scale, spacing)
+  const x = Math.floor((cols - width) / 2)
+  drawStringScaled(buffer, cols, text, x, y, scale, spacing, brightness)
+}
+
 export function drawString(
   buffer: DotBuffer,
   cols: number,
@@ -145,4 +160,18 @@ export function drawString(
 export function measureString(text: string, spacing = 1): number {
   if (text.length === 0) return 0
   return text.length * CHAR_WIDTH + (text.length - 1) * spacing
+}
+
+/** Draws `text` horizontally centered within `cols` at row `y`. */
+export function drawStringCentered(
+  buffer: DotBuffer,
+  cols: number,
+  text: string,
+  y: number,
+  spacing = 1,
+  brightness = 1.0,
+): void {
+  const width = measureString(text, spacing)
+  const x = Math.floor((cols - width) / 2)
+  drawString(buffer, cols, text, x, y, spacing, brightness)
 }
