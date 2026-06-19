@@ -1,7 +1,6 @@
 import { Canvas } from "@react-three/fiber"
 import BossManager from "@/boss/BossManager"
 import BossHealthBar from "./BossHealthBar"
-import BossDamageOverlay from "./BossDamageOverlay"
 
 export default function BossScene() {
   return (
@@ -9,7 +8,6 @@ export default function BossScene() {
       <Canvas flat gl={{ antialias: false }}>
         <BossManager />
       </Canvas>
-      <BossDamageOverlay />
       <BossHealthBar />
     </div>
   )

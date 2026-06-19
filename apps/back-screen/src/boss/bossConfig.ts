@@ -1,8 +1,9 @@
-type BossRendererKind = "video-shader" | "model"
+export type BossRendererKind = "video-shader" | "model"
 
 export interface BossClips {
   idle: string[]
   damage: string[]
+  death?: string
 }
 
 export interface BossDefinition {
@@ -21,8 +22,9 @@ export const BOSS_REGISTRY: [BossDefinition, ...BossDefinition[]] = [
     renderer: "video-shader",
     themeColor: "#C5003C",
     clips: {
-      idle: ["/videos/bossVideoLoop.webm"],
-      damage: [],
+      idle: ["/videos/boss1/bossVideoLoop.webm"],
+      damage: ["/videos/boss1/hurt1.webm", "/videos/boss1/hurt2.webm", "/videos/boss1/hurt3.webm"],
+      death: "/videos/boss1/death.webm",
     },
   },
 ]

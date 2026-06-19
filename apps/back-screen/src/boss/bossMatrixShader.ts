@@ -1,6 +1,7 @@
-import { ShaderMaterial, Vector2, type Texture } from "three"
+import { Color, ShaderMaterial, Vector2, type Texture } from "three"
+import { BOSS_SHADER_CONFIG } from "./bossShaderConfig"
 
-const VERTEX_SHADER = /* glsl */ `
+export const VERTEX_SHADER = /* glsl */ `
 varying vec2 vUv;
 
 void main() {
@@ -9,12 +10,15 @@ void main() {
 }
 `
 
-const FRAGMENT_SHADER = /* glsl */ `
+export const FRAGMENT_SHADER = /* glsl */ `
 precision highp float;
 
 uniform vec2 iResolution;
 uniform float iTime;
 uniform sampler2D iChannel0;
+uniform float uDamage;
+uniform vec3 uBaseColor;
+uniform vec3 uDamageColor;
 
 varying vec2 vUv;
 
@@ -42,6 +46,8 @@ void main() {
     position.x /= iResolution.x / iResolution.y;
     float globalTime = iTime * RAIN_SPEED;
 
+    vec3 tint = mix(uBaseColor, uDamageColor, clamp(uDamage, 0.0, 1.0));
+
     float scaledown = DROP_SIZE;
     float rx = fragCoord.x / (40.0 * scaledown);
     float mx = 40.0*scaledown*fract(position.x * 30.0 * scaledown);
@@ -65,7 +71,7 @@ void main() {
 
             float b = rchar(vec2(rx, floor((ry) / 15.0)), vec2(mx, my) / 12.0, globalTime);
             float col = max(mod(-y, 24.0) - 4.0, 0.0) / 20.0;
-            vec3 c = col < 0.8 ? vec3(0.0, col / 0.8, 0.0) : mix(vec3(0.0, 1.0, 0.0), vec3(1.0), (col - 0.8) / 0.2);
+            vec3 c = col < 0.8 ? tint * (col / 0.8) : mix(tint, vec3(1.0), (col - 0.8) / 0.2);
 
             result = vec4(c * b, 1.0)  ;
         }
@@ -95,15 +101,15 @@ void main() {
 
             float b = rchar(vec2(rx, floor((ry) / 15.0)), vec2(mx, my) / 12.0, globalTime);
             float col = max(mod(-y, 24.0) - 4.0, 0.0) / 20.0;
-            vec3 c = col < 0.8 ? vec3(0.0, col / 0.8, 0.0) : mix(vec3(0.0, 1.0, 0.0), vec3(1.0), (col - 0.8) / 0.2);
+            vec3 c = col < 0.8 ? tint * (col / 0.8) : mix(tint, vec3(1.0), (col - 0.8) / 0.2);
 
             result += vec4(c * b, 1.0)  ;
         }
     }
 
-    result = result * length(texture2D(iChannel0,uv).rgb) + 0.22 * vec4(0.,texture2D(iChannel0,uv).g,0.,1.);
+    result = result * length(texture2D(iChannel0,uv).rgb) + 0.22 * vec4(tint * texture2D(iChannel0,uv).g, 1.0);
     if(result.b < 0.5)
-    result.b = result.g * 0.5 ;
+    result.b = result.g * 0.5 * (1.0 - clamp(uDamage, 0.0, 1.0));
     gl_FragColor = result;
 }
 `
@@ -116,6 +122,9 @@ export const createBossMatrixMaterial = (videoTexture: Texture): ShaderMaterial 
       iResolution: { value: new Vector2(1, 1) },
       iTime: { value: 0 },
       iChannel0: { value: videoTexture },
+      uDamage: { value: 0 },
+      uBaseColor: { value: new Color(...BOSS_SHADER_CONFIG.baseColor) },
+      uDamageColor: { value: new Color(...BOSS_SHADER_CONFIG.damageColor) },
     },
     depthTest: false,
     depthWrite: false,
