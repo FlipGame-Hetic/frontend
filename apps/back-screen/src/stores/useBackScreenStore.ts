@@ -29,6 +29,7 @@ interface BackScreenStore {
   bossHp: number
   bossMaxHp: number
   bossActive: boolean
+  bossReady: boolean
   bossDefeatedAt: number
   lastDamage: DamageEvent
 
@@ -40,6 +41,7 @@ interface BackScreenStore {
   setBallNumber: (n: number) => void
   setLeaderboard: (entries: ScoreEntry[]) => void
   setBoss: (boss: BossState) => void
+  setBossReady: () => void
   markBossDefeated: () => void
   clearBoss: () => void
   resetBoss: () => void
@@ -58,6 +60,7 @@ export const useBackScreenStore = create<BackScreenStore>()((set) => ({
   bossHp: 0,
   bossMaxHp: 0,
   bossActive: false,
+  bossReady: false,
   bossDefeatedAt: 0,
   lastDamage: NO_DAMAGE,
 
@@ -69,6 +72,7 @@ export const useBackScreenStore = create<BackScreenStore>()((set) => ({
         bossHp: 0,
         bossMaxHp: 0,
         bossActive: false,
+        bossReady: false,
         bossDefeatedAt: 0,
         lastDamage: NO_DAMAGE,
       })
@@ -97,14 +101,25 @@ export const useBackScreenStore = create<BackScreenStore>()((set) => ({
       const delta = state.bossActive ? state.bossHp - bossHp : 0
       const lastDamage =
         delta > 0 ? { at: Date.now(), delta, big: isBigDamage(delta) } : state.lastDamage
-      return { bossId, bossHp, bossMaxHp, bossActive: true, lastDamage, phase: "playing" }
+      return {
+        bossId,
+        bossHp,
+        bossMaxHp,
+        bossActive: true,
+        bossReady: state.bossActive ? state.bossReady : false,
+        lastDamage,
+        phase: "playing",
+      }
     })
+  },
+  setBossReady: () => {
+    set({ bossReady: true })
   },
   markBossDefeated: () => {
     set({ bossDefeatedAt: Date.now() })
   },
   clearBoss: () => {
-    set({ bossActive: false, bossDefeatedAt: 0, lastDamage: NO_DAMAGE })
+    set({ bossActive: false, bossReady: false, bossDefeatedAt: 0, lastDamage: NO_DAMAGE })
   },
   resetBoss: () => {
     set({
@@ -112,6 +127,7 @@ export const useBackScreenStore = create<BackScreenStore>()((set) => ({
       bossHp: 0,
       bossMaxHp: 0,
       bossActive: false,
+      bossReady: false,
       bossDefeatedAt: 0,
       lastDamage: NO_DAMAGE,
     })

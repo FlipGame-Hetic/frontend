@@ -216,3 +216,99 @@ body {
 .boss-victory {
   animation: boss-victory 3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
+
+@keyframes boss-warning-flicker {
+  0%,
+  100% {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+  8% {
+    opacity: 0.2;
+    transform: translate(-4px, 1px);
+  }
+  10% {
+    opacity: 1;
+    transform: translate(4px, -1px);
+  }
+  43% {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+  45% {
+    opacity: 0.35;
+    transform: translate(3px, 2px);
+  }
+  47% {
+    opacity: 1;
+    transform: translate(-3px, -2px);
+  }
+  72% {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+  74% {
+    opacity: 0.5;
+    transform: translate(-2px, 0);
+  }
+  76% {
+    opacity: 1;
+    transform: translate(2px, 0);
+  }
+}
+
+@keyframes boss-warning-slice {
+  0% {
+    clip-path: inset(0 0 85% 0);
+    transform: translate(-6px, 0);
+  }
+  20% {
+    clip-path: inset(70% 0 12% 0);
+    transform: translate(5px, 0);
+  }
+  40% {
+    clip-path: inset(35% 0 50% 0);
+    transform: translate(-4px, 0);
+  }
+  60% {
+    clip-path: inset(10% 0 78% 0);
+    transform: translate(6px, 0);
+  }
+  80% {
+    clip-path: inset(88% 0 2% 0);
+    transform: translate(-3px, 0);
+  }
+  100% {
+    clip-path: inset(45% 0 40% 0);
+    transform: translate(4px, 0);
+  }
+}
+
+.boss-warning {
+  position: relative;
+  text-shadow:
+    3px 0 rgba(255, 0, 51, 0.6),
+    -3px 0 rgba(0, 234, 255, 0.55),
+    0 0 28px rgba(255, 0, 51, 0.55);
+  animation: boss-warning-flicker 1.4s steps(2, end) infinite;
+}
+
+.boss-warning::before,
+.boss-warning::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.boss-warning::before {
+  color: #00eaff;
+  animation: boss-warning-slice 1.1s steps(2, end) infinite;
+  mix-blend-mode: screen;
+}
+
+.boss-warning::after {
+  color: #ff0033;
+  animation: boss-warning-slice 0.8s steps(2, end) infinite reverse;
+  mix-blend-mode: screen;
+}

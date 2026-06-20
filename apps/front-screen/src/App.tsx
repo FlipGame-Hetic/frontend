@@ -50,13 +50,12 @@ const App = () => {
   return (
     <DebugProvider>
       <SoundManager />
-      {runtimeEnvironment.isLocal && (
-        <Leva
-          titleBar={{ title: "Tweaks GUI" }}
-          theme={{ sizes: { rootWidth: "350px" } }}
-          collapsed
-        />
-      )}
+      <Leva
+        hidden={runtimeEnvironment.isProduction}
+        titleBar={{ title: "Tweaks GUI" }}
+        theme={{ sizes: { rootWidth: "350px" } }}
+        collapsed
+      />
       <World cameraSettings={cameraSettings as CameraProps}>
         <ReactiveAmbientLight />
         <directionalLight

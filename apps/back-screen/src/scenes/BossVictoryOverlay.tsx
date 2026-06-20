@@ -1,7 +1,14 @@
+import { useEffect } from "react"
 import { useBackScreenStore } from "@/stores/useBackScreenStore"
+import { playBossDefeated } from "@/audio/menuSound"
 
 export default function BossVictoryOverlay() {
   const bossDefeatedAt = useBackScreenStore((s) => s.bossDefeatedAt)
+
+  useEffect(() => {
+    if (bossDefeatedAt === 0) return
+    playBossDefeated()
+  }, [bossDefeatedAt])
 
   if (bossDefeatedAt === 0) return null
 
