@@ -1,4 +1,4 @@
-import { getBallColorForCharacter } from "@/config/characterColors"
+import { useCurrentBallColor } from "@/config/characterColors"
 import useKeyboard from "@/hooks/useKeyboard"
 import { CuboidCollider, RigidBody } from "@react-three/rapier"
 import { useMemo } from "react"
@@ -15,6 +15,7 @@ import {
 } from "./plungerConfig"
 import PlungerEnergyRings from "./PlungerEnergyRings"
 import PlungerNeonTip from "./PlungerNeonTip"
+import PlungerParticles from "./PlungerParticles"
 import PlungerShockwave from "./PlungerShockwave"
 import { type PlungerMeshPart, usePlungerSimulation } from "./usePlungerSimulation"
 
@@ -32,7 +33,7 @@ const toVector3 = (position: [number, number, number]): Vector3 => {
 
 const Plunger = ({ position = PLUNGER_POSITION, tipMesh, ringMeshes = [] }: PlungerProps) => {
   const pressedKeys = useKeyboard()
-  const vfxColor = getBallColorForCharacter()
+  const vfxColor = useCurrentBallColor()
 
   const rootPosition = useMemo(() => toVector3(position), [position])
   const tipRestPosition = useMemo(
@@ -92,6 +93,13 @@ const Plunger = ({ position = PLUNGER_POSITION, tipMesh, ringMeshes = [] }: Plun
       />
       <PlungerBeam launchRef={launchRef} movementAxis={movementAxis} color={vfxColor} />
       <PlungerShockwave launchRef={launchRef} movementAxis={movementAxis} color={vfxColor} />
+      <PlungerParticles
+        chargeRef={chargeRef}
+        launchRef={launchRef}
+        restPositions={ringRestPositions}
+        movementAxis={movementAxis}
+        color={vfxColor}
+      />
     </group>
   )
 }

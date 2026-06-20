@@ -2,7 +2,7 @@ import useBallStore from "@/stores/useBallStore"
 import useGameStore from "@/stores/useGameStore"
 import type { PositionType } from "@/types/worldTypes"
 import { isPointInPlungerLaneSensor, PLUNGER_BALL_SPAWN } from "@/components/plunger/plungerConfig"
-import { getBallColorForCharacter } from "@/config/characterColors"
+import { useCurrentBallColor } from "@/config/characterColors"
 import { useControls, button } from "leva"
 import { useCallback, useEffect, useRef, useState } from "react"
 import Ball from "./Ball"
@@ -26,7 +26,7 @@ const BallsManager = () => {
   const { balls, spawnBall } = useBallStore()
   const phase = useGameStore((s) => s.phase)
   const ballNumber = useGameStore((s) => s.ballNumber)
-  const ballColor = getBallColorForCharacter()
+  const ballColor = useCurrentBallColor()
   const [spawnPos, setSpawnPos] = useState<[number, number, number]>([
     DEFAULT_BALL_SPAWN[0],
     DEFAULT_BALL_SPAWN[1],

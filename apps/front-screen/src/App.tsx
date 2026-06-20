@@ -22,6 +22,7 @@ import DirectionalAccelerationSensorsManager from "./components/sensors/Directio
 import SoundManager from "./components/sound/SoundManager"
 import UltimateBar from "./components/ultimate/UltimateBar"
 import UltimateOverlay from "./components/ultimate/UltimateOverlay"
+import ParticleBurstManager from "./components/vfx/ParticleBurstManager"
 import World from "./components/World"
 import { useDebugKeys } from "./hooks/useDebugKeys"
 import { useFlipperButtonRelay } from "./hooks/useFlipperButtonRelay"
@@ -92,6 +93,7 @@ const App = () => {
             <PlayfieldScene />
           </Suspense>
         </PhysicsManager>
+        <ParticleBurstManager />
         <UltimateBar />
       </World>
       <UltimateOverlay />

@@ -7,6 +7,7 @@ import { Box3, MathUtils, Quaternion, Vector3, type Mesh } from "three"
 import { cloneWithWorldOrientation } from "../playfield/usePlayfieldModel"
 import useScreenShakeStore from "@/stores/useScreenShakeStore"
 import { SHAKE_INTENSITY } from "@/components/screenShake/screenShakeConfig"
+import { emitParticleBurst } from "../vfx/particleBurstQueue"
 
 interface TargetProps {
   mesh: Mesh
@@ -101,10 +102,19 @@ const Target = ({ mesh, worldPosition }: TargetProps) => {
     ({ other }: CollisionEnterPayload) => {
       if (other.rigidBodyObject?.name !== "ball") return
 
+      const ballPos = other.rigidBody?.translation()
+      // Falls back to the target world position to ensure payloads without a rigid body can emit a burst.
+      const burstPosition = ballPos ?? {
+        x: worldPosition[0],
+        y: worldPosition[1],
+        z: worldPosition[2],
+      }
+
       if (isStandup) {
         useTargetStore.getState().recordTargetHit(mesh.name)
         playRandomSfx("targets")
         useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.targetStandup)
+        emitParticleBurst({ kind: "target", position: burstPosition, intensity: 0.85 })
         hitTime.current = performance.now()
         return
       }
@@ -115,12 +125,13 @@ const Target = ({ mesh, worldPosition }: TargetProps) => {
       targetStore.recordTargetHit(mesh.name)
       playRandomSfx("targets")
       useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.targetDrop)
+      emitParticleBurst({ kind: "target", position: burstPosition })
       resetStartedAtRef.current = null
       hitTime.current = performance.now()
       setCollidersEnabled(false)
       targetStore.activateTarget(mesh.name)
     },
-    [mesh.name, isStandup, setCollidersEnabled],
+    [mesh.name, isStandup, setCollidersEnabled, worldPosition],
   )
 
   useFrame(() => {

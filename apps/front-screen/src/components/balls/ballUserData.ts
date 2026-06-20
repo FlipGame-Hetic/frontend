@@ -1,4 +1,4 @@
-import { getBallColorForCharacter } from "@/config/characterColors"
+import { getCurrentBallColorSnapshot } from "@/config/characterColors"
 
 export const hasBallId = (value: unknown): value is { ballId: string } => {
   return (
@@ -14,4 +14,4 @@ export const getBallId = (value: unknown): string | undefined => {
   return value.ballId
 }
 
-export const getCurrentBallColor = (): string => getBallColorForCharacter()
+export const getCurrentBallColor = (): string => getCurrentBallColorSnapshot()

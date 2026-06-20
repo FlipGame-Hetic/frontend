@@ -31,6 +31,7 @@ import {
 } from "./slingshotConfig"
 import useScreenShakeStore from "@/stores/useScreenShakeStore"
 import { SHAKE_INTENSITY } from "@/components/screenShake/screenShakeConfig"
+import { emitParticleBurst } from "../vfx/particleBurstQueue"
 
 interface SlingshotProps {
   position: PositionType
@@ -94,40 +95,53 @@ const Slingshot = ({
     }
   }, [side])
 
-  const handleCollision = useCallback(({ other }: CollisionEnterPayload) => {
-    if (!bodyRef.current || !other.rigidBody) return
-    if (other.rigidBodyObject?.name !== "ball") return
-    const ballId = getBallId(other.rigidBodyObject.userData) ?? ""
-    broadcastEvent({ event_type: "BumperTriangle", payload: { ball_id: ballId } })
-    playRandomSfx("slingshots")
-    useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.slingshot)
-    hitAt.current = performance.now() / 1000
+  const handleCollision = useCallback(
+    ({ other }: CollisionEnterPayload) => {
+      if (!bodyRef.current || !other.rigidBody) return
+      if (other.rigidBodyObject?.name !== "ball") return
+      const ballId = getBallId(other.rigidBodyObject.userData) ?? ""
+      broadcastEvent({ event_type: "BumperTriangle", payload: { ball_id: ballId } })
+      playRandomSfx("slingshots")
+      useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.slingshot)
+      hitAt.current = performance.now() / 1000
 
-    const slingshotPos = bodyRef.current.translation()
-    const ballPos = other.rigidBody.translation()
-    useScorePopupsStore
-      .getState()
-      .recordHit({ x: ballPos.x, y: ballPos.y, z: ballPos.z }, ballId, "bumper")
-    const exitDir = normalizedPlayfieldDirection({
-      x: ballPos.x - slingshotPos.x,
-      y: ballPos.y - slingshotPos.y,
-      z: ballPos.z - slingshotPos.z,
-    })
+      const slingshotPos = bodyRef.current.translation()
+      const ballPos = other.rigidBody.translation()
+      useScorePopupsStore
+        .getState()
+        .recordHit({ x: ballPos.x, y: ballPos.y, z: ballPos.z }, ballId, "bumper")
+      const exitDir = normalizedPlayfieldDirection({
+        x: ballPos.x - slingshotPos.x,
+        y: ballPos.y - slingshotPos.y,
+        z: ballPos.z - slingshotPos.z,
+      })
 
-    if (exitDir) {
-      const mass = other.rigidBody.mass()
-      other.rigidBody.applyImpulse(
-        {
-          x: exitDir.x * SLINGSHOT_IMPULSE_STRENGTH * mass,
-          y: exitDir.y * SLINGSHOT_IMPULSE_STRENGTH * mass,
-          z: exitDir.z * SLINGSHOT_IMPULSE_STRENGTH * mass,
+      emitParticleBurst({
+        kind: "slingshot",
+        position: ballPos,
+        direction: {
+          x: activeFace.normal.x,
+          y: 0,
+          z: activeFace.normal.z,
         },
-        true,
-      )
-    }
+      })
 
-    stuckTracker.current.arm(other.rigidBody)
-  }, [])
+      if (exitDir) {
+        const mass = other.rigidBody.mass()
+        other.rigidBody.applyImpulse(
+          {
+            x: exitDir.x * SLINGSHOT_IMPULSE_STRENGTH * mass,
+            y: exitDir.y * SLINGSHOT_IMPULSE_STRENGTH * mass,
+            z: exitDir.z * SLINGSHOT_IMPULSE_STRENGTH * mass,
+          },
+          true,
+        )
+      }
+
+      stuckTracker.current.arm(other.rigidBody)
+    },
+    [activeFace.normal.x, activeFace.normal.z],
+  )
 
   useFrame(() => {
     if (rubberGroupRef.current) {

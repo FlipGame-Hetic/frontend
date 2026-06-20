@@ -25,6 +25,7 @@ import {
 import { BALL_MIN_NORMAL_SPEED, BALL_MAX_NORMAL_SPEED } from "../balls/ballConfig"
 import useScreenShakeStore from "@/stores/useScreenShakeStore"
 import { SHAKE_INTENSITY } from "@/components/screenShake/screenShakeConfig"
+import { emitParticleBurst } from "../vfx/particleBurstQueue"
 
 interface SlimBumperProps {
   position: PositionType
@@ -76,6 +77,12 @@ const SlimBumper = ({ position, bumperId: _bumperId, meshOverride }: SlimBumperP
       x: ballPos.x - bumperPos.x,
       y: ballPos.y - bumperPos.y,
       z: ballPos.z - bumperPos.z,
+    })
+
+    emitParticleBurst({
+      kind: "slimBumper",
+      position: ballPos,
+      direction: dir ?? undefined,
     })
 
     if (!dir) return

@@ -23,6 +23,7 @@ import {
 import { BALL_MIN_NORMAL_SPEED, BALL_MAX_NORMAL_SPEED } from "../balls/ballConfig"
 import useScreenShakeStore from "@/stores/useScreenShakeStore"
 import { SHAKE_INTENSITY } from "@/components/screenShake/screenShakeConfig"
+import { emitParticleBurst } from "../vfx/particleBurstQueue"
 
 interface BumperProps {
   position: PositionType
@@ -92,6 +93,12 @@ const Bumper = ({
         x: ballPos.x - bumperPos.x,
         y: ballPos.y - bumperPos.y,
         z: ballPos.z - bumperPos.z,
+      })
+
+      emitParticleBurst({
+        kind: "bumper",
+        position: ballPos,
+        direction: dir ?? undefined,
       })
 
       if (!dir) return
