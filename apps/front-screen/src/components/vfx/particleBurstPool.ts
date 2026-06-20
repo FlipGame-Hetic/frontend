@@ -186,9 +186,9 @@ export class ParticleBurstPool {
       const pi = i * 3
       const ci = i * 4
       const drag = Math.pow(this.drags[i] ?? 1, delta * 60)
-      this.velocities[pi] *= drag
-      this.velocities[pi + 1] *= drag
-      this.velocities[pi + 2] *= drag
+      this.velocities[pi] = (this.velocities[pi] ?? 0) * drag
+      this.velocities[pi + 1] = (this.velocities[pi + 1] ?? 0) * drag
+      this.velocities[pi + 2] = (this.velocities[pi + 2] ?? 0) * drag
 
       this.positions[pi] = (this.positions[pi] ?? 0) + (this.velocities[pi] ?? 0) * delta
       this.positions[pi + 1] =
