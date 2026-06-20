@@ -1,5 +1,4 @@
 import { useBackScreenStore } from "@/stores/useBackScreenStore"
-import { RetroBackground } from "@/components/RetroBackground"
 import { Leaderboard } from "@/components/Leaderboard"
 import { formatScore } from "@/utils/formatScore"
 
@@ -14,9 +13,7 @@ export default function GameOverScene() {
   const rankLabel = `RANG #${String(rank).padStart(2, "0")}`
 
   return (
-    <div className="bg-arcade-black relative flex h-full w-full overflow-hidden">
-      <RetroBackground accentColor="#C5003C" withBlur />
-
+    <div className="relative flex h-full w-full overflow-hidden">
       <div className="relative z-10 flex h-full w-full flex-col justify-between p-12">
         <div className="font-mono text-[clamp(0.38rem,0.78vw,0.54rem)] tracking-[0.3em] text-[rgba(197,0,60,0.55)] uppercase">
           PROCESSUS.TERMINÉ // CONNEXION PERDUE

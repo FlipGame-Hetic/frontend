@@ -1,17 +1,17 @@
 import { cn } from "@frontend/utils"
 import { useBackScreenStore } from "@/stores/useBackScreenStore"
 import { MODE_OPTIONS } from "./scene.types"
-import { RetroBackground } from "@/components/RetroBackground"
+import { MenuControlsLegend } from "@/components/MenuControlsLegend"
 
 export default function ModeSelectScene() {
   const menuIndex = useBackScreenStore((s) => s.menuIndex)
   const active = MODE_OPTIONS[menuIndex] ?? MODE_OPTIONS[0]
 
   return (
-    <div className="bg-arcade-black relative flex h-full w-full overflow-hidden">
-      <RetroBackground />
+    <div className="relative flex h-full w-full overflow-hidden">
+      <MenuControlsLegend />
 
-      <div className="relative z-10 flex h-full w-full">
+      <div className="relative z-10 flex h-full w-full pb-[clamp(80px,11vh,130px)]">
         <div className="flex w-[44%] flex-col justify-center border-r border-r-[rgba(243,230,0,0.08)] p-12">
           <div className="mb-8 font-mono text-[clamp(0.32rem,0.65vw,0.46rem)] tracking-[0.25em] text-[rgba(85,234,212,0.4)] uppercase">
             SÉLECTION.PROTOCOLE // MODE
@@ -53,10 +53,6 @@ export default function ModeSelectScene() {
                 </div>
               )
             })}
-          </div>
-
-          <div className="mt-8 font-mono text-[clamp(0.28rem,0.55vw,0.38rem)] tracking-widest text-[rgba(243,230,0,0.18)] uppercase">
-            FLIPPER.G / FLIPPER.D — NAVIGUER // CONFIRMER
           </div>
         </div>
 

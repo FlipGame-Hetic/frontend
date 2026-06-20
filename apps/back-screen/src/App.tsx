@@ -5,9 +5,11 @@ import { StatusBar } from "@/components/StatusBar"
 import { TerminalLog } from "@/components/TerminalLog"
 import type { LogEntry } from "@/components/TerminalLog"
 import { PhaseSwitcher } from "@/components/PhaseSwitcher"
+import { RetroBackground } from "@/components/RetroBackground"
 import SceneRouter from "@/scenes/SceneRouter"
 import { useScreenHubClient } from "@/hooks/useScreenHubClient"
 import { useKeyboardInput } from "@/hooks/useKeyboardInput"
+import { useBackScreenStore } from "@/stores/useBackScreenStore"
 
 const MAX_LOGS = 500
 const isDebug = new URLSearchParams(window.location.search).has("debug")
@@ -18,6 +20,7 @@ function App() {
   useScreenHubClient()
   useKeyboardInput()
 
+  const phase = useBackScreenStore((s) => s.phase)
   const [logs, setLogs] = useState<LogEntry[]>([])
 
   const onMessage = useCallback((message: GameMessage) => {
@@ -48,10 +51,18 @@ function App() {
     )
   }
 
+  const accentColor = phase === "game_over" ? "#C5003C" : "#F3E600"
+  const withBlur = phase === "paused" || phase === "game_over"
+
   return (
-    <div className="relative h-screen w-screen overflow-hidden">
-      <SceneRouter />
-      <PhaseSwitcher />
+    <div className="bg-arcade-black relative flex h-screen w-screen overflow-hidden">
+      <RetroBackground accentColor={accentColor} withBlur={withBlur} />
+      <div className="relative z-10 flex h-full w-full">
+        <div className="relative min-w-0 flex-1">
+          <SceneRouter />
+        </div>
+        <PhaseSwitcher />
+      </div>
     </div>
   )
 }

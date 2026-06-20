@@ -6,6 +6,7 @@ const fs = require('fs');
 const env = {
   VITE_SCREEN_TOKEN:   process.env.VITE_SCREEN_TOKEN   || '',
   VITE_SCREEN_HUB_URL: process.env.VITE_SCREEN_HUB_URL || '',
+  VITE_ENVIRONMENT:    process.env.VITE_ENVIRONMENT    || 'local',
 };
 fs.writeFileSync(
   'apps/back-screen/dist/config.js',

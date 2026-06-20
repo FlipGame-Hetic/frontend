@@ -379,3 +379,140 @@
       0 0;
   }
 }
+
+.ultimate-hud__button {
+  align-items: center;
+  border: 2px solid var(--ultimate-hud-color);
+  border-radius: 999px;
+  color: var(--ultimate-hud-color);
+  display: flex;
+  filter: drop-shadow(0 0 6px var(--ultimate-hud-color));
+  font-family: "Rajdhani", sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  height: 34px;
+  justify-content: center;
+  left: calc(100% + 14px);
+  letter-spacing: 0.04em;
+  margin-top: -17px;
+  opacity: 0.5;
+  position: absolute;
+  top: 50%;
+  transition:
+    filter 180ms ease,
+    opacity 180ms ease;
+  width: 34px;
+}
+
+.ultimate-hud__button svg {
+  height: 20px;
+  width: 20px;
+}
+
+.ultimate-hud[data-state="ready"] .ultimate-hud__button,
+.ultimate-hud[data-state="active"] .ultimate-hud__button,
+.ultimate-hud[data-state="locked"] .ultimate-hud__button {
+  opacity: 1;
+}
+
+.ultimate-hud[data-state="ready"] .ultimate-hud__button {
+  animation: control-hint-pulse 900ms ease-in-out infinite;
+}
+
+.control-hint-wrap {
+  --control-hint-color: #dff6ff;
+
+  animation: control-hint-pulse 900ms ease-in-out infinite;
+  pointer-events: none;
+  user-select: none;
+}
+
+.control-hint {
+  -webkit-text-fill-color: transparent;
+  animation: ball-saver-scan 1.6s linear infinite;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      rgba(10, 26, 44, 0.3) 0,
+      rgba(10, 26, 44, 0.3) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    linear-gradient(
+      180deg,
+      #ffffff 0%,
+      var(--control-hint-color) 50%,
+      color-mix(in srgb, var(--control-hint-color) 65%, white) 100%
+    );
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-stroke: 1px rgba(214, 242, 255, 0.85);
+  paint-order: stroke fill;
+  color: transparent;
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--control-hint-color) 95%, transparent))
+    drop-shadow(0 0 12px color-mix(in srgb, var(--control-hint-color) 75%, transparent))
+    drop-shadow(0 0 26px color-mix(in srgb, var(--control-hint-color) 55%, transparent));
+  font-family: "Rajdhani", sans-serif;
+  font-size: 50px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 0.92;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.control-hint__word {
+  display: block;
+}
+
+.control-hint-arrow {
+  --arrow-left: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpath%20fill='%23fff'%20d='M3,12L12,4V9H21V15H12V20Z'/%3E%3C/svg%3E");
+  --arrow-right: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpath%20fill='%23fff'%20d='M21,12L12,4V9H3V15H12V20Z'/%3E%3C/svg%3E");
+
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      rgba(10, 26, 44, 0.3) 0,
+      rgba(10, 26, 44, 0.3) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    linear-gradient(
+      180deg,
+      #ffffff 0%,
+      var(--control-hint-color) 50%,
+      color-mix(in srgb, var(--control-hint-color) 65%, white) 100%
+    );
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--control-hint-color) 95%, transparent))
+    drop-shadow(0 0 12px color-mix(in srgb, var(--control-hint-color) 75%, transparent))
+    drop-shadow(0 0 26px color-mix(in srgb, var(--control-hint-color) 55%, transparent));
+  height: 58px;
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: contain;
+  -webkit-mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  width: 58px;
+}
+
+.control-hint-arrow--left {
+  mask-image: var(--arrow-left);
+  -webkit-mask-image: var(--arrow-left);
+}
+
+.control-hint-arrow--right {
+  mask-image: var(--arrow-right);
+  -webkit-mask-image: var(--arrow-right);
+}
+
+@keyframes control-hint-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.12);
+  }
+}

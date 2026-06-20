@@ -32,6 +32,7 @@ export interface CharacterConfig {
   id: CharacterType
   label: string
   description: string
+  description_ultimate: string
   color: string
   gradient: string
   glow: string
@@ -46,6 +47,7 @@ export const CHARACTER_OPTIONS: NonEmptyArray<CharacterConfig> = [
     id: "enforcer",
     label: "KEENU",
     description: "On adore regarder des gens comme lui lutter pour leur survie.",
+    description_ultimate: "Crée un double de lui-même avant de se téléporter en lieu sûr.",
     color: "#FF8C00",
     gradient:
       "radial-gradient(circle at 36% 32%, #FFE070 0%, #FF8C00 30%, #FF4400 65%, #991800 100%)",
@@ -55,7 +57,10 @@ export const CHARACTER_OPTIONS: NonEmptyArray<CharacterConfig> = [
   {
     id: "viper",
     label: "VIPER",
-    description: "Trafiquant d'augmentations illégales. Il vend du rêve aux gosses des rues.",
+    description:
+      "Trafiquant d'augmentations illégales. Il vend du rêve (et d'autres choses) aux gosses des rues.",
+    description_ultimate:
+      "S'injecte l'une de ses concoctions pour augmenter sa vitesse et son multiplicateur.",
     color: "#7FFF00",
     gradient:
       "radial-gradient(circle at 36% 32%, #EEFF88 0%, #7FFF00 30%, #3A8800 65%, #0D2200 100%)",
@@ -67,6 +72,8 @@ export const CHARACTER_OPTIONS: NonEmptyArray<CharacterConfig> = [
     label: "GHOST",
     description:
       "Elle s'est échappée de la Zone Basse. Il n'a pas fallu longtemps avant qu'on la rattrape.",
+    description_ultimate:
+      "Utilise ses talents de hackeuse pour imiter les capacités des autres combattants.",
     color: "#FF2D78",
     gradient:
       "radial-gradient(circle at 36% 32%, #FFB0CC 0%, #FF2D78 30%, #CC0055 65%, #660033 100%)",
@@ -78,6 +85,7 @@ export const CHARACTER_OPTIONS: NonEmptyArray<CharacterConfig> = [
     label: "ORACLE",
     description:
       "Elle voit l'avenir, ce qui rend l'inéluctabilité de son sort encore plus amusante.",
+    description_ultimate: "Ses visions du futur lui permettent de ralentir le temps.",
     color: "#E8EEF4",
     gradient:
       "radial-gradient(circle at 36% 32%, #FFFFFF 0%, #E8EEF4 30%, #9AAABB 65%, #3A4A5A 100%)",

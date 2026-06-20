@@ -14,8 +14,9 @@ type NonEmptyArray<T> = [T, ...T[]]
 export const MODE_OPTIONS: NonEmptyArray<ModeOption> = [
   {
     id: "boss",
-    label: "BOSS",
-    description: "Affronte les I.A. du flipper. Détruis leur barre de vie avant de perdre.",
+    label: "SOLO",
+    description:
+      "Tu as été jeté dans l'arène pour notre amusement. Donne un beau spectacle avant de tomber au combat.",
   },
   {
     id: "duo",

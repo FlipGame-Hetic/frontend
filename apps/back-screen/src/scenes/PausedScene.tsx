@@ -1,10 +1,6 @@
-import { RetroBackground } from "@/components/RetroBackground"
-
 export default function PausedScene() {
   return (
-    <div className="bg-arcade-black relative flex h-full w-full overflow-hidden">
-      <RetroBackground accentColor="#F3E600" withBlur />
-
+    <div className="relative flex h-full w-full overflow-hidden">
       <div className="relative z-10 flex h-full w-full flex-col justify-between p-12">
         <div className="font-mono text-[clamp(0.38rem,0.78vw,0.54rem)] tracking-[0.28em] text-[rgba(85,234,212,0.45)] uppercase">
           SYS.PAUSE // EN ATTENTE

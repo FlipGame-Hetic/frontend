@@ -1,17 +1,17 @@
 import { cn } from "@frontend/utils"
 import { useBackScreenStore } from "@/stores/useBackScreenStore"
 import { CHARACTER_OPTIONS } from "./scene.types"
-import { RetroBackground } from "@/components/RetroBackground"
+import { MenuControlsLegend } from "@/components/MenuControlsLegend"
 
 export default function CharacterSelectScene() {
   const menuIndex = useBackScreenStore((s) => s.menuIndex)
   const active = CHARACTER_OPTIONS[menuIndex] ?? CHARACTER_OPTIONS[0]
 
   return (
-    <div className="bg-arcade-black relative flex h-full w-full overflow-hidden">
-      <RetroBackground />
+    <div className="relative flex h-full w-full overflow-hidden">
+      <MenuControlsLegend />
 
-      <div className="relative z-10 flex h-full w-full">
+      <div className="relative z-10 flex h-full w-full pb-[clamp(80px,11vh,130px)]">
         <div className="flex flex-1 flex-col justify-between p-12">
           <div className="font-mono text-[clamp(0.32rem,0.65vw,0.46rem)] tracking-[0.28em] text-[rgba(85,234,212,0.4)] uppercase">
             FIGHTER.IDENTIFICATION // SÉLECTION
@@ -27,10 +27,27 @@ export default function CharacterSelectScene() {
             <div className="font-mono text-[clamp(0.58rem,1.6vw,1rem)] leading-relaxed text-[rgba(85,234,212,0.42)]">
               {active.locked ? "DONNÉES NON DISPONIBLES." : active.description}
             </div>
-          </div>
 
-          <div className="font-mono text-[clamp(0.28rem,0.55vw,0.38rem)] tracking-widest text-[rgba(243,230,0,0.2)] uppercase">
-            FLIPPER.G / FLIPPER.D — NAVIGUER // CHOISIR
+            {!active.locked && (
+              <div
+                className="relative mt-2 max-w-[34ch] border-l-2 pl-4"
+                style={{ borderColor: active.color }}
+              >
+                <div
+                  className="mb-2 flex items-center gap-2 font-mono text-[clamp(0.3rem,0.62vw,0.44rem)] tracking-[0.32em] uppercase"
+                  style={{ color: active.color }}
+                >
+                  <span
+                    className="inline-block h-1.5 w-1.5 rotate-45"
+                    style={{ background: active.color, boxShadow: `0 0 8px ${active.color}` }}
+                  />
+                  ULTIME // CAPACITÉ SPÉCIALE
+                </div>
+                <div className="font-mono text-[clamp(0.5rem,1.32vw,0.84rem)] leading-relaxed text-[rgba(243,230,0,0.78)]">
+                  {active.description_ultimate}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

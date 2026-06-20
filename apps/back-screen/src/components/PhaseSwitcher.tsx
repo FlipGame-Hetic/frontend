@@ -29,7 +29,7 @@ export function PhaseSwitcher() {
   if (bossActive) return null
 
   return (
-    <div className="absolute top-1/2 right-4 z-50 flex w-[68px] -translate-y-1/2 flex-col overflow-hidden border border-[rgba(243,230,0,0.2)] bg-[rgba(8,11,18,0.95)] shadow-[0_0_24px_rgba(0,0,0,0.7)] backdrop-blur-[8px]">
+    <div className="z-50 flex h-full w-[68px] shrink-0 flex-col justify-center overflow-hidden border-l border-l-[rgba(243,230,0,0.2)] bg-[rgba(8,11,18,0.95)] shadow-[0_0_24px_rgba(0,0,0,0.7)] backdrop-blur-[8px]">
       <div className="border-b border-b-[rgba(243,230,0,0.1)] px-2 py-2 text-center font-mono text-[8px] tracking-widest text-[rgba(243,230,0,0.25)] uppercase">
         PHASE
       </div>

@@ -6,6 +6,7 @@ import { Suspense, useEffect } from "react"
 import ReactiveAmbientLight from "./components/audioReactive/ReactiveAmbientLight"
 import BallsManager from "./components/balls/BallsManager"
 import CabinetCamera from "./components/CabinetCamera"
+import ControlHints from "./components/controlHints/ControlHints"
 import DebugCamera from "./components/DebugCamera"
 import Drain from "./components/drain/Drain"
 import TronGridFloor from "./components/environment/TronGridFloor"
@@ -94,6 +95,7 @@ const App = () => {
           </Suspense>
         </PhysicsManager>
         <ParticleBurstManager />
+        <ControlHints />
         <UltimateBar />
       </World>
       <UltimateOverlay />
