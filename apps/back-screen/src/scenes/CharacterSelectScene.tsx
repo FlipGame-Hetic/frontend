@@ -2,6 +2,7 @@ import { cn } from "@frontend/utils"
 import { useBackScreenStore } from "@/stores/useBackScreenStore"
 import { CHARACTER_OPTIONS } from "./scene.types"
 import { MenuControlsLegend } from "@/components/MenuControlsLegend"
+import BigBall from "./characterSelect/BigBall"
 
 export default function CharacterSelectScene() {
   const menuIndex = useBackScreenStore((s) => s.menuIndex)
@@ -71,18 +72,6 @@ export default function CharacterSelectScene() {
         </div>
       </div>
     </div>
-  )
-}
-
-function BigBall({ option }: { option: (typeof CHARACTER_OPTIONS)[number] }) {
-  return (
-    <div
-      className="h-[clamp(130px,19vw,240px)] w-[clamp(130px,19vw,240px)] rounded-full transition-all duration-300"
-      style={{
-        background: option.gradient,
-        boxShadow: option.glow !== "none" ? option.glow : "none",
-      }}
-    />
   )
 }
 
