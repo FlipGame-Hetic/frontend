@@ -1,4 +1,4 @@
-export interface CreditEntry {
+interface CreditEntry {
   title?: string
   message?: string
   items?: string[]
