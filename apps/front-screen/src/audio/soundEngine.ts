@@ -37,6 +37,8 @@ const KEY_TO_GAIN: Record<string, number> = {
   plunger_launch: SFX_GAINS.plunger ?? 1,
   ballsaver_up: SFX_GAINS.ballsaver ?? 1,
   game_over: SFX_GAINS.score ?? 1,
+  ultimate_ready: SFX_GAINS.ultimates ?? 1,
+  ultimate_trigger: SFX_GAINS.ultimates ?? 1,
   multiball_triggered: SFX_GAINS.multiball ?? 1,
   hit0: SFX_GAINS.multiball ?? 1,
   hit1: SFX_GAINS.multiball ?? 1,

@@ -26,6 +26,7 @@ import World from "./components/World"
 import { useDebugKeys } from "./hooks/useDebugKeys"
 import { useFlipperButtonRelay } from "./hooks/useFlipperButtonRelay"
 import { useScreenHub } from "./hooks/useScreenHub"
+import { useUltimateInput } from "./hooks/useUltimateInput"
 import useCharactersStore from "./stores/useCharactersStore"
 import WebsocketTest from "./websocket-test/WebsocketTest"
 
@@ -36,6 +37,7 @@ const App = () => {
   useScreenHub()
   useDebugKeys()
   useFlipperButtonRelay()
+  useUltimateInput()
 
   useEffect(() => {
     void useCharactersStore.getState().load()
@@ -48,18 +50,20 @@ const App = () => {
   return (
     <DebugProvider>
       <SoundManager />
-      <Leva
-        // hidden={runtimeEnvironment.isProduction}
-        titleBar={{ title: "Tweaks GUI" }}
-        theme={{ sizes: { rootWidth: "350px" } }}
-      />
+      {runtimeEnvironment.isLocal && (
+        <Leva
+          titleBar={{ title: "Tweaks GUI" }}
+          theme={{ sizes: { rootWidth: "350px" } }}
+          collapsed
+        />
+      )}
       <World cameraSettings={cameraSettings as CameraProps}>
         <ReactiveAmbientLight />
         <directionalLight
           position={[0, 13, 12]}
           intensity={0.8}
           castShadow
-          shadow-mapSize={[2048, 2048]}
+          shadow-mapSize={[256, 256]}
           shadow-camera-near={0.5}
           shadow-camera-far={60}
           shadow-camera-left={-20}

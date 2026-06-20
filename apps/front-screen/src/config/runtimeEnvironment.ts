@@ -1,5 +1,6 @@
 export interface RuntimeEnvironmentFlags {
   environment: string
+  isLocal: boolean
   isProduction: boolean
   isProductionBrowser: boolean
   isProductionCabinet: boolean
@@ -18,6 +19,7 @@ export const getRuntimeEnvironmentFlags = (
 
   return {
     environment: normalized,
+    isLocal: normalized.includes("local") || normalized.includes("development"),
     isProduction: normalized.includes("production"),
     isProductionBrowser: normalized === "production-browser",
     isProductionCabinet: normalized === "production-cabinet" || normalized === "production",

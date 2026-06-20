@@ -78,6 +78,12 @@ function App() {
         return
       }
 
+      if (isScreenEvent(envelope, "GameOver")) {
+        scenes.game_over.update(envelope.payload.final_score)
+        setPhase("game_over")
+        return
+      }
+
       if (isScreenEvent(envelope, "ComboActivated")) {
         const comboSequence = parseComboSequence(envelope.payload.sequence)
         scenes.combo.update({ sequence: comboSequence })

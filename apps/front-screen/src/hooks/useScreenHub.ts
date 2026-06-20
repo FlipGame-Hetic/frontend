@@ -34,8 +34,16 @@ const applyKeysState = (keys: string[], state: number): void => {
 const handleScreenEvent = (envelope: ScreenEnvelope): void => {
   wsLog("front-screen", `handleScreenEvent "${envelope.event_type}"`, envelope)
 
-  const { selectMode, selectCharacter, startGame, setPhase, restartGame, setScore, menuBack } =
-    useGameStore.getState()
+  const {
+    selectMode,
+    selectCharacter,
+    startGame,
+    endGame,
+    setPhase,
+    restartGame,
+    setScore,
+    menuBack,
+  } = useGameStore.getState()
 
   if (isScreenEvent(envelope, "FlipperLeft")) {
     applyKeysState(LEFT_KEYS, envelope.payload.state)
@@ -99,6 +107,12 @@ const handleScreenEvent = (envelope: ScreenEnvelope): void => {
         .spawnPopupFromDelta(payload.delta, payload.reason, payload.ball_id)
     }
     setScore(payload.total)
+    return
+  }
+
+  if (isScreenEvent(envelope, "GameOver")) {
+    setScore(envelope.payload.final_score)
+    endGame()
     return
   }
 

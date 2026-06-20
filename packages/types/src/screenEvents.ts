@@ -25,6 +25,7 @@ export const SCREEN_EVENT_TYPES = {
   BossUpdate: "BossUpdate",
   BossDefeated: "BossDefeated",
   BossCleared: "BossCleared",
+  GameOver: "GameOver",
   BackBumper: "Bumper",
   BackBumperTriangle: "BumperTriangle",
   BackPortalUsed: "PortalUsed",
@@ -180,6 +181,11 @@ export interface BossClearedEvent {
   payload: { boss_id: number }
 }
 
+export interface GameOverEvent {
+  event_type: "GameOver"
+  payload: { final_score: number }
+}
+
 export interface BackBumperEvent {
   event_type: "Bumper"
   payload: { ball_id: string }
@@ -260,7 +266,7 @@ export interface BackScoreUpdateEvent {
     ultimate_charge?: number
     ultimate_max?: number
     ulti_ready?: boolean
-    next_ulti_id?: CharacterType
+    next_ulti_id?: UltiId
   }
 }
 
@@ -315,6 +321,7 @@ export type ScreenEvent =
   | BossUpdateEvent
   | BossDefeatedEvent
   | BossClearedEvent
+  | GameOverEvent
   | BackBumperEvent
   | BackBumperTriangleEvent
   | BackPortalUsedEvent

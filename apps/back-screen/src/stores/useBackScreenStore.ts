@@ -96,7 +96,7 @@ export const useBackScreenStore = create<BackScreenStore>()((set) => ({
     set((state) => {
       const delta = state.bossActive ? state.bossHp - bossHp : 0
       const lastDamage =
-        delta > 0 ? { at: Date.now(), delta, big: isBigDamage(delta, bossMaxHp) } : state.lastDamage
+        delta > 0 ? { at: Date.now(), delta, big: isBigDamage(delta) } : state.lastDamage
       return { bossId, bossHp, bossMaxHp, bossActive: true, lastDamage, phase: "playing" }
     })
   },

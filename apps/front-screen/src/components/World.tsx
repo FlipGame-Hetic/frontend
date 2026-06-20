@@ -1,8 +1,7 @@
-import PostProcessing from "./postprocessing/PostProcessing"
 import { Canvas, type CameraProps } from "@react-three/fiber"
 import type { ReactNode } from "react"
 import NightCityEnvironment from "./environment/NightCityEnvironment"
-import { useControls } from "leva"
+import PostProcessing from "./postprocessing/PostProcessing"
 
 interface WorldProps {
   cameraSettings: CameraProps
@@ -10,14 +9,11 @@ interface WorldProps {
 }
 
 const World = ({ cameraSettings, children }: WorldProps) => {
-  const { pixelRatio } = useControls("Main", {
-    pixelRatio: { value: window.devicePixelRatio, min: 0, max: 3, step: 0.05 },
-  })
-
   return (
     <div className="h-dvh w-full">
       <Canvas
-        dpr={pixelRatio}
+        // Uses R3F's [min, max] DPR tuple to cap dense-screen rendering at 2.
+        dpr={[1, 2]}
         shadows="percentage"
         camera={cameraSettings}
         onCreated={({ gl }) => {

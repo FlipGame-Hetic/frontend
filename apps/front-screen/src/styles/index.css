@@ -144,7 +144,7 @@
 }
 
 .ultimate-hud__icon,
-.ultimate-hud__bar {
+.ultimate-hud__bar-shell {
   position: relative;
   z-index: 1;
 }
@@ -169,6 +169,12 @@
   -webkit-mask: var(--ultimate-hud-icon-url) center / contain no-repeat;
 }
 
+.ultimate-hud__bar-shell {
+  flex: 0 0 var(--ultimate-hud-bar-width);
+  height: var(--ultimate-hud-bar-height);
+  width: var(--ultimate-hud-bar-width);
+}
+
 .ultimate-hud__bar {
   background:
     repeating-linear-gradient(
@@ -187,6 +193,7 @@
     var(--ultimate-hud-glow);
   height: var(--ultimate-hud-bar-height);
   overflow: hidden;
+  position: relative;
   width: var(--ultimate-hud-bar-width);
 }
 
@@ -215,6 +222,64 @@
   top: 0;
   width: 40%;
   will-change: transform;
+}
+
+.ultimate-hud__arcs {
+  color: var(--ultimate-hud-color);
+  filter: drop-shadow(0 0 2px currentColor) drop-shadow(0 0 5px currentColor);
+  height: calc(var(--ultimate-hud-bar-height) + 8px);
+  inset: -4px;
+  opacity: 0;
+  overflow: visible;
+  pointer-events: none;
+  position: absolute;
+  transition: opacity 120ms ease;
+  width: calc(var(--ultimate-hud-bar-width) + 8px);
+}
+
+.ultimate-hud__arc {
+  animation: ultimate-hud-arc-spark 520ms steps(2, end) infinite;
+  animation-play-state: paused;
+  fill: none;
+  opacity: 0;
+  stroke: currentColor;
+  stroke-dasharray: 18 12;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.6;
+}
+
+.ultimate-hud__arc--top-a {
+  animation-delay: -40ms;
+}
+
+.ultimate-hud__arc--top-b {
+  animation-delay: -210ms;
+  stroke-dasharray: 15 14;
+}
+
+.ultimate-hud__arc--top-c {
+  animation-delay: -340ms;
+}
+
+.ultimate-hud__arc--bottom-a {
+  animation-delay: -160ms;
+  stroke-dasharray: 14 13;
+}
+
+.ultimate-hud__arc--bottom-b {
+  animation-delay: -280ms;
+}
+
+.ultimate-hud__arc--bottom-c {
+  animation-delay: -430ms;
+  stroke-dasharray: 13 15;
+}
+
+.ultimate-hud__arc--left,
+.ultimate-hud__arc--right {
+  animation-duration: 680ms;
+  stroke-width: 2.3;
 }
 
 .ultimate-hud__bar-fill {
@@ -248,6 +313,14 @@
   opacity: 1;
 }
 
+.ultimate-hud[data-state="ready"] .ultimate-hud__arcs {
+  opacity: 1;
+}
+
+.ultimate-hud[data-state="ready"] .ultimate-hud__arc {
+  animation-play-state: running;
+}
+
 .ultimate-hud[data-state="active"] .ultimate-hud__bar-fill,
 .ultimate-hud[data-state="locked"] .ultimate-hud__bar-fill {
   transition: none;
@@ -264,6 +337,32 @@
 
   to {
     transform: translateX(250%);
+  }
+}
+
+@keyframes ultimate-hud-arc-spark {
+  0%,
+  24% {
+    opacity: 0;
+    stroke-dashoffset: 0;
+  }
+
+  25%,
+  48% {
+    opacity: 0.96;
+    stroke-dashoffset: -7px;
+  }
+
+  49%,
+  66% {
+    opacity: 0.28;
+    stroke-dashoffset: -13px;
+  }
+
+  67%,
+  100% {
+    opacity: 0;
+    stroke-dashoffset: -21px;
   }
 }
 

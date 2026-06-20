@@ -12,6 +12,7 @@ import {
   MULTIBALL_SPLIT_SPAWN_POSITIONS,
   RAMPAGE_TIME_SCALE,
 } from "@/components/ultimate/ultimateConfig"
+import { playSfx } from "@/audio/soundEngine"
 import useBallStore from "./useBallStore"
 
 interface ActiveUltimate {
@@ -27,14 +28,14 @@ interface ChargeUpdate {
   ultimate_charge?: number
   ultimate_max?: number
   ulti_ready?: boolean
-  next_ulti_id?: CharacterType
+  next_ulti_id?: UltiId
 }
 
 interface UltimateStore {
   charge: number
   chargeMax: number
   ready: boolean
-  nextUltiId: CharacterType | null
+  nextUltiId: UltiId | null
   active: ActiveUltimate | null
   timeScale: number
   setChargeFromScore: (update: ChargeUpdate) => void
@@ -47,7 +48,7 @@ const INITIAL_STATE = {
   charge: 0,
   chargeMax: 0,
   ready: false,
-  nextUltiId: null as CharacterType | null,
+  nextUltiId: null as UltiId | null,
   active: null as ActiveUltimate | null,
   timeScale: 1,
 }
@@ -91,19 +92,26 @@ const useUltimateStore = create<UltimateStore>()((set, get) => {
 
     setChargeFromScore: ({ ultimate_charge, ultimate_max, ulti_ready, next_ulti_id }) => {
       if (get().active) {
+        // While an ultimate is active, early returns to keep the next copied ultimate id and ignore charge updates
         set({ nextUltiId: next_ulti_id ?? null })
         return
       }
 
+      const wasReady = get().ready
+      const nextReady = ulti_ready ?? wasReady
+
       set((state) => ({
         charge: ultimate_charge ?? state.charge,
         chargeMax: ultimate_max ?? state.chargeMax,
-        ready: ulti_ready ?? state.ready,
+        ready: nextReady,
         nextUltiId: next_ulti_id ?? null,
       }))
+
+      if (!wasReady && nextReady) playSfx("ultimate_ready")
     },
 
     onTriggered: (payload) => {
+      playSfx("ultimate_trigger")
       clearEndTimer()
 
       if (payload.ulti_id === "multiball_split") {

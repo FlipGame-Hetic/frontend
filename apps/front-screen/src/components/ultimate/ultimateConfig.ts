@@ -1,8 +1,5 @@
 import type { Vector3Tuple } from "three"
-import {
-  MULTIBALL_SPAWN_POSITION1,
-  MULTIBALL_SPAWN_POSITION2,
-} from "@/components/playfield/bonusZoneConfig"
+import type { CharacterType, UltiId } from "@frontend/types"
 
 interface UltimateOverlayConfig {
   position: Vector3Tuple
@@ -14,8 +11,8 @@ interface UltimateOverlayConfig {
 }
 
 export const MULTIBALL_SPLIT_SPAWN_POSITIONS: readonly Vector3Tuple[] = [
-  MULTIBALL_SPAWN_POSITION1,
-  MULTIBALL_SPAWN_POSITION2,
+  [1.35, 1.5, -4.1],
+  [-2, 1.5, -4.1],
 ]
 
 export const DEFAULT_SLOW_FACTOR = 0.25
@@ -23,6 +20,13 @@ export const DEFAULT_SLOW_FACTOR = 0.25
 export const RAMPAGE_TIME_SCALE = 1.25
 
 export const ULTIMATE_ICON_BASE_PATH = "/ultimateIcons"
+
+export const CHARACTER_BY_ULTI_ID: Record<UltiId, CharacterType> = {
+  multiball_split: "enforcer",
+  rampage: "viper",
+  time_slow: "oracle",
+  mimic: "ghost",
+}
 
 export const ULTIMATE_OVERLAY_CONFIG = {
   position: [2.25, 1.05, 6.6],
@@ -32,6 +36,3 @@ export const ULTIMATE_OVERLAY_CONFIG = {
   barWidth: 200,
   barHeight: 18,
 } as const satisfies UltimateOverlayConfig
-
-// DEBUG ULTIMATE TEST: force the HUD ready while tuning character ultimates. Remove later.
-export const DEBUG_FORCE_ULTIMATE_READY: boolean = import.meta.env.DEV

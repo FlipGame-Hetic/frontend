@@ -11,8 +11,6 @@ import { SHAKE_INTENSITY } from "../screenShake/screenShakeConfig"
 import {
   clampPlungerPosition,
   PLUNGER_KEY,
-  PLUNGER_PULL_KEY,
-  PLUNGER_RETURN_KEY,
   PLUNGER_MIN_CHARGE,
   PLUNGER_MIN_LAUNCH_CHARGE,
   PLUNGER_BALL_CLEAR_TIMEOUT,
@@ -22,7 +20,6 @@ import {
   PLUNGER_MIN_IMPULSE,
   PLUNGER_RELEASE_DELAY,
   PLUNGER_MAX_CHARGE_TIME,
-  PLUNGER_ARROW_PULL_SPEED,
   PLUNGER_RELEASE_SPEED,
   PLUNGER_MAX_COMPRESSION,
 } from "./plungerConfig"
@@ -61,7 +58,6 @@ export const usePlungerSimulation = ({
 }: PlungerSimulationOptions): PlungerSimulationResult => {
   const plungerPositionRef = useRef(0)
   const wasSpacePressed = useRef(false)
-  const wasArrowPressed = useRef(false)
   const releasingRef = useRef(false)
   const pendingReleaseRef = useRef(false)
   const releaseTimerRef = useRef(0)
@@ -131,9 +127,6 @@ export const usePlungerSimulation = ({
   useFrame((_, delta) => {
     const plungerInput = getPlungerInputSnapshot()
     const isSpacePressed = pressedKeys.current.has(PLUNGER_KEY)
-    const isPullPressed = pressedKeys.current.has(PLUNGER_PULL_KEY)
-    const isReturnPressed = pressedKeys.current.has(PLUNGER_RETURN_KEY)
-    const isArrowPressed = isPullPressed || isReturnPressed
     const isExternallyHeld = !plungerInput.released
 
     if (
@@ -159,26 +152,7 @@ export const usePlungerSimulation = ({
         )
       }
 
-      if (isPullPressed) {
-        if (!wasArrowPressed.current) {
-          ballInLaneRef.current?.wakeUp()
-        }
-        plungerPositionRef.current = clampPlungerPosition(
-          plungerPositionRef.current + delta * PLUNGER_ARROW_PULL_SPEED,
-        )
-      }
-
-      if (isReturnPressed) {
-        plungerPositionRef.current = clampPlungerPosition(
-          plungerPositionRef.current - delta * PLUNGER_ARROW_PULL_SPEED,
-        )
-      }
-
       if (wasSpacePressed.current && !isSpacePressed) {
-        releaseFromPosition(plungerPositionRef.current)
-      }
-
-      if (wasArrowPressed.current && !isArrowPressed) {
         releaseFromPosition(plungerPositionRef.current)
       }
     }
@@ -211,7 +185,6 @@ export const usePlungerSimulation = ({
     }
 
     wasSpacePressed.current = isSpacePressed
-    wasArrowPressed.current = isArrowPressed
 
     const compression = plungerPositionRef.current * PLUNGER_MAX_COMPRESSION
     const offset = movementAxis.clone().multiplyScalar(compression)

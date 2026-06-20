@@ -1,8 +1,8 @@
-const BIG_DAMAGE_RATIO = 0.05
+const BIG_DAMAGE_THRESHOLD = 500
 
-export function isBigDamage(delta: number, maxHp: number): boolean {
-  if (delta <= 0 || maxHp <= 0) return false
-  return delta >= maxHp * BIG_DAMAGE_RATIO
+export function isBigDamage(delta: number): boolean {
+  if (delta <= 0) return false
+  return delta >= BIG_DAMAGE_THRESHOLD
 }
 
 export function pickRandom<T>(list: readonly T[]): T | undefined {

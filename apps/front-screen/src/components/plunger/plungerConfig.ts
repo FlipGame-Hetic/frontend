@@ -45,8 +45,6 @@ export const isPointInPlungerLaneSensor = (point: PlungerLanePoint): boolean => 
 }
 
 export const PLUNGER_KEY = "Space"
-export const PLUNGER_PULL_KEY = "ArrowDown"
-export const PLUNGER_RETURN_KEY = "ArrowUp"
 
 export const PLUNGER_ROD_RADIUS = 0.1
 export const PLUNGER_ROD_LENGTH = 0.6
@@ -57,7 +55,6 @@ export const PLUNGER_SPRING_SPACING = 0.18
 
 export const PLUNGER_MAX_CHARGE_TIME = 1.5
 export const PLUNGER_MAX_COMPRESSION = 0.8
-export const PLUNGER_ARROW_PULL_SPEED = 1
 
 export const PLUNGER_MIN_IMPULSE = 5
 export const PLUNGER_MAX_IMPULSE = 100

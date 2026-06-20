@@ -108,6 +108,45 @@ describe("front-screen useScreenHub", () => {
     })
   })
 
+  it("uses incoming GameOver final score and ends the local game", () => {
+    render(<ScreenHubHarness />)
+
+    act(() => {
+      useGameStore.getState().startGame({
+        mode: "solo",
+        players: [{ player: 1, character: "enforcer" }],
+      })
+    })
+    sendMock.mockClear()
+
+    const options = lastScreenHubOptions()
+
+    act(() => {
+      options.onEvent?.({
+        from: "game_engine",
+        to: { kind: "broadcast" },
+        event_type: "GameOver",
+        payload: { final_score: 9876 },
+      })
+    })
+
+    expect(useGameStore.getState()).toMatchObject({
+      phase: "game_over",
+      score: 9876,
+    })
+    expect(sendMock).toHaveBeenCalledWith({
+      from: "front_screen",
+      to: { kind: "broadcast" },
+      event_type: "phase_change",
+      payload: {
+        phase: "game_over",
+        ball: 1,
+        player: 1,
+        score: 9876,
+      },
+    })
+  })
+
   it("maps cabinet flipper state events to local input keys", () => {
     render(<ScreenHubHarness />)
 

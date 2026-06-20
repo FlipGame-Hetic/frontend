@@ -41,6 +41,11 @@ export function useScreenHubClient(): void {
         if (envelope.payload.ball !== undefined) setBallNumber(envelope.payload.ball)
         return
       }
+      if (isScreenEvent(envelope, "GameOver")) {
+        setScore(envelope.payload.final_score)
+        setPhase("game_over")
+        return
+      }
       if (isScreenEvent(envelope, "BossUpdate")) {
         const { boss_id, boss_hp, boss_max_hp } = envelope.payload
         setBoss({ bossId: boss_id, bossHp: boss_hp, bossMaxHp: boss_max_hp })
