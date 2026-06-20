@@ -1,6 +1,7 @@
 import { sendEventTo } from "@frontend/ws"
 import { BUTTON_IDS, type ButtonId } from "@frontend/types"
 import { playNavigationBackward, playNavigationForward } from "@/audio/menuSound"
+import { playCreditsMusic, stopCreditsMusic } from "@/audio/creditsMusic"
 import { useBackScreenStore } from "@/stores/useBackScreenStore"
 import { MODE_OPTIONS, CHARACTER_OPTIONS } from "@/scenes/scene.types"
 
@@ -16,7 +17,8 @@ function skipLocked(options: { locked?: boolean }[], from: number, dir: 1 | -1):
 }
 
 export function menuLeft(): void {
-  const { phase, menuIndex, setMenuIndex } = useBackScreenStore.getState()
+  const { phase, menuIndex, setMenuIndex, creditsActive } = useBackScreenStore.getState()
+  if (creditsActive) return
   if (phase === "mode_select") {
     playNavigationBackward()
     setMenuIndex(skipLocked(MODE_OPTIONS, menuIndex, -1))
@@ -27,7 +29,8 @@ export function menuLeft(): void {
 }
 
 export function menuRight(): void {
-  const { phase, menuIndex, setMenuIndex } = useBackScreenStore.getState()
+  const { phase, menuIndex, setMenuIndex, creditsActive } = useBackScreenStore.getState()
+  if (creditsActive) return
   if (phase === "mode_select") {
     playNavigationForward()
     setMenuIndex(skipLocked(MODE_OPTIONS, menuIndex, 1))
@@ -38,7 +41,16 @@ export function menuRight(): void {
 }
 
 export function menuConfirm(): void {
-  const { phase, menuIndex, setSelectedMode, setSelectedCharacter } = useBackScreenStore.getState()
+  const {
+    phase,
+    menuIndex,
+    creditsActive,
+    setSelectedMode,
+    setSelectedCharacter,
+    setCreditsActive,
+  } = useBackScreenStore.getState()
+
+  if (creditsActive) return
 
   switch (phase) {
     case "idle": {
@@ -55,6 +67,11 @@ export function menuConfirm(): void {
       const option = MODE_OPTIONS[menuIndex]
       if (!option || option.locked) return
       playNavigationForward()
+      if (option.id === "credits") {
+        setCreditsActive(true)
+        playCreditsMusic()
+        break
+      }
       const mode = option.id
       setSelectedMode(mode)
       sendEventTo("front_screen", { event_type: "mode_selected", payload: { mode } })
@@ -83,7 +100,13 @@ export function menuConfirm(): void {
 }
 
 export function menuBack(): void {
-  const { phase } = useBackScreenStore.getState()
+  const { phase, creditsActive, setCreditsActive } = useBackScreenStore.getState()
+  if (creditsActive) {
+    playNavigationBackward()
+    stopCreditsMusic()
+    setCreditsActive(false)
+    return
+  }
   if (phase === "idle" || phase === "playing" || phase === "paused") return
   playNavigationBackward()
   sendEventTo("front_screen", { event_type: "menu_back", payload: {} })

@@ -1,6 +1,7 @@
 import { useBackScreenStore } from "@/stores/useBackScreenStore"
 import IdleScene from "./IdleScene"
 import ModeSelectScene from "./ModeSelectScene"
+import CreditsScene from "./CreditsScene"
 import CharacterSelectScene from "./CharacterSelectScene"
 import PlayingScene from "./PlayingScene"
 import PausedScene from "./PausedScene"
@@ -8,10 +9,11 @@ import GameOverScene from "./GameOverScene"
 
 export default function SceneRouter() {
   const phase = useBackScreenStore((s) => s.phase)
+  const creditsActive = useBackScreenStore((s) => s.creditsActive)
 
   switch (phase) {
     case "mode_select":
-      return <ModeSelectScene />
+      return creditsActive ? <CreditsScene /> : <ModeSelectScene />
     case "character_select":
       return <CharacterSelectScene />
     case "playing":

@@ -19,6 +19,7 @@ const NO_DAMAGE: DamageEvent = { at: 0, delta: 0, big: false }
 interface BackScreenStore {
   phase: GamePhase
   menuIndex: number
+  creditsActive: boolean
   selectedMode: GameMode | null
   selectedCharacter: CharacterType | null
   score: number
@@ -35,6 +36,7 @@ interface BackScreenStore {
 
   setPhase: (phase: GamePhase) => void
   setMenuIndex: (index: number) => void
+  setCreditsActive: (active: boolean) => void
   setSelectedMode: (mode: GameMode) => void
   setSelectedCharacter: (character: CharacterType) => void
   setScore: (score: number) => void
@@ -50,6 +52,7 @@ interface BackScreenStore {
 export const useBackScreenStore = create<BackScreenStore>()((set) => ({
   phase: "idle",
   menuIndex: 0,
+  creditsActive: false,
   selectedMode: null,
   selectedCharacter: null,
   score: 0,
@@ -65,7 +68,7 @@ export const useBackScreenStore = create<BackScreenStore>()((set) => ({
   lastDamage: NO_DAMAGE,
 
   setPhase: (phase) => {
-    set({ phase, menuIndex: 0 })
+    set({ phase, menuIndex: 0, creditsActive: false })
     if (phase !== "playing") {
       set({
         bossId: null,
@@ -80,6 +83,9 @@ export const useBackScreenStore = create<BackScreenStore>()((set) => ({
   },
   setMenuIndex: (menuIndex) => {
     set({ menuIndex })
+  },
+  setCreditsActive: (creditsActive) => {
+    set({ creditsActive })
   },
   setSelectedMode: (selectedMode) => {
     set({ selectedMode })

@@ -3,7 +3,7 @@ import type { GameMode } from "@frontend/types"
 export { CHARACTER_OPTIONS } from "@frontend/types"
 
 export interface ModeOption {
-  id: GameMode
+  id: GameMode | "credits"
   label: string
   description: string
   locked?: boolean
@@ -23,5 +23,11 @@ export const MODE_OPTIONS: NonEmptyArray<ModeOption> = [
     label: "DUO",
     description: "Bientôt disponible.",
     locked: true,
+  },
+  {
+    id: "credits",
+    label: "CRÉDITS",
+    description:
+      "Le générique de S.P.A.M.E.R : ceux qui ont donné vie à la borne, et les artistes qui nous ont prêté leurs œuvres.",
   },
 ]
