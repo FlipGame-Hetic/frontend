@@ -13,9 +13,7 @@ const readEnvironment = (): string => {
   return runtimeEnv?.VITE_ENVIRONMENT?.trim() ?? buildEnv?.trim() ?? "local"
 }
 
-export const getRuntimeEnvironmentFlags = (
-  environment = readEnvironment(),
-): RuntimeEnvironmentFlags => {
+const getRuntimeEnvironmentFlags = (environment = readEnvironment()): RuntimeEnvironmentFlags => {
   const normalized = environment.trim() || "local"
 
   return {
