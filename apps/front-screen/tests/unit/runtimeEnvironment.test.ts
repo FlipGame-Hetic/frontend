@@ -5,6 +5,7 @@ describe("runtimeEnvironment", () => {
   it("treats local as non-production browser runtime", () => {
     expect(getRuntimeEnvironmentFlags("local")).toEqual({
       environment: "local",
+      isLocal: true,
       isProduction: false,
       isProductionBrowser: false,
       isProductionCabinet: false,
@@ -14,6 +15,7 @@ describe("runtimeEnvironment", () => {
   it("separates production browser from cabinet-only runtime", () => {
     expect(getRuntimeEnvironmentFlags("production-browser")).toEqual({
       environment: "production-browser",
+      isLocal: false,
       isProduction: true,
       isProductionBrowser: true,
       isProductionCabinet: false,

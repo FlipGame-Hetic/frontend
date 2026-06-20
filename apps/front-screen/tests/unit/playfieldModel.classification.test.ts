@@ -8,7 +8,7 @@ import { classifyMesh, collectPlayfieldNodes } from "@/components/playfield/useP
 
 const PLAYFIELD_MODEL_PATH = join(
   dirname(fileURLToPath(import.meta.url)),
-  "../../public/models/playfield.glb",
+  "../../public/models/playfield/playfield.glb",
 )
 
 interface GlbJson {
