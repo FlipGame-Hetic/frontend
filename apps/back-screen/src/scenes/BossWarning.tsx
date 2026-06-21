@@ -28,7 +28,7 @@ export default function BossWarning() {
 
   return (
     <div className="bg-arcade-black absolute inset-0 z-30">
-      <Canvas flat gl={{ antialias: false }}>
+      <Canvas flat gl={{ antialias: false, powerPreference: "high-performance" }}>
         <BossWarningShader />
       </Canvas>
       <div className="pointer-events-none absolute inset-0 z-50 flex items-center justify-center">

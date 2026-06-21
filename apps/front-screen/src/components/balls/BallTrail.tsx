@@ -44,11 +44,16 @@ interface BallTrailProps {
   fadingRef: { current: boolean }
   onFadeComplete: () => void
   color: string
+  pointCount?: number
 }
 
-const BallTrail = ({ ballRef, fadingRef, onFadeComplete, color }: BallTrailProps) => {
-  const geoRef = useRef<THREE.BufferGeometry>(null)
-
+const BallTrail = ({
+  ballRef,
+  fadingRef,
+  onFadeComplete,
+  color,
+  pointCount = TRAIL_POINTS,
+}: BallTrailProps) => {
   const centerPos = useRef(new Float32Array(TRAIL_POINTS * 3))
   const ribPos = useRef(new Float32Array(TRAIL_POINTS * 4 * 3))
   const ribUv = useRef(new Float32Array(TRAIL_POINTS * 4 * 2))
@@ -58,10 +63,13 @@ const BallTrail = ({ ballRef, fadingRef, onFadeComplete, color }: BallTrailProps
   const fadeProgress = useRef(0)
   const fadeCompleted = useRef(false)
   const isIdleRef = useRef(false)
+  const activePointCountRef = useRef(pointCount)
+  const previousPointCountRef = useRef(pointCount)
   const onFadeCompleteRef = useRef(onFadeComplete)
   onFadeCompleteRef.current = onFadeComplete
   const positionAttrRef = useRef<THREE.BufferAttribute | null>(null)
   const uvAttrRef = useRef<THREE.BufferAttribute | null>(null)
+  const disposeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const uniforms = useMemo(
     () => ({
@@ -71,6 +79,8 @@ const BallTrail = ({ ballRef, fadingRef, onFadeComplete, color }: BallTrailProps
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   )
+
+  const geo = useMemo(() => new THREE.BufferGeometry(), [])
 
   const mat = useMemo(
     () =>
@@ -91,9 +101,10 @@ const BallTrail = ({ ballRef, fadingRef, onFadeComplete, color }: BallTrailProps
   }, [color, uniforms])
 
   useEffect(() => {
-    const geo = geoRef.current
-    if (!geo) return
+    activePointCountRef.current = THREE.MathUtils.clamp(Math.floor(pointCount), 2, TRAIL_POINTS)
+  }, [pointCount])
 
+  useEffect(() => {
     const indices = new Uint16Array((TRAIL_POINTS - 1) * 12)
     for (let i = 0; i < TRAIL_POINTS - 1; i++) {
       const b = i * 12
@@ -134,11 +145,27 @@ const BallTrail = ({ ballRef, fadingRef, onFadeComplete, color }: BallTrailProps
     geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0, 0), 30)
     positionAttrRef.current = posAttr
     uvAttrRef.current = uvAttr
-  }, [])
+  }, [geo])
+
+  useEffect(() => {
+    if (disposeTimeoutRef.current !== null) {
+      clearTimeout(disposeTimeoutRef.current)
+      disposeTimeoutRef.current = null
+    }
+
+    return () => {
+      disposeTimeoutRef.current = setTimeout(() => {
+        mat.dispose()
+        geo.dispose()
+        positionAttrRef.current = null
+        uvAttrRef.current = null
+        disposeTimeoutRef.current = null
+      }, 0)
+    }
+  }, [geo, mat])
 
   useFrame((_, delta) => {
-    const geo = geoRef.current
-    if (!geo) return
+    const activePointCount = activePointCountRef.current
 
     if (fadingRef.current) {
       if (!fadeCompleted.current) {
@@ -157,20 +184,22 @@ const BallTrail = ({ ballRef, fadingRef, onFadeComplete, color }: BallTrailProps
 
     const pos = body.translation()
 
-    if (!initialized.current) {
-      for (let i = 0; i < TRAIL_POINTS; i++) {
+    if (!initialized.current || previousPointCountRef.current !== activePointCount) {
+      for (let i = 0; i < activePointCount; i++) {
         centerPos.current[i * 3] = pos.x
         centerPos.current[i * 3 + 1] = pos.y
         centerPos.current[i * 3 + 2] = pos.z
       }
       initialized.current = true
+      previousPointCountRef.current = activePointCount
+      geo.setDrawRange(0, (activePointCount - 1) * 12)
     }
 
     if (prevPos.current) {
       const p = prevPos.current
       const dsq = (pos.x - p.x) ** 2 + (pos.y - p.y) ** 2 + (pos.z - p.z) ** 2
       if (dsq > TRAIL_TELEPORT_THRESHOLD_SQ) {
-        for (let i = 0; i < TRAIL_POINTS; i++) {
+        for (let i = 0; i < activePointCount; i++) {
           centerPos.current[i * 3] = pos.x
           centerPos.current[i * 3 + 1] = pos.y
           centerPos.current[i * 3 + 2] = pos.z
@@ -184,9 +213,9 @@ const BallTrail = ({ ballRef, fadingRef, onFadeComplete, color }: BallTrailProps
     uniforms.fadeAlpha.value +=
       (targetAlpha - uniforms.fadeAlpha.value) * Math.min(1, TRAIL_IDLE_LERP_SPEED * delta)
 
-    centerPos.current.copyWithin(0, 3)
+    centerPos.current.copyWithin(0, 3, activePointCount * 3)
 
-    const last = (TRAIL_POINTS - 1) * 3
+    const last = (activePointCount - 1) * 3
     centerPos.current[last] = pos.x
     centerPos.current[last + 1] = pos.y
     centerPos.current[last + 2] = pos.z
@@ -194,13 +223,13 @@ const BallTrail = ({ ballRef, fadingRef, onFadeComplete, color }: BallTrailProps
     const rp = ribPos.current
     const ru = ribUv.current
 
-    for (let i = 0; i < TRAIL_POINTS; i++) {
+    for (let i = 0; i < activePointCount; i++) {
       const ci = i * 3
       const cx = centerPos.current[ci] ?? 0
       const cy = centerPos.current[ci + 1] ?? 0
       const cz = centerPos.current[ci + 2] ?? 0
 
-      const linearFade = i / (TRAIL_POINTS - 1)
+      const linearFade = i / (activePointCount - 1)
       const tailSoftener = i < TRAIL_TAIL_FADE_POINTS ? (i / TRAIL_TAIL_FADE_POINTS) ** 2 : 1
       const v = linearFade * tailSoftener
 
@@ -233,11 +262,7 @@ const BallTrail = ({ ballRef, fadingRef, onFadeComplete, color }: BallTrailProps
     }
   })
 
-  return (
-    <mesh renderOrder={1} material={mat}>
-      <bufferGeometry ref={geoRef} />
-    </mesh>
-  )
+  return <mesh renderOrder={1} geometry={geo} material={mat} dispose={null} />
 }
 
 export default BallTrail

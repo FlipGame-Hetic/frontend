@@ -1,10 +1,11 @@
 import BallTrail from "./BallTrail"
 import useBallStore from "@/stores/useBallStore"
+import usePortalTraversalStore from "@/stores/usePortalTraversalStore"
 import { isPointInPlungerLaneSensor } from "@/components/plunger/plungerConfig"
 import type { PositionType } from "@/types/worldTypes"
 import { useFrame } from "@react-three/fiber"
 import type { RapierRigidBody } from "@react-three/rapier"
-import { RigidBody, useAfterPhysicsStep, useRapier } from "@react-three/rapier"
+import { BallCollider, RigidBody, useAfterPhysicsStep, useRapier } from "@react-three/rapier"
 import { useEffect, useRef } from "react"
 import { DRAIN_SAFETY_FALLBACK_Y } from "../drain/drainConfig"
 import { registerBallFade, unregisterBallFade } from "./ballFadeRegistry"
@@ -30,7 +31,9 @@ import {
   RAIL_MAX_ACCEL,
   RAIL_MIN_VEL,
 } from "../playfield/railConfig"
+import { cleanupPortalBall } from "../portal/portalTraversalState"
 import { BALL_RADIUS, BALL_SNAP_MAX_GAP, BALL_SNAP_EPSILON } from "./ballConfig"
+import { TRAIL_MULTIBALL_POINTS, TRAIL_POINTS } from "./ballTrailConfig"
 
 interface BallProps {
   id: string
@@ -63,7 +66,8 @@ const Ball = ({
   maxNormalSpeed,
   color = "#FF8C00",
 }: BallProps) => {
-  const { deleteBall } = useBallStore()
+  const deleteBall = useBallStore((state) => state.deleteBall)
+  const isMultiball = useBallStore((state) => state.playingBallIds.length > 1)
   const ballRef = useRef<RapierRigidBody>(null)
   const timeOnRailRef = useRef(0)
   const fadingRef = useRef(false)
@@ -81,6 +85,8 @@ const Ball = ({
       unregisterBallFade(id)
       unregisterBallBody(id)
       cleanupRailBall(id)
+      cleanupPortalBall(id)
+      usePortalTraversalStore.getState().removeGhost(id)
       removeBallPosition(id)
     }
   }, [id])
@@ -170,25 +176,29 @@ const Ball = ({
         ref={ballRef}
         type="dynamic"
         position={position}
-        colliders="ball"
+        colliders={false}
         ccd
         name="ball"
         userData={{ ballId: id }}
         mass={mass}
-        restitution={restitution}
-        friction={friction}
         linearDamping={linearDamping}
         angularDamping={angularDamping}
-        collisionGroups={BALL_COLLISION_GROUPS_WITH_RAILS}
       >
+        <BallCollider
+          args={[radius]}
+          restitution={restitution}
+          friction={friction}
+          collisionGroups={BALL_COLLISION_GROUPS_WITH_RAILS}
+        />
         <mesh ref={meshRef} castShadow>
-          <sphereGeometry args={[radius, 32, 32]} />
+          <sphereGeometry args={[radius, 24, 24]} />
         </mesh>
       </RigidBody>
       <BallTrail
         ballRef={ballRef}
         color={color}
         fadingRef={fadingRef}
+        pointCount={isMultiball ? TRAIL_MULTIBALL_POINTS : TRAIL_POINTS}
         onFadeComplete={() => {
           if (!drainedRef.current) deleteBall(id)
         }}

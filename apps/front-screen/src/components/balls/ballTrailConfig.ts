@@ -1,4 +1,5 @@
 export const TRAIL_POINTS = 40
+export const TRAIL_MULTIBALL_POINTS = 24
 export const TRAIL_HALF_HEIGHT = 0.155
 export const TRAIL_HALF_WIDTH = 0.075
 export const TRAIL_HDR_FACTOR = 3.5

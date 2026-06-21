@@ -1,5 +1,5 @@
-import DebugProvider from "@/debug/DebugProvider"
 import { runtimeEnvironment } from "@/config/runtimeEnvironment"
+import DebugProvider from "@/debug/DebugProvider"
 import type { CameraProps } from "@react-three/fiber"
 import { Leva } from "leva"
 import { Suspense, useEffect } from "react"

@@ -3,8 +3,10 @@ import type { CharacterType, GameMode, GamePhase } from "@frontend/types"
 import { PLUNGER_BALL_SPAWN } from "@/components/plunger/plungerConfig"
 import useBallStore from "./useBallStore"
 import useMultiballStore from "./useMultiballStore"
+import usePortalTraversalStore from "./usePortalTraversalStore"
 import useTargetStore from "./useTargetStore"
 import useUltimateStore from "./useUltimateStore"
+import { resetPortalTraversalState } from "@/components/portal/portalTraversalState"
 
 interface SelectedPlayer {
   player: number
@@ -57,6 +59,15 @@ const INITIAL_STATE = {
   currentPlayer: 1,
 }
 
+const resetGameplayRuntime = (): void => {
+  useTargetStore.getState().resetTargets()
+  useBallStore.getState().resetBalls()
+  useMultiballStore.getState().reset()
+  usePortalTraversalStore.getState().reset()
+  resetPortalTraversalState()
+  useUltimateStore.getState().reset()
+}
+
 const useGameStore = create<GameStore>()((set) => ({
   ...INITIAL_STATE,
 
@@ -76,10 +87,7 @@ const useGameStore = create<GameStore>()((set) => ({
   },
 
   startGame: (options) => {
-    useTargetStore.getState().resetTargets()
-    useBallStore.getState().resetBalls()
-    useMultiballStore.getState().reset()
-    useUltimateStore.getState().reset()
+    resetGameplayRuntime()
     useBallStore.getState().spawnBall(PLUNGER_BALL_SPAWN, { isPlaying: false })
 
     set((state) => {
@@ -140,18 +148,12 @@ const useGameStore = create<GameStore>()((set) => ({
   },
 
   reset: () => {
-    useTargetStore.getState().resetTargets()
-    useBallStore.getState().resetBalls()
-    useMultiballStore.getState().reset()
-    useUltimateStore.getState().reset()
+    resetGameplayRuntime()
     set(INITIAL_STATE)
   },
 
   restartGame: () => {
-    useTargetStore.getState().resetTargets()
-    useBallStore.getState().resetBalls()
-    useMultiballStore.getState().reset()
-    useUltimateStore.getState().reset()
+    resetGameplayRuntime()
     set({ ...INITIAL_STATE, phase: "mode_select" as GamePhase })
   },
 }))

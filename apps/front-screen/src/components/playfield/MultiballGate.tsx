@@ -1,4 +1,5 @@
 import { getBallId, getCurrentBallColor } from "@/components/balls/ballUserData"
+import useBallStore from "@/stores/useBallStore"
 import type { PositionType } from "@/types/worldTypes"
 import { useFrame } from "@react-three/fiber"
 import type { CollisionEnterPayload, CollisionPayload, RapierRigidBody } from "@react-three/rapier"
@@ -402,6 +403,11 @@ const PreparedMultiballGate = ({ gate }: { gate: PreparedGate }) => {
     let next = advanceMultiballGateState(gateStateRef.current, now)
 
     if (next.phase === "open" && pendingGateBallsRef.current.size > 0) {
+      const trackedBallIds = new Set(useBallStore.getState().balls.map((ball) => ball.id))
+      for (const ballId of pendingGateBallsRef.current.keys()) {
+        if (!trackedBallIds.has(ballId)) pendingGateBallsRef.current.delete(ballId)
+      }
+
       for (const body of pendingGateBallsRef.current.values()) {
         if (
           hasClearedMultiballGate(body.translation()) &&

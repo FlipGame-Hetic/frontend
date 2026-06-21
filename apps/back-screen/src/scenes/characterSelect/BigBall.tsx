@@ -12,7 +12,7 @@ export default function BigBall({ option }: { option: (typeof CHARACTER_OPTIONS)
     >
       <Canvas
         flat
-        gl={{ antialias: true, alpha: true }}
+        gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
         camera={{ position: [0, 0, 2.37], fov: 50 }}
       >
         <CharacterBallMesh color={option.color} />

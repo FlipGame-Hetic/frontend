@@ -2,6 +2,7 @@ import { playSfx } from "@/audio/soundEngine"
 import { getBallId } from "@/components/balls/ballUserData"
 import { useDebugControls } from "@/debug/debugContext"
 import useKeyboard from "@/hooks/useKeyboard"
+import useBallStore from "@/stores/useBallStore"
 import { pressKey, releaseKey } from "@/stores/inputStore"
 import type { PositionType } from "@/types/worldTypes"
 import { useFrame } from "@react-three/fiber"
@@ -26,6 +27,8 @@ import {
   RIGHT_KEYS,
 } from "./jointsConfig"
 
+const BOOST_COOLDOWN_PURGE_INTERVAL_MS = 1000
+
 interface FlipperJointsProps {
   position: PositionType
   side: "left" | "right"
@@ -41,6 +44,7 @@ const FlipperJoints = ({ position, side, mesh }: FlipperJointsProps) => {
   const { autoMode } = useDebugControls()
   const isAutoPressingRef = useRef(false)
   const boostCooldownsRef = useRef(new Map<string, number>())
+  const lastBoostCooldownPurgeRef = useRef(0)
 
   const isLeft = side === "left"
   const activationKeys = isLeft ? LEFT_KEYS : RIGHT_KEYS
@@ -105,6 +109,15 @@ const FlipperJoints = ({ position, side, mesh }: FlipperJointsProps) => {
 
   useFrame(() => {
     if (!jointRef.current || !flipperRef.current) return
+
+    const now = performance.now()
+    if (now - lastBoostCooldownPurgeRef.current >= BOOST_COOLDOWN_PURGE_INTERVAL_MS) {
+      lastBoostCooldownPurgeRef.current = now
+      const trackedBallIds = new Set(useBallStore.getState().balls.map((ball) => ball.id))
+      for (const ballId of boostCooldownsRef.current.keys()) {
+        if (!trackedBallIds.has(ballId)) boostCooldownsRef.current.delete(ballId)
+      }
+    }
 
     if (appliedLimitsRef.current.min !== minLimit || appliedLimitsRef.current.max !== maxLimit) {
       jointRef.current.setLimits(minLimit, maxLimit)

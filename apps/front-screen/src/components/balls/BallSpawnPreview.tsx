@@ -46,7 +46,7 @@ const BallSpawnPreview = ({ position, color }: BallSpawnPreviewProps) => {
 
   return (
     <mesh position={position} renderOrder={20}>
-      <sphereGeometry args={[BALL_RADIUS, 32, 32]} />
+      <sphereGeometry args={[BALL_RADIUS, 24, 24]} />
       <meshStandardMaterial
         color={isColliding ? BALL_SPAWN_PREVIEW_COLLISION_COLOR : color}
         metalness={0.25}

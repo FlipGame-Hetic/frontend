@@ -32,6 +32,16 @@ export function drawDotsToCanvas(
   width: number,
   height: number,
 ): void {
+  drawDotGridToCanvas(ctx, config, width, height)
+  drawActiveDotsToCanvas(ctx, buffer, config, width, height)
+}
+
+export function drawDotGridToCanvas(
+  ctx: CanvasRenderingContext2D,
+  config: DmdConfig,
+  width: number,
+  height: number,
+): void {
   const { cols, rows, dotColor, bgColor, offOpacity, gapRatio } = config
 
   ctx.fillStyle = bgColor
@@ -56,6 +66,24 @@ export function drawDotsToCanvas(
       ctx.fill()
     }
   }
+}
+
+export function drawActiveDotsToCanvas(
+  ctx: CanvasRenderingContext2D,
+  buffer: DotBuffer,
+  config: DmdConfig,
+  width: number,
+  height: number,
+): void {
+  const { cols, rows, dotColor, gapRatio } = config
+
+  const cellW = width / cols
+  const cellH = height / rows
+  const cellSize = Math.min(cellW, cellH)
+  const radius = (cellSize * (1 - gapRatio)) / 2
+
+  const [r, g, b] = hexToRgb(dotColor)
+  const rgbStr = String(r) + "," + String(g) + "," + String(b)
 
   // Draw active dots with glow
   ctx.shadowColor = "rgba(" + rgbStr + ",0.6)"

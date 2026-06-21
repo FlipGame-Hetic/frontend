@@ -1,8 +1,8 @@
 import { Billboard } from "@react-three/drei"
 import { useFrame } from "@react-three/fiber"
-import { useRef } from "react"
+import { useCallback, useEffect, useRef } from "react"
 import type { RefObject } from "react"
-import type { Group } from "three"
+import type { Group, Object3D } from "three"
 import useScorePopupsStore from "@/stores/useScorePopupsStore"
 import {
   SCORE_POPUP_FADE_IN,
@@ -45,6 +45,10 @@ const setLayerPosition = (ref: RefObject<Group | null>, offset: Offset, x = 0, y
   ref.current?.position.set(offset[0] + x, offset[1] + y, offset[2])
 }
 
+const hasMaterial = (child: Object3D): boolean => {
+  return "material" in child && Boolean((child as { material?: unknown }).material)
+}
+
 const getGlitchStrength = (elapsed: number): number => {
   if (elapsed <= SCORE_POPUP_GLITCH_HOLD) return 1
 
@@ -70,6 +74,27 @@ const PopupTextStack = ({
   const cyanShadowRef = useRef<Group>(null)
   const blackShadowRef = useRef<Group>(null)
   const startTime = useRef<number | null>(null)
+  const textObjectsRef = useRef<Object3D[]>([])
+
+  const collectTextObjects = useCallback(() => {
+    const root = groupRef.current
+    if (!root) return
+
+    const textObjects: Object3D[] = []
+    root.traverse((child) => {
+      if (hasMaterial(child)) textObjects.push(child)
+    })
+    textObjectsRef.current = textObjects
+  }, [])
+
+  useEffect(() => {
+    collectTextObjects()
+    const frame = requestAnimationFrame(collectTextObjects)
+    return () => {
+      cancelAnimationFrame(frame)
+      textObjectsRef.current = []
+    }
+  }, [collectTextObjects])
 
   useFrame(() => {
     if (!groupRef.current) return
@@ -128,9 +153,11 @@ const PopupTextStack = ({
       jitterY * 0.25,
     )
 
-    groupRef.current.traverse((child) => {
+    if (textObjectsRef.current.length === 0) collectTextObjects()
+
+    for (const child of textObjectsRef.current) {
       setTextMaterialOpacity(child, opacity, glitchStrength, glitchStep, id)
-    })
+    }
   })
 
   return (

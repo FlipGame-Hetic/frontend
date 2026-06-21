@@ -8,6 +8,27 @@ import { create } from "zustand"
 
 const BOUNCE_DEBOUNCE_MS = 200
 
+const spawnTimers = new Set<ReturnType<typeof setTimeout>>()
+const lastBounceTimeByBall = new Map<string, number>()
+
+interface RegisterMultiballBounceOptions {
+  ballId: string
+  threshold: number
+  spawnPositions: [Vector3Tuple, Vector3Tuple]
+  spawnIntervalMs: number
+  ballCount: number
+}
+
+const isCounterLocked = (): boolean => {
+  return useBallStore.getState().playingBallIds.length > 1 || spawnTimers.size > 0
+}
+
+const pruneExpiredBounceTimes = (now = performance.now()): void => {
+  for (const [ballId, lastTime] of lastBounceTimeByBall) {
+    if (now - lastTime >= BOUNCE_DEBOUNCE_MS) lastBounceTimeByBall.delete(ballId)
+  }
+}
+
 export type MultiballBounceResult =
   | { status: "ignored" }
   | { status: "progress"; remaining: number }
@@ -15,41 +36,31 @@ export type MultiballBounceResult =
 
 interface MultiballStore {
   bounceCount: number
-  cooldownActive: boolean
-  registerBounce: (
-    ballId: string,
-    threshold: number,
-    position1: Vector3Tuple,
-    position2: Vector3Tuple,
-    spawnIntervalMs: number,
-    cooldownMs: number,
-    ballCount: number,
-  ) => MultiballBounceResult
+  registerBounce: (options: RegisterMultiballBounceOptions) => MultiballBounceResult
   reset: () => void
 }
 
-const useMultiballStore = create<MultiballStore>()((set, get) => {
-  let cooldownTimer: ReturnType<typeof setTimeout> | null = null
-  const spawnTimers: ReturnType<typeof setTimeout>[] = []
-  const lastBounceTimeByBall = new Map<string, number>()
+export const getMultiballDebugSnapshot = () => {
+  pruneExpiredBounceTimes()
 
   return {
+    spawnTimers: spawnTimers.size,
+    lastBounceTimes: lastBounceTimeByBall.size,
+    lockedByActiveMultiball: isCounterLocked(),
+  }
+}
+
+const useMultiballStore = create<MultiballStore>()((set, get) => {
+  return {
     bounceCount: 0,
-    cooldownActive: false,
 
-    registerBounce: (
-      ballId,
-      threshold,
-      position1,
-      position2,
-      spawnIntervalMs,
-      cooldownMs,
-      ballCount,
-    ) => {
-      const state = get()
-      if (state.cooldownActive) return { status: "ignored" }
-
+    registerBounce: ({ ballId, threshold, spawnPositions, spawnIntervalMs, ballCount }) => {
       const now = performance.now()
+      pruneExpiredBounceTimes(now)
+
+      const state = get()
+      if (isCounterLocked()) return { status: "ignored" }
+
       const lastTime = lastBounceTimeByBall.get(ballId)
       if (lastTime !== undefined && now - lastTime < BOUNCE_DEBOUNCE_MS) {
         return { status: "ignored" }
@@ -69,35 +80,26 @@ const useMultiballStore = create<MultiballStore>()((set, get) => {
       playSfx("multiball_triggered")
       broadcastEvent({ event_type: "MultiballTriggered", payload: { ball_id: ballId } })
       useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.multiballTrigger)
-      set({ bounceCount: 0, cooldownActive: true })
+      set({ bounceCount: 0 })
 
       const spawnBall = useBallStore.getState().spawnBall
       for (let i = 0; i < ballCount; i++) {
         const timer = setTimeout(() => {
-          const pos = Math.random() < 0.5 ? position1 : position2
+          spawnTimers.delete(timer)
+          const pos = Math.random() < 0.5 ? spawnPositions[0] : spawnPositions[1]
           spawnBall(pos, { isPlaying: true })
         }, i * spawnIntervalMs)
-        spawnTimers.push(timer)
+        spawnTimers.add(timer)
       }
-
-      if (cooldownTimer !== null) clearTimeout(cooldownTimer)
-      cooldownTimer = setTimeout(() => {
-        set({ cooldownActive: false })
-        cooldownTimer = null
-      }, cooldownMs)
 
       return { status: "triggered" }
     },
 
     reset: () => {
-      if (cooldownTimer !== null) {
-        clearTimeout(cooldownTimer)
-        cooldownTimer = null
-      }
       for (const t of spawnTimers) clearTimeout(t)
-      spawnTimers.length = 0
+      spawnTimers.clear()
       lastBounceTimeByBall.clear()
-      set({ bounceCount: 0, cooldownActive: false })
+      set({ bounceCount: 0 })
     },
   }
 })

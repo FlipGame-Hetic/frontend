@@ -70,11 +70,13 @@ const UltimateBar = () => {
   const activeDrainRatio = active?.startedAt === drainState.startedAt ? drainState.ratio : 1
   const fillRatio = active ? activeDrainRatio : chargeMax > 0 ? Math.min(1, charge / chargeMax) : 0
 
-  // Converts Ghost's copied ultimate id into a character slug because icon files are named by character
+  // Converts Ghost's copied ultimate id into a character slug because icon files are named by character.
+  // While an ultimate is active, the icon stays on the running ult (active.ultiId); nextUltiId only takes over once it ends/cancels.
+  const ghostUltiId = active ? active.ultiId : nextUltiId
   const iconSlug =
     character === "ghost"
-      ? nextUltiId
-        ? CHARACTER_BY_ULTI_ID[nextUltiId]
+      ? ghostUltiId
+        ? CHARACTER_BY_ULTI_ID[ghostUltiId]
         : CHARACTER_OPTIONS[0].id
       : character
   const locked = active !== null && !active.cancellable

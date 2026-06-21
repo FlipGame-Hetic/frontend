@@ -9,3 +9,7 @@ export const registerBallBody = (id: string, body: RapierRigidBody) => {
 export const unregisterBallBody = (id: string) => {
   registry.delete(id)
 }
+
+export const getBallBodyRegistryDebugSnapshot = () => ({
+  bodies: registry.size,
+})

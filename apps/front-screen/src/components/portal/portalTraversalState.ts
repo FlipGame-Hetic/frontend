@@ -14,6 +14,13 @@ const ghostRefs = new Map<string, Group>()
 const cooldowns = new Map<string, number>()
 const lockedPortals = new Set<PortalId>()
 
+const pruneExpiredCooldowns = (): void => {
+  const now = performance.now()
+  for (const [ballId, expiresAt] of cooldowns) {
+    if (now > expiresAt) cooldowns.delete(ballId)
+  }
+}
+
 export const startTraversal = (
   ballId: string,
   fromPortal: PortalId,
@@ -66,4 +73,27 @@ export const isCooldown = (ballId: string): boolean => {
 
 export const isPortalLocked = (portalId: PortalId): boolean => {
   return lockedPortals.has(portalId)
+}
+
+export const cleanupPortalBall = (ballId: string): void => {
+  endTraversal(ballId)
+  ghostRefs.delete(ballId)
+  cooldowns.delete(ballId)
+}
+
+export const resetPortalTraversalState = (): void => {
+  activeTraversals.clear()
+  ghostRefs.clear()
+  cooldowns.clear()
+  lockedPortals.clear()
+}
+
+export const getPortalTraversalDebugSnapshot = () => {
+  pruneExpiredCooldowns()
+  return {
+    activeTraversals: activeTraversals.size,
+    ghostRefs: ghostRefs.size,
+    cooldowns: cooldowns.size,
+    lockedPortals: lockedPortals.size,
+  }
 }

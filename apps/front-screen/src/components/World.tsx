@@ -14,6 +14,7 @@ const World = ({ cameraSettings, children }: WorldProps) => {
       <Canvas
         // Uses R3F's [min, max] DPR tuple to cap dense-screen rendering at 2.
         dpr={[1, 2]}
+        gl={{ powerPreference: "high-performance" }}
         shadows="percentage"
         camera={cameraSettings}
         onCreated={({ gl }) => {
