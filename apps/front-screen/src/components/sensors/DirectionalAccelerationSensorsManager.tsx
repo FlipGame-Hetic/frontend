@@ -1,4 +1,5 @@
 import { getBallId } from "@/components/balls/ballUserData"
+import useBallStore from "@/stores/useBallStore"
 import { useFrame } from "@react-three/fiber"
 import type { CollisionPayload, RapierRigidBody } from "@react-three/rapier"
 import { CuboidCollider, RigidBody } from "@react-three/rapier"
@@ -92,7 +93,14 @@ const DirectionalAccelerationSensorsManager = ({
     if (activeBallsRef.current.size === 0) return
     if (delta <= 0) return
 
+    const trackedBallIds = new Set(useBallStore.getState().balls.map((ball) => ball.id))
+
     for (const [ballId, state] of activeBallsRef.current) {
+      if (!trackedBallIds.has(ballId)) {
+        activeBallsRef.current.delete(ballId)
+        continue
+      }
+
       if (state.sensorIds.size === 0) {
         activeBallsRef.current.delete(ballId)
         continue
