@@ -17,6 +17,7 @@ export default function IdleScene() {
           </div>
 
           <div className="font-mono text-[clamp(0.4rem,0.78vw,0.54rem)] tracking-[0.2em] text-[rgba(85,234,212,0.4)] uppercase">
+            {/* SYSTEMATIC PAUPER ANNIHILATION FOR MASS ELITE RECREATION */}
             SUPER PINBALL ARCADE MULTIPLAYER EXPERIENCE RIVALRY
           </div>
         </div>
