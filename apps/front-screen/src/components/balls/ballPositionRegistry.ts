@@ -22,7 +22,3 @@ export const getAnyBallPosition = (): Position | undefined => {
   const first = positions.values().next()
   return first.done ? undefined : first.value
 }
-
-export const getBallPositionRegistryDebugSnapshot = () => ({
-  positions: positions.size,
-})

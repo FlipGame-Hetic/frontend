@@ -25,17 +25,6 @@ function hexToRgb(hex: string): [number, number, number] {
   return [(n >> 16) & 0xff, (n >> 8) & 0xff, n & 0xff]
 }
 
-export function drawDotsToCanvas(
-  ctx: CanvasRenderingContext2D,
-  buffer: DotBuffer,
-  config: DmdConfig,
-  width: number,
-  height: number,
-): void {
-  drawDotGridToCanvas(ctx, config, width, height)
-  drawActiveDotsToCanvas(ctx, buffer, config, width, height)
-}
-
 export function drawDotGridToCanvas(
   ctx: CanvasRenderingContext2D,
   config: DmdConfig,

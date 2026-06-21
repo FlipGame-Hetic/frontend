@@ -11,7 +11,3 @@ export const unregisterBallFade = (id: string) => {
 export const triggerBallFade = (id: string) => {
   registry.get(id)?.()
 }
-
-export const getBallFadeRegistryDebugSnapshot = () => ({
-  faders: registry.size,
-})
