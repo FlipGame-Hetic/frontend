@@ -10,7 +10,7 @@ import {
 } from "@/config/controlHintsConfig"
 import { LEFT_KEYS, RIGHT_KEYS } from "@/components/flipperJoints/jointsConfig"
 import { PLUNGER_KEY } from "@/components/plunger/plungerConfig"
-import { getPressedKeys } from "@/stores/inputStore"
+import { getPressedKeys } from "@/input/inputState"
 import useGameStore from "@/stores/useGameStore"
 
 const FLIPPER_KEYS = [...LEFT_KEYS, ...RIGHT_KEYS]

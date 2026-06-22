@@ -31,7 +31,8 @@ vi.mock("@frontend/ws", () => ({
   registerScreenSender: vi.fn(),
 }))
 
-import useMultiballStore, { getMultiballDebugSnapshot } from "@/stores/useMultiballStore"
+import { getMultiballDebugSnapshot } from "@/components/playfield/multiballBounceState"
+import useMultiballStore from "@/stores/useMultiballStore"
 
 const POS_1: Vector3Tuple = [-2.7, 1.6, -4.1]
 const POS_2: Vector3Tuple = [2.1, 1.6, -4.1]

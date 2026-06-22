@@ -1,6 +1,6 @@
 import { LEFT_KEYS, RIGHT_KEYS } from "@/components/flipperJoints/jointsConfig"
 import { PLUNGER_KEY } from "@/components/plunger/plungerConfig"
-import { pressKey, releaseKey, triggerPlungerMaxLaunch } from "@/stores/inputStore"
+import { pressKey, releaseKey, triggerPlungerMaxLaunch } from "@/input/inputState"
 import useGameStore from "@/stores/useGameStore"
 import usePlayfieldReadyStore from "@/stores/usePlayfieldReadyStore"
 import useScorePopupsStore from "@/stores/useScorePopupsStore"

@@ -1,5 +1,5 @@
 import { playSfx } from "@/audio/soundEngine"
-import { getPlungerInputSnapshot } from "@/stores/inputStore"
+import { getPlungerInputSnapshot } from "@/input/inputState"
 import useScreenShakeStore from "@/stores/useScreenShakeStore"
 import type { PositionType } from "@/types/worldTypes"
 import { useFrame } from "@react-three/fiber"
@@ -56,6 +56,10 @@ export const usePlungerSimulation = ({
   tipRestPosition,
   movementAxis,
 }: PlungerSimulationOptions): PlungerSimulationResult => {
+  // Per-instance ref-based State machine (see apps/front-screen/README.md → State
+  // management). The plunger advances these refs every frame inside useFrame;
+  // keeping them as refs instead of store/component state avoids re-rendering
+  // the React tree 60 times a second.
   const plungerPositionRef = useRef(0)
   const wasSpacePressed = useRef(false)
   const releasingRef = useRef(false)
