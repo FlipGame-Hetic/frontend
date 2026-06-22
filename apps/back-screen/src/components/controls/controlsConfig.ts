@@ -13,7 +13,7 @@ export const MENU_CONTROLS = {
   back: {
     action: "RETOUR",
     cabinet: { token: "L2", filled: false },
-    browser: { kind: "text", label: "RETOUR ARR." },
+    browser: { kind: "text", label: "ÉCHAP" },
   },
   navigateRight: {
     action: "NAVIGUER",
