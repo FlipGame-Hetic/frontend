@@ -252,6 +252,7 @@ The visual theme is defined once in `packages/tailwind-config/theme.css` and imp
 **Shaders**
 
 - Portal effect — adapted from [Shadertoy `lcfyDj`](https://www.shadertoy.com/view/lcfyDj) by [MisterPrada](https://www.shadertoy.com/user/MisterPrada) ([@Mister_Prada](https://twitter.com/Mister_Prada)) — [CC BY-NC-SA 3.0](https://creativecommons.org/licenses/by-nc-sa/3.0/) (Shadertoy default license; non-commercial use with attribution)
+- Matrix rain boss effect — adapted from _Matrix Rain Shader_ by [raja](https://www.shadertoy.com/user/raja) — [CC BY-NC-SA 3.0](https://creativecommons.org/licenses/by-nc-sa/3.0/) (Shadertoy default license; non-commercial use with attribution)
 
 ---
 

@@ -47,7 +47,10 @@ export const CREDITS_SECTIONS: CreditSection[] = [
       },
       {
         title: "Shaders",
-        items: ["Effet portail — MisterPrada (Shadertoy, CC BY-NC-SA 3.0)"],
+        items: [
+          "Effet portail — MisterPrada (Shadertoy, CC BY-NC-SA 3.0)",
+          "Effet matrix rain boss — raja (Shadertoy, CC BY-NC-SA 3.0)",
+        ],
       },
       {
         title: "Polices",
