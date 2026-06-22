@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useScreenHub } from "@frontend/ws"
+import { ConnectionOverlay } from "@frontend/ui"
 import { isScreenEvent } from "@frontend/types"
 import type { ScreenEnvelope, GamePhase } from "@frontend/types"
 import { DEFAULT_DMD_CONFIG } from "@/dmd/config"
@@ -125,7 +126,12 @@ function App() {
     [scenes],
   )
 
-  useScreenHub({ screenId: SCREEN_ID, token: TOKEN, onEvent })
+  const { status, sendTo } = useScreenHub({ screenId: SCREEN_ID, token: TOKEN, onEvent })
+
+  useEffect(() => {
+    if (status !== "connected") return
+    sendTo("front_screen", { event_type: "RequestResync", payload: {} })
+  }, [status, sendTo])
 
   const effectivePhase = devPhase ?? phase
   const activeScene =
@@ -134,6 +140,7 @@ function App() {
   return (
     <>
       <DmdCanvas config={config} scene={activeScene} />
+      <ConnectionOverlay status={status} />
       {import.meta.env.DEV && (
         <DevOverlay
           config={config}

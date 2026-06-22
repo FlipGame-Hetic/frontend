@@ -45,6 +45,7 @@ export const SCREEN_EVENT_TYPES = {
   BackLifeUpdate: "LifeUpdate",
   LeaderboardUpdate: "LeaderboardUpdate",
   MenuButton: "MenuButton",
+  RequestResync: "RequestResync",
 } as const
 
 export type ScreenEventType = (typeof SCREEN_EVENT_TYPES)[keyof typeof SCREEN_EVENT_TYPES]
@@ -298,6 +299,11 @@ export interface MenuButtonEvent {
   payload: { id: ButtonId; state: number }
 }
 
+export interface RequestResyncEvent {
+  event_type: "RequestResync"
+  payload: Record<string, never>
+}
+
 export type ScreenEvent =
   | PhaseChangeEvent
   | ScoreUpdateEvent
@@ -341,6 +347,7 @@ export type ScreenEvent =
   | BackLifeUpdateEvent
   | LeaderboardUpdateEvent
   | MenuButtonEvent
+  | RequestResyncEvent
 
 export function makeEnvelope(from: ScreenId, to: ScreenTarget, event: ScreenEvent): ScreenEnvelope {
   return { from, to, event_type: event.event_type, payload: event.payload }

@@ -1,4 +1,5 @@
 import { runtimeEnvironment } from "@/config/runtimeEnvironment"
+import { ConnectionOverlay } from "@frontend/ui"
 import DebugProvider from "@/debug/DebugProvider"
 import type { CameraProps } from "@react-three/fiber"
 import { Leva } from "leva"
@@ -36,7 +37,7 @@ const isWsTest =
   !runtimeEnvironment.isProduction && new URLSearchParams(window.location.search).has("wstest")
 
 const App = () => {
-  useScreenHub()
+  const hubStatus = useScreenHub()
   useDebugKeys()
   useFlipperButtonRelay()
   useUltimateInput()
@@ -99,6 +100,7 @@ const App = () => {
         <UltimateBar />
       </World>
       <UltimateOverlay />
+      <ConnectionOverlay status={hubStatus} />
     </DebugProvider>
   )
 }

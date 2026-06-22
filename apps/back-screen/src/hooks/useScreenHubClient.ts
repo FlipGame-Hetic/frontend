@@ -1,7 +1,7 @@
 import { useEffect } from "react"
-import { useScreenHub, registerScreenSender } from "@frontend/ws"
-import { isScreenEvent } from "@frontend/types"
-import type { ScreenEnvelope } from "@frontend/types"
+import { useScreenHub, registerScreenSender, fetchGameState } from "@frontend/ws"
+import { isScreenEvent, mapEnginePhaseToGamePhase } from "@frontend/types"
+import type { ConnectionStatus, ScreenEnvelope } from "@frontend/types"
 import { useBackScreenStore } from "@/stores/useBackScreenStore"
 import { fetchLeaderboard } from "@/api/leaderboard"
 import { handleMenuButton } from "@/menu/menuActions"
@@ -13,7 +13,7 @@ const TOKEN =
   (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_SCREEN_TOKEN ??
   ""
 
-export function useScreenHubClient(): void {
+export function useScreenHubClient(): ConnectionStatus {
   const setPhase = useBackScreenStore((s) => s.setPhase)
   const setScore = useBackScreenStore((s) => s.setScore)
   const setBallNumber = useBackScreenStore((s) => s.setBallNumber)
@@ -22,7 +22,7 @@ export function useScreenHubClient(): void {
   const clearBoss = useBackScreenStore((s) => s.clearBoss)
   const setLeaderboard = useBackScreenStore((s) => s.setLeaderboard)
 
-  const { send } = useScreenHub({
+  const { send, status } = useScreenHub({
     screenId: SCREEN_ID,
     token: TOKEN,
     onEvent: (envelope: ScreenEnvelope) => {
@@ -72,4 +72,16 @@ export function useScreenHubClient(): void {
   useEffect(() => {
     void fetchLeaderboard().then(setLeaderboard)
   }, [setLeaderboard])
+
+  useEffect(() => {
+    if (status !== "connected") return
+    void fetchGameState().then((snapshot) => {
+      if (!snapshot) return
+      setScore(snapshot.score)
+      setPhase(mapEnginePhaseToGamePhase(snapshot.phase))
+    })
+    void fetchLeaderboard().then(setLeaderboard)
+  }, [status, setScore, setPhase, setLeaderboard])
+
+  return status
 }

@@ -1,6 +1,14 @@
 import { wsLog, wsWarn } from "./wsLog"
 
-export const RECONNECT_DELAY_MS = 3000
+const RECONNECT_BASE_MS = 1000
+const RECONNECT_MAX_MS = 15000
+
+export const nextBackoffDelay = (attempt: number): number => {
+  const exponential = Math.min(RECONNECT_MAX_MS, RECONNECT_BASE_MS * 2 ** attempt)
+  const jitter = exponential * 0.2 * (Math.random() * 2 - 1)
+
+  return Math.round(exponential + jitter)
+}
 
 const GAME_WS_PATH = "/ws/bridge"
 const LOOPBACK_HOSTNAMES = new Set(["localhost", "127.0.0.1", "::1"])

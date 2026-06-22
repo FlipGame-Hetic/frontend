@@ -9,9 +9,19 @@ import GlbTargetsManager from "./GlbTargetsManager"
 import MultiballGate from "./MultiballGate"
 import StaticPlayfield from "./StaticPlayfield"
 import { usePlayfieldModel } from "./usePlayfieldModel"
+import { useEffect } from "react"
+import usePlayfieldReadyStore from "@/stores/usePlayfieldReadyStore"
 
 const PlayfieldScene = () => {
   const { nodes, animations } = usePlayfieldModel()
+
+  useEffect(() => {
+    usePlayfieldReadyStore.getState().setReady(true)
+    return () => {
+      usePlayfieldReadyStore.getState().setReady(false)
+    }
+  }, [])
+
   return (
     <>
       <StaticPlayfield nodes={nodes} />

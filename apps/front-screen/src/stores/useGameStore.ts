@@ -36,6 +36,7 @@ interface GameStore {
   pause: () => void
   resume: () => void
   setScore: (score: number) => void
+  resumeGame: (score: number) => void
   nextBall: () => void
   menuBack: () => void
   reset: () => void
@@ -121,6 +122,10 @@ const useGameStore = create<GameStore>()((set) => ({
 
   setScore: (score) => {
     set({ score })
+  },
+
+  resumeGame: (score) => {
+    set({ phase: "playing", score })
   },
 
   nextBall: () => {

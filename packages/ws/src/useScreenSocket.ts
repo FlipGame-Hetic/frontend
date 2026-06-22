@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import type { ConnectionStatus, ScreenEnvelope, ScreenId } from "@frontend/types"
-import { DEFAULT_SCREEN_HUB_URL, RECONNECT_DELAY_MS, resolveScreenHubUrl } from "./wsConfig"
+import { DEFAULT_SCREEN_HUB_URL, nextBackoffDelay, resolveScreenHubUrl } from "./wsConfig"
 import { redactToken, wsLog, wsWarn } from "./wsLog"
 
 export interface UseScreenSocketOptions {
@@ -27,6 +27,7 @@ export function useScreenSocket(options: UseScreenSocketOptions): UseScreenSocke
   const [status, setStatus] = useState<ConnectionStatus>("disconnected")
   const wsRef = useRef<WebSocket | null>(null)
   const reconnectTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const reconnectAttempt = useRef(0)
   const onMessageRef = useRef(options.onMessage)
 
   useEffect(() => {
@@ -70,6 +71,7 @@ export function useScreenSocket(options: UseScreenSocketOptions): UseScreenSocke
 
       ws.onopen = () => {
         if (disposed) return
+        reconnectAttempt.current = 0
         setStatus("connected")
         wsLog(scope, "OPEN ✓", wsUrl)
       }
@@ -89,11 +91,12 @@ export function useScreenSocket(options: UseScreenSocketOptions): UseScreenSocke
       ws.onclose = (event: CloseEvent) => {
         if (disposed) return
         setStatus("disconnected")
+        const delay = nextBackoffDelay(reconnectAttempt.current++)
         wsWarn(
           scope,
-          `CLOSED code=${String(event.code)} reason="${event.reason}" wasClean=${String(event.wasClean)} — reconnecting in ${String(RECONNECT_DELAY_MS)}ms`,
+          `CLOSED code=${String(event.code)} reason="${event.reason}" wasClean=${String(event.wasClean)} — reconnecting in ${String(delay)}ms`,
         )
-        reconnectTimer.current = setTimeout(connect, RECONNECT_DELAY_MS)
+        reconnectTimer.current = setTimeout(connect, delay)
       }
 
       ws.onerror = () => {

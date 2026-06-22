@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react"
 import type { GameMessage } from "@frontend/types"
 import { useGameSocket } from "@frontend/ws"
+import { ConnectionOverlay } from "@frontend/ui"
 import { StatusBar } from "@/components/StatusBar"
 import { TerminalLog } from "@/components/TerminalLog"
 import type { LogEntry } from "@/components/TerminalLog"
@@ -17,7 +18,7 @@ const isDebug = new URLSearchParams(window.location.search).has("debug")
 let nextId = 0
 
 function App() {
-  useScreenHubClient()
+  const hubStatus = useScreenHubClient()
   useKeyboardInput()
 
   const phase = useBackScreenStore((s) => s.phase)
@@ -63,6 +64,7 @@ function App() {
         </div>
         <PhaseSwitcher />
       </div>
+      <ConnectionOverlay status={hubStatus} />
     </div>
   )
 }

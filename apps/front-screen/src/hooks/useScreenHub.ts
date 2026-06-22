@@ -2,12 +2,20 @@ import { LEFT_KEYS, RIGHT_KEYS } from "@/components/flipperJoints/jointsConfig"
 import { PLUNGER_KEY } from "@/components/plunger/plungerConfig"
 import { pressKey, releaseKey, triggerPlungerMaxLaunch } from "@/stores/inputStore"
 import useGameStore from "@/stores/useGameStore"
+import usePlayfieldReadyStore from "@/stores/usePlayfieldReadyStore"
 import useScorePopupsStore from "@/stores/useScorePopupsStore"
 import useUltimateStore from "@/stores/useUltimateStore"
-import type { GameMode, ScreenEnvelope, ScreenEvent, StartGameEvent } from "@frontend/types"
+import type {
+  ConnectionStatus,
+  GameMode,
+  ScreenEnvelope,
+  ScreenEvent,
+  StartGameEvent,
+} from "@frontend/types"
 import { DEFAULT_CHARACTER, isScreenEvent, makeEnvelope } from "@frontend/types"
 import {
   broadcastEvent,
+  fetchGameState,
   registerScreenSender,
   sendEventTo,
   useScreenHub as useScreenHubBase,
@@ -116,6 +124,19 @@ const handleScreenEvent = (envelope: ScreenEnvelope): void => {
     return
   }
 
+  if (isScreenEvent(envelope, "RequestResync")) {
+    const { phase, score, ballNumber, currentPlayer } = useGameStore.getState()
+    broadcastEvent({
+      event_type: "phase_change",
+      payload: { phase, ball: ballNumber, player: currentPlayer, score },
+    })
+    broadcastEvent({
+      event_type: "ScoreUpdate",
+      payload: { score, player: currentPlayer, ball: ballNumber },
+    })
+    return
+  }
+
   if (isScreenEvent(envelope, "menu_back")) {
     menuBack()
     return
@@ -172,8 +193,8 @@ export const requestFrontScreenStartGame = (): void => {
   })
 }
 
-export const useScreenHub = (): void => {
-  const { send } = useScreenHubBase({
+export const useScreenHub = (): ConnectionStatus => {
+  const { send, status } = useScreenHubBase({
     screenId: SCREEN_ID,
     token: TOKEN,
     onEvent: handleScreenEvent,
@@ -182,6 +203,17 @@ export const useScreenHub = (): void => {
   useEffect(() => {
     registerScreenSender(SCREEN_ID, send)
   }, [send])
+
+  const playfieldReady = usePlayfieldReadyStore((s) => s.ready)
+
+  useEffect(() => {
+    if (status !== "connected" || !playfieldReady) return
+    void fetchGameState().then((snapshot) => {
+      if (snapshot?.phase !== "in_game") return
+      if (useGameStore.getState().phase === "playing") return
+      useGameStore.getState().resumeGame(snapshot.score)
+    })
+  }, [status, playfieldReady])
 
   useEffect(() => {
     const unsub = useGameStore.subscribe((state, prev) => {
@@ -218,4 +250,6 @@ export const useScreenHub = (): void => {
     })
     return unsub
   }, [send])
+
+  return status
 }

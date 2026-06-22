@@ -22,6 +22,7 @@
     "zustand": "^5.0.11",
     "@frontend/types": "workspace:*",
     "@frontend/utils": "workspace:*",
+    "@frontend/ui": "workspace:*",
     "@frontend/ws": "workspace:*"
   },
   "devDependencies": {

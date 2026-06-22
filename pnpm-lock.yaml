@@ -87,6 +87,9 @@ importers:
       '@frontend/types':
         specifier: workspace:*
         version: link:../../packages/types
+      '@frontend/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       '@frontend/utils':
         specifier: workspace:*
         version: link:../../packages/utils
@@ -124,6 +127,9 @@ importers:
       '@playwright/test':
         specifier: ^1.58.2
         version: 1.58.2
+      '@types/howler':
+        specifier: ^2.2.13
+        version: 2.2.13
       '@types/node':
         specifier: ^25.3.0
         version: 25.3.0
@@ -136,9 +142,6 @@ importers:
       '@types/three':
         specifier: ^0.183.1
         version: 0.183.1
-      '@types/howler':
-        specifier: ^2.2.13
-        version: 2.2.13
       '@vitejs/plugin-react':
         specifier: ^5.1.1
         version: 5.1.4(vite@7.3.1(@types/node@25.3.0)(jiti@2.7.0)(lightningcss@1.31.1)(yaml@2.9.0))
@@ -160,6 +163,9 @@ importers:
       '@frontend/types':
         specifier: workspace:*
         version: link:../../packages/types
+      '@frontend/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       '@frontend/ws':
         specifier: workspace:*
         version: link:../../packages/ws
@@ -215,6 +221,9 @@ importers:
       '@frontend/types':
         specifier: workspace:*
         version: link:../../packages/types
+      '@frontend/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       '@frontend/utils':
         specifier: workspace:*
         version: link:../../packages/utils
@@ -328,6 +337,9 @@ importers:
 
   packages/ui:
     dependencies:
+      '@frontend/types':
+        specifier: workspace:*
+        version: link:../types
       '@frontend/utils':
         specifier: workspace:*
         version: link:../utils
