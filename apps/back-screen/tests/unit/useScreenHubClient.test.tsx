@@ -46,8 +46,6 @@ describe("back-screen useScreenHubClient", () => {
     useScreenHubMock.mockReturnValue({
       status: "connected",
       send: sendMock,
-      broadcast: vi.fn(),
-      sendTo: vi.fn(),
     })
     useBackScreenStore.setState({
       phase: "playing",

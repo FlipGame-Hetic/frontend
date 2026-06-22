@@ -10,6 +10,8 @@ const { dmdCanvasMock, useScreenHubMock } = vi.hoisted(() => ({
 
 vi.mock("@frontend/ws", () => ({
   useScreenHub: useScreenHubMock,
+  registerScreenSender: vi.fn(),
+  sendEventTo: vi.fn(),
 }))
 
 vi.mock("@/dmd/DmdCanvas", () => ({
@@ -44,8 +46,6 @@ describe("dmd-screen App game over events", () => {
     useScreenHubMock.mockReturnValue({
       status: "connected",
       send: vi.fn(),
-      broadcast: vi.fn(),
-      sendTo: vi.fn(),
     })
   })
 

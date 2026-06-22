@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { useScreenHub } from "@frontend/ws"
+import { useScreenHub, registerScreenSender, sendEventTo } from "@frontend/ws"
 import { readScreenToken } from "@frontend/utils"
 import { ConnectionOverlay } from "@frontend/ui"
 import { isScreenEvent } from "@frontend/types"
@@ -123,12 +123,16 @@ function App() {
     [scenes],
   )
 
-  const { status, sendTo } = useScreenHub({ screenId: SCREEN_ID, token: TOKEN, onEvent })
+  const { status, send } = useScreenHub({ screenId: SCREEN_ID, token: TOKEN, onEvent })
+
+  useEffect(() => {
+    registerScreenSender(SCREEN_ID, send)
+  }, [send])
 
   useEffect(() => {
     if (status !== "connected") return
-    sendTo("front_screen", { event_type: "RequestResync", payload: {} })
-  }, [status, sendTo])
+    sendEventTo("front_screen", { event_type: "RequestResync", payload: {} })
+  }, [status])
 
   const effectivePhase = devPhase ?? phase
   const activeScene =

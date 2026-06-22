@@ -52,8 +52,6 @@ describe("front-screen useScreenHub", () => {
     useScreenHubBaseMock.mockReturnValue({
       status: "connected",
       send: sendMock,
-      broadcast: vi.fn(),
-      sendTo: vi.fn(),
     })
   })
 
