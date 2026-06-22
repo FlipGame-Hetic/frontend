@@ -6,7 +6,7 @@
  */
 import useBallStore from "@/stores/useBallStore"
 
-export const BOUNCE_DEBOUNCE_MS = 200
+const BOUNCE_DEBOUNCE_MS = 200
 
 const spawnTimers = new Set<ReturnType<typeof setTimeout>>()
 const lastBounceTimeByBall = new Map<string, number>()
