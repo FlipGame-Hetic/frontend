@@ -1,15 +1,7 @@
 import { useEffect, useRef, useState } from "react"
-import { runtimeEnvironment } from "@frontend/utils"
+import { ControlHint } from "../components/controls/ControlHint"
+import { MENU_CONTROLS } from "../components/controls/controlsConfig"
 import { CREDITS_SECTIONS, SCROLL_SPEED_PX_PER_SEC, START_DELAY_MS } from "./credits/creditsConfig"
-
-const circleBase =
-  "flex h-[26px] w-[26px] items-center justify-center rounded-full border border-white/45 bg-transparent font-mono text-[clamp(0.36rem,0.8vw,0.56rem)] font-bold tracking-wider text-white/70"
-const actionClassCabinet =
-  "font-mono text-[clamp(0.5rem,1.05vw,0.78rem)] tracking-[0.2em] text-[rgba(243,230,0,0.6)] uppercase"
-const chipClass =
-  "flex items-center rounded-sm border border-[rgba(85,234,212,0.4)] px-2 py-1 font-mono text-[clamp(0.4rem,0.85vw,0.6rem)] tracking-wider text-[rgba(85,234,212,0.85)]"
-const actionClass =
-  "font-mono text-[clamp(0.34rem,0.7vw,0.5rem)] tracking-[0.22em] text-[rgba(243,230,0,0.55)] uppercase"
 
 function FinalCreditsBlock({ className = "" }: { className?: string }) {
   return (
@@ -148,23 +140,13 @@ export default function CreditsScene() {
       </div>
 
       <div
-        className={`pointer-events-none absolute inset-0 z-10 flex items-center justify-center transition-opacity duration-[1600ms] ease-in ${
+        className={`pointer-events-none absolute inset-0 z-10 flex items-center justify-center transition-opacity duration-1600 ease-in ${
           ended ? "opacity-100" : "opacity-0"
         }`}
       ></div>
 
       <div className="absolute bottom-10 left-12 z-10">
-        {runtimeEnvironment.isProductionCabinet ? (
-          <div className="flex items-center gap-3">
-            <span className={circleBase}>L2</span>
-            <span className={actionClassCabinet}>RETOUR</span>
-          </div>
-        ) : (
-          <div className="flex items-center gap-3">
-            <span className={chipClass}>RETOUR ARR.</span>
-            <span className={actionClass}>RETOUR</span>
-          </div>
-        )}
+        <ControlHint control={MENU_CONTROLS.back} side="left" />
       </div>
     </div>
   )

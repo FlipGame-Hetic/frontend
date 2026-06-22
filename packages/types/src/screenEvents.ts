@@ -13,6 +13,7 @@ export const SCREEN_EVENT_TYPES = {
   MenuNext: "menu_next",
   MenuPrev: "menu_prev",
   MenuBack: "menu_back",
+  PlayfieldMusic: "playfield_music",
   UltimateTriggered: "UltimateTriggered",
   UltimateStopped: "UltimateStopped",
   BumperHit: "bumper_hit",
@@ -108,6 +109,11 @@ export interface MenuPrevEvent {
 export interface MenuBackEvent {
   event_type: "menu_back"
   payload: Record<string, never>
+}
+
+export interface PlayfieldMusicEvent {
+  event_type: "playfield_music"
+  payload: { playing: boolean }
 }
 
 export interface UltimateTriggeredEvent {
@@ -315,6 +321,7 @@ export type ScreenEvent =
   | MenuNextEvent
   | MenuPrevEvent
   | MenuBackEvent
+  | PlayfieldMusicEvent
   | UltimateTriggeredEvent
   | UltimateStoppedEvent
   | BumperHitEvent

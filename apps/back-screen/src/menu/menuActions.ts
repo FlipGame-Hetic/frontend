@@ -69,6 +69,7 @@ export function menuConfirm(): void {
       playNavigationForward()
       if (option.id === "credits") {
         setCreditsActive(true)
+        sendEventTo("front_screen", { event_type: "playfield_music", payload: { playing: false } })
         playCreditsMusic()
         break
       }
@@ -104,6 +105,7 @@ export function menuBack(): void {
   if (creditsActive) {
     playNavigationBackward()
     stopCreditsMusic()
+    sendEventTo("front_screen", { event_type: "playfield_music", payload: { playing: true } })
     setCreditsActive(false)
     return
   }
