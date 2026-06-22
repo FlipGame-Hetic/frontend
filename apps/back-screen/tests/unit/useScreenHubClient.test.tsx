@@ -1,8 +1,8 @@
-import { cleanup, render, act } from "@testing-library/react"
-import { beforeEach, describe, expect, it, vi } from "vitest"
-import type { ScreenEnvelope } from "@frontend/types"
 import { useScreenHubClient } from "@/hooks/useScreenHubClient"
 import { useBackScreenStore } from "@/stores/useBackScreenStore"
+import type { ScreenEnvelope } from "@frontend/types"
+import { act, cleanup, render } from "@testing-library/react"
+import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const { fetchLeaderboardMock, registerScreenSenderMock, sendMock, useScreenHubMock } = vi.hoisted(
   () => ({
@@ -10,12 +10,14 @@ const { fetchLeaderboardMock, registerScreenSenderMock, sendMock, useScreenHubMo
     registerScreenSenderMock: vi.fn(),
     sendMock: vi.fn(),
     useScreenHubMock: vi.fn(),
+    fetchGameStateMock: vi.fn(),
   }),
 )
 
 vi.mock("@frontend/ws", () => ({
   registerScreenSender: registerScreenSenderMock,
   useScreenHub: useScreenHubMock,
+  fetchGameState: fetchLeaderboardMock,
 }))
 
 vi.mock("@/api/leaderboard", () => ({

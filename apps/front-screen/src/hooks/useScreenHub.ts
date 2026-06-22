@@ -12,7 +12,7 @@ import type {
   ScreenEvent,
   StartGameEvent,
 } from "@frontend/types"
-import { DEFAULT_CHARACTER, isScreenEvent, makeEnvelope } from "@frontend/types"
+import { DEFAULT_CHARACTER, makeEnvelope } from "@frontend/types"
 import {
   broadcastEvent,
   fetchGameState,
@@ -39,32 +39,22 @@ const applyKeysState = (keys: string[], state: number): void => {
   keys.forEach(apply)
 }
 
-const handleScreenEvent = (envelope: ScreenEnvelope): void => {
-  wsLog("front-screen", `handleScreenEvent "${envelope.event_type}"`, envelope)
+type ScreenEventType = ScreenEvent["event_type"]
+type PayloadFor<K extends ScreenEventType> = Extract<ScreenEvent, { event_type: K }>["payload"]
+type ScreenEventHandler<K extends ScreenEventType> = (payload: PayloadFor<K>) => void
+type ScreenEventHandlers = { [K in ScreenEventType]?: ScreenEventHandler<K> }
 
-  const {
-    selectMode,
-    selectCharacter,
-    startGame,
-    endGame,
-    setPhase,
-    restartGame,
-    setScore,
-    menuBack,
-  } = useGameStore.getState()
+const handlers: ScreenEventHandlers = {
+  FlipperLeft: (payload) => {
+    applyKeysState(LEFT_KEYS, payload.state)
+  },
 
-  if (isScreenEvent(envelope, "FlipperLeft")) {
-    applyKeysState(LEFT_KEYS, envelope.payload.state)
-    return
-  }
+  FlipperRight: (payload) => {
+    applyKeysState(RIGHT_KEYS, payload.state)
+  },
 
-  if (isScreenEvent(envelope, "FlipperRight")) {
-    applyKeysState(RIGHT_KEYS, envelope.payload.state)
-    return
-  }
-
-  if (isScreenEvent(envelope, "PlungerCharge")) {
-    if (envelope.payload.state > 0) {
+  PlungerCharge: (payload) => {
+    if (payload.state > 0) {
       cabinetPlungerHeld = true
       pressKey(PLUNGER_KEY)
       return
@@ -77,54 +67,43 @@ const handleScreenEvent = (envelope: ScreenEnvelope): void => {
     }
 
     triggerPlungerMaxLaunch()
-    return
-  }
+  },
 
-  if (isScreenEvent(envelope, "ScoreUpdate")) {
-    const { score, ultimate_charge, ultimate_max, ulti_ready, next_ulti_id } = envelope.payload
-    setScore(score)
+  ScoreUpdate: (payload) => {
+    const { score, ultimate_charge, ultimate_max, ulti_ready, next_ulti_id } = payload
+    useGameStore.getState().setScore(score)
     useUltimateStore.getState().setChargeFromScore({
       ultimate_charge,
       ultimate_max,
       ulti_ready,
       next_ulti_id,
     })
-    return
-  }
+  },
 
-  if (isScreenEvent(envelope, "UltimateTriggered")) {
-    useUltimateStore.getState().onTriggered(envelope.payload)
-    return
-  }
+  UltimateTriggered: (payload) => {
+    useUltimateStore.getState().onTriggered(payload)
+  },
 
-  if (isScreenEvent(envelope, "UltimateStopped")) {
-    useUltimateStore.getState().onStopped(envelope.payload)
-    return
-  }
+  UltimateStopped: (payload) => {
+    useUltimateStore.getState().onStopped(payload)
+  },
 
-  if (envelope.event_type === "ScoreDelta") {
-    const payload = envelope.payload as {
-      delta: number
-      reason: string
-      total: number
-      ball_id?: string
-    }
+  ScoreDelta: (payload) => {
     if (payload.reason !== "timer_bonus") {
       useScorePopupsStore
         .getState()
         .spawnPopupFromDelta(payload.delta, payload.reason, payload.ball_id)
     }
-    setScore(payload.total)
-    return
-  }
+    useGameStore.getState().setScore(payload.total)
+  },
 
-  if (isScreenEvent(envelope, "GameOver")) {
-    setScore(envelope.payload.final_score)
+  GameOver: (payload) => {
+    const { setScore, endGame } = useGameStore.getState()
+    setScore(payload.final_score)
     endGame()
-    return
-  }
+  },
 
-  if (isScreenEvent(envelope, "RequestResync")) {
+  RequestResync: () => {
     const { phase, score, ballNumber, currentPlayer } = useGameStore.getState()
     broadcastEvent({
       event_type: "phase_change",
@@ -134,29 +113,29 @@ const handleScreenEvent = (envelope: ScreenEnvelope): void => {
       event_type: "ScoreUpdate",
       payload: { score, player: currentPlayer, ball: ballNumber },
     })
-    return
-  }
+  },
 
-  if (isScreenEvent(envelope, "menu_back")) {
-    menuBack()
-    return
-  }
-  if (isScreenEvent(envelope, "menu_confirm")) {
-    if (envelope.payload.context === "idle") setPhase("mode_select")
-    if (envelope.payload.context === "game_over") restartGame()
-    return
-  }
-  if (isScreenEvent(envelope, "mode_selected")) {
-    selectMode(envelope.payload.mode)
-    return
-  }
-  if (isScreenEvent(envelope, "character_selected")) {
-    selectCharacter(envelope.payload.player, envelope.payload.character)
-    return
-  }
-  if (isScreenEvent(envelope, "start_game")) {
-    startGame(envelope.payload)
-    const player = envelope.payload.players[0]
+  menu_back: () => {
+    useGameStore.getState().menuBack()
+  },
+
+  menu_confirm: (payload) => {
+    const { setPhase, restartGame } = useGameStore.getState()
+    if (payload.context === "idle") setPhase("mode_select")
+    if (payload.context === "game_over") restartGame()
+  },
+
+  mode_selected: (payload) => {
+    useGameStore.getState().selectMode(payload.mode)
+  },
+
+  character_selected: (payload) => {
+    useGameStore.getState().selectCharacter(payload.player, payload.character)
+  },
+
+  start_game: (payload) => {
+    useGameStore.getState().startGame(payload)
+    const player = payload.players[0]
     if (player) {
       broadcastEvent({
         event_type: "StartGame",
@@ -166,7 +145,16 @@ const handleScreenEvent = (envelope: ScreenEnvelope): void => {
         },
       })
     }
-  }
+  },
+}
+
+const handleScreenEvent = (envelope: ScreenEnvelope): void => {
+  wsLog("front-screen", `handleScreenEvent "${envelope.event_type}"`, envelope)
+
+  const handler = handlers[envelope.event_type as ScreenEventType] as
+    | ((payload: unknown) => void)
+    | undefined
+  handler?.(envelope.payload)
 }
 
 const getStartGamePayload = (): StartGameEvent["payload"] => {
