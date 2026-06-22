@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { getRuntimeEnvironmentFlags } from "@/config/runtimeEnvironment"
+import { getRuntimeEnvironmentFlags } from "../src/env"
 
 describe("runtimeEnvironment", () => {
   it("treats local as non-production browser runtime", () => {

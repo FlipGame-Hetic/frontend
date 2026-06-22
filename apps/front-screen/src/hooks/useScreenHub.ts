@@ -13,6 +13,7 @@ import type {
   StartGameEvent,
 } from "@frontend/types"
 import { DEFAULT_CHARACTER, makeEnvelope } from "@frontend/types"
+import { readScreenToken } from "@frontend/utils"
 import {
   broadcastEvent,
   fetchGameState,
@@ -26,11 +27,7 @@ import { useEffect } from "react"
 const SCREEN_ID = "front_screen" as const
 const DEFAULT_START_MODE: GameMode = "solo"
 
-const TOKEN =
-  (globalThis as unknown as Record<string, Record<string, string> | undefined>).__ENV__
-    ?.VITE_SCREEN_TOKEN ??
-  (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_SCREEN_TOKEN ??
-  ""
+const TOKEN = readScreenToken()
 
 let cabinetPlungerHeld = false
 

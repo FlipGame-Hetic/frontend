@@ -1,6 +1,6 @@
 import { button, useControls } from "leva"
 import { useEffect, useRef, type ReactNode } from "react"
-import { runtimeEnvironment } from "@/config/runtimeEnvironment"
+import { runtimeEnvironment } from "@frontend/utils"
 import { requestFrontScreenStartGame } from "@/hooks/useScreenHub"
 import useMultiballStore from "@/stores/useMultiballStore"
 import useBallStore from "@/stores/useBallStore"

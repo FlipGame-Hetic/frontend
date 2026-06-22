@@ -1,3 +1,16 @@
+type RuntimeEnvRecord = Record<string, string | undefined>
+
+const readRuntimeRecord = (): RuntimeEnvRecord =>
+  (globalThis as unknown as { __ENV__?: RuntimeEnvRecord }).__ENV__ ?? {}
+
+const readBuildRecord = (): RuntimeEnvRecord =>
+  (import.meta as unknown as { env?: RuntimeEnvRecord }).env ?? {}
+
+export const readRuntimeEnv = (key: string): string | undefined =>
+  readRuntimeRecord()[key] ?? readBuildRecord()[key]
+
+export const readScreenToken = (): string => readRuntimeEnv("VITE_SCREEN_TOKEN") ?? ""
+
 export interface RuntimeEnvironmentFlags {
   environment: string
   isLocal: boolean
@@ -6,11 +19,7 @@ export interface RuntimeEnvironmentFlags {
   isProductionCabinet: boolean
 }
 
-const readEnvironment = (): string => {
-  const runtimeEnv = (globalThis as unknown as Record<string, Record<string, string> | undefined>)
-    .__ENV__
-  return runtimeEnv?.VITE_ENVIRONMENT?.trim() ?? import.meta.env.VITE_ENVIRONMENT?.trim() ?? "local"
-}
+const readEnvironment = (): string => readRuntimeEnv("VITE_ENVIRONMENT")?.trim() ?? "local"
 
 export const getRuntimeEnvironmentFlags = (
   environment = readEnvironment(),

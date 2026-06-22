@@ -1,6 +1,6 @@
 import { Html } from "@react-three/drei"
 import { useEffect, useState, type CSSProperties } from "react"
-import { runtimeEnvironment } from "@/config/runtimeEnvironment"
+import { runtimeEnvironment } from "@frontend/utils"
 import { CHARACTER_OPTIONS, DEFAULT_CHARACTER } from "@frontend/types"
 import type { CharacterConfig, CharacterType } from "@frontend/types"
 import useGameStore from "@/stores/useGameStore"

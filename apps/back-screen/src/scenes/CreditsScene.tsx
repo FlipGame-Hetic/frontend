@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { runtimeEnvironment } from "@/config/runtimeEnvironment"
+import { runtimeEnvironment } from "@frontend/utils"
 import { CREDITS_SECTIONS, SCROLL_SPEED_PX_PER_SEC, START_DELAY_MS } from "./credits/creditsConfig"
 
 const circleBase =

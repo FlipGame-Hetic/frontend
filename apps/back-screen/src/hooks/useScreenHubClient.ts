@@ -1,5 +1,6 @@
 import { useEffect } from "react"
 import { useScreenHub, registerScreenSender, fetchGameState } from "@frontend/ws"
+import { readScreenToken } from "@frontend/utils"
 import { isScreenEvent, mapEnginePhaseToGamePhase } from "@frontend/types"
 import type { ConnectionStatus, ScreenEnvelope } from "@frontend/types"
 import { useBackScreenStore } from "@/stores/useBackScreenStore"
@@ -7,11 +8,7 @@ import { fetchLeaderboard } from "@/api/leaderboard"
 import { handleMenuButton } from "@/menu/menuActions"
 
 const SCREEN_ID = "back_screen" as const
-const TOKEN =
-  (globalThis as unknown as Record<string, Record<string, string> | undefined>).__ENV__
-    ?.VITE_SCREEN_TOKEN ??
-  (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_SCREEN_TOKEN ??
-  ""
+const TOKEN = readScreenToken()
 
 export function useScreenHubClient(): ConnectionStatus {
   const setPhase = useBackScreenStore((s) => s.setPhase)

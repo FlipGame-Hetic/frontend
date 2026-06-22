@@ -1,3 +1,4 @@
+import { readRuntimeEnv } from "@frontend/utils"
 import { wsLog, wsWarn } from "./wsLog"
 
 const RECONNECT_BASE_MS = 1000
@@ -14,15 +15,8 @@ const GAME_WS_PATH = "/ws/bridge"
 const LOOPBACK_HOSTNAMES = new Set(["localhost", "127.0.0.1", "::1"])
 
 type WsEnvKey = "VITE_WS_URL" | "VITE_SCREEN_HUB_URL" | "VITE_API_URL"
-type WsEnv = Partial<Record<WsEnvKey, string>>
 
 type RuntimeLocation = Pick<Location, "hostname" | "protocol">
-
-const readEnv = (): WsEnv => {
-  const buildEnv = (import.meta as unknown as { env?: WsEnv }).env ?? {}
-  const runtimeEnv = ((globalThis as Record<string, unknown>).__ENV__ as WsEnv | undefined) ?? {}
-  return { ...buildEnv, ...runtimeEnv }
-}
 
 const readLocation = (): RuntimeLocation | undefined => {
   return (globalThis as typeof globalThis & { location?: RuntimeLocation }).location
@@ -94,8 +88,7 @@ const resolveUrl = (key: WsEnvKey, fallback: () => string, override?: string): s
     return overrideUrl
   }
 
-  const env = readEnv()
-  const envUrl = cleanUrl(env[key])
+  const envUrl = cleanUrl(readRuntimeEnv(key))
 
   if (envUrl && shouldUseConfiguredUrl(envUrl)) {
     wsLog("config", `resolved ${key} from ENV`, envUrl)

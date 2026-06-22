@@ -1,4 +1,4 @@
-import { runtimeEnvironment } from "@/config/runtimeEnvironment"
+import { runtimeEnvironment } from "@frontend/utils"
 import { ConnectionOverlay } from "@frontend/ui"
 import DebugProvider from "@/debug/DebugProvider"
 import type { CameraProps } from "@react-three/fiber"

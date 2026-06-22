@@ -1,4 +1,4 @@
-import { runtimeEnvironment } from "@/config/runtimeEnvironment"
+import { runtimeEnvironment } from "@frontend/utils"
 
 const CABINET_LEFT = [
   { token: "L1", action: "NAVIGUER", filled: true },

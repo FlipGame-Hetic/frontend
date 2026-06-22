@@ -2,7 +2,7 @@ import { Html } from "@react-three/drei"
 import { useFrame } from "@react-three/fiber"
 import { useRef, useState, type CSSProperties, type ReactNode } from "react"
 import { CHARACTER_OPTIONS, DEFAULT_CHARACTER } from "@frontend/types"
-import { runtimeEnvironment } from "@/config/runtimeEnvironment"
+import { runtimeEnvironment } from "@frontend/utils"
 import {
   CONTROL_HINTS_CONFIG,
   CONTROL_HINT_LABELS,

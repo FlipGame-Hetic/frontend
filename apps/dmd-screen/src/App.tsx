@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useScreenHub } from "@frontend/ws"
+import { readScreenToken } from "@frontend/utils"
 import { ConnectionOverlay } from "@frontend/ui"
 import { isScreenEvent } from "@frontend/types"
 import type { ScreenEnvelope, GamePhase } from "@frontend/types"
@@ -18,11 +19,7 @@ import { parseComboSequence } from "@/dmd/scenes/comboPayload"
 import { DevOverlay } from "@/components/DevOverlay"
 
 const SCREEN_ID = "dmd_screen" as const
-const TOKEN =
-  (globalThis as unknown as Record<string, Record<string, string> | undefined>).__ENV__
-    ?.VITE_SCREEN_TOKEN ??
-  (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_SCREEN_TOKEN ??
-  ""
+const TOKEN = readScreenToken()
 
 const COMBO_FLASH_MS = 1800
 
