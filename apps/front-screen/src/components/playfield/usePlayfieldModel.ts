@@ -40,6 +40,10 @@ interface ClassificationRule {
   matches: (name: string) => boolean
 }
 
+const isDecorativeFlipperArm = (name: string): boolean => {
+  return name === "l_flipper_arm" || name === "r_flipper_arm"
+}
+
 const CLASSIFICATION_RULES: ClassificationRule[] = [
   { bucket: "animatedGroups", matches: (name) => name === "globe" },
   { bucket: "bonusZone", matches: (name) => name === "central_bonus_zone_inter" },
@@ -53,9 +57,12 @@ const CLASSIFICATION_RULES: ClassificationRule[] = [
   { bucket: "ballSavers", matches: (name) => name.includes("_ball_saver") },
   { bucket: "rails", matches: (name) => name === "l_rail" || name === "r_rail" },
   { bucket: "overhead", matches: (name) => name.includes("rail") || name.includes("tunnel") },
+  { bucket: "cabinet", matches: isDecorativeFlipperArm },
   {
     bucket: "flippers",
-    matches: (name) => name.startsWith("l_flipper") || name.startsWith("r_flipper"),
+    matches: (name) =>
+      (name.startsWith("l_flipper") || name.startsWith("r_flipper")) &&
+      !isDecorativeFlipperArm(name),
   },
   { bucket: "lockedBall", matches: (name) => name === "locked_ball" },
   { bucket: "slimBumpers", matches: (name) => name.includes("_bumper_slim") },
@@ -68,7 +75,6 @@ const CLASSIFICATION_RULES: ClassificationRule[] = [
   { bucket: "slingshots", matches: (name) => name.includes("_slingshot_module") },
   { bucket: "targets", matches: (name) => name.includes("_target_") },
   { bucket: "playfield", matches: (name) => name.endsWith("_shape") || name.endsWith("_zone") },
-  { bucket: "cabinet", matches: (name) => name === "l_flipper_arm" || name === "r_flipper_arm" },
 ]
 
 export const classifyMesh = (name: string): keyof PlayfieldNodes | null => {

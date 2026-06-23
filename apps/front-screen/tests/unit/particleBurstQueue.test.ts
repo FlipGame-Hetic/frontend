@@ -5,7 +5,7 @@ import {
   emitParticleBurst,
   getParticleBurstQueueSize,
   type QueuedParticleBurst,
-} from "@/components/vfx/particleBurstQueue"
+} from "@/components/vfx/particles/particleBurstQueue"
 
 describe("particleBurstQueue", () => {
   beforeEach(() => {

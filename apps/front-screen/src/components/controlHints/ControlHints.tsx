@@ -8,7 +8,7 @@ import {
   CONTROL_HINT_LABELS,
   type ControlHintPlacement,
 } from "@/config/controlHintsConfig"
-import { LEFT_KEYS, RIGHT_KEYS } from "@/components/flipperJoints/jointsConfig"
+import { LEFT_KEYS, RIGHT_KEYS } from "@/components/flippers/flipperConfig"
 import { PLUNGER_KEY } from "@/components/plunger/plungerConfig"
 import { getPressedKeys } from "@/input/inputState"
 import useGameStore from "@/stores/useGameStore"

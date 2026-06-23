@@ -11,7 +11,7 @@ import {
   createPlungerSimState,
   type PlungerSimInput,
   type PlungerSimState,
-} from "@/components/plunger/plungerSimulationRuntime"
+} from "@/components/plunger/simulation/plungerSimulationRuntime"
 
 const makeInput = (overrides: Partial<PlungerSimInput> = {}): PlungerSimInput => ({
   dt: 0,

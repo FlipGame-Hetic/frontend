@@ -1,5 +1,8 @@
-import { getAnyBallPosition, getBallPosition } from "@/components/balls/ballPositionRegistry"
-import { getCurrentBallColor } from "@/components/balls/ballUserData"
+import {
+  getAnyBallPosition,
+  getBallPosition,
+} from "@/components/balls/runtime/ballPositionRegistry"
+import { getCurrentBallColor } from "@/components/balls/runtime/ballUserData"
 import { create } from "zustand"
 
 interface Position {

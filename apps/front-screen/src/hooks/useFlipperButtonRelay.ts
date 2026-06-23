@@ -1,5 +1,5 @@
 import { broadcastEvent } from "@frontend/ws"
-import { LEFT_KEYS, RIGHT_KEYS } from "@/components/flipperJoints/jointsConfig"
+import { LEFT_KEYS, RIGHT_KEYS } from "@/components/flippers/flipperConfig"
 import useKeyBinding from "@/hooks/useKeyBinding"
 import useBallStore from "@/stores/useBallStore"
 

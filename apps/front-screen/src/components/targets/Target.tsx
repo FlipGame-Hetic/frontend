@@ -7,9 +7,9 @@ import { Box3, MathUtils, Quaternion, Vector3, type Mesh } from "three"
 import { cloneWithWorldOrientation } from "../playfield/usePlayfieldModel"
 import useScreenShakeStore from "@/stores/useScreenShakeStore"
 import { SHAKE_INTENSITY } from "@/components/screenShake/screenShakeConfig"
-import { emitParticleBurst } from "../vfx/particleBurstQueue"
+import { emitParticleBurst } from "../vfx/particles/particleBurstQueue"
 import { easeOutCubic } from "@/utils/easing"
-import { setBodyCollidersEnabled } from "../physics/rigidBodyColliders"
+import { setBodyCollidersEnabled } from "../physics/collision/rigidBodyColliders"
 
 interface TargetProps {
   mesh: Mesh

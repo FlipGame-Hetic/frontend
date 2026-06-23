@@ -14,7 +14,7 @@ import {
   MULTIBALL_BALL_COUNT,
   MULTIBALL_SPAWN_POSITION1,
   MULTIBALL_SPAWN_POSITION2,
-} from "@/components/playfield/bonusZoneConfig"
+} from "@/components/bonusZone/bonusZoneConfig"
 import { DebugContext, type DebugControls } from "@/debug/debugContext"
 import { getDebugBallId } from "@/debug/getDebugBallId"
 

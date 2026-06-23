@@ -1,12 +1,12 @@
-import GlbAnimatedGroups from "./GlbAnimatedGroups"
-import GlbBallSaversManager from "./GlbBallSaversManager"
-import GlbBumpersManager from "./GlbBumpersManager"
-import GlbFlippers from "./GlbFlippers"
-import GlbPlunger from "./GlbPlunger"
-import GlbSlimBumpersManager from "./GlbSlimBumpersManager"
-import GlbSlingshotsManager from "./GlbSlingshotsManager"
-import GlbTargetsManager from "./GlbTargetsManager"
-import MultiballGate from "./MultiballGate"
+import BallSaversManager from "../ballSavers/BallSaversManager"
+import BumpersManager from "../bumpers/BumpersManager"
+import SlimBumpersManager from "../bumpers/SlimBumpersManager"
+import AnimatedGroups from "./decorations/AnimatedGroups"
+import FlippersManager from "../flippers/FlippersManager"
+import MultiballGate from "../bonusZone/multiballGate/MultiballGate"
+import PlungerManager from "../plunger/PlungerManager"
+import SlingshotsManager from "../slingshots/SlingshotsManager"
+import TargetsManager from "../targets/TargetsManager"
 import StaticPlayfield from "./StaticPlayfield"
 import { usePlayfieldModel } from "./usePlayfieldModel"
 import { useEffect } from "react"
@@ -25,15 +25,15 @@ const PlayfieldScene = () => {
   return (
     <>
       <StaticPlayfield nodes={nodes} />
-      <GlbAnimatedGroups nodes={nodes} animations={animations} />
+      <AnimatedGroups nodes={nodes} animations={animations} />
       <MultiballGate nodes={nodes} />
-      <GlbBumpersManager nodes={nodes} />
-      <GlbSlimBumpersManager nodes={nodes} />
-      <GlbSlingshotsManager nodes={nodes} />
-      <GlbFlippers nodes={nodes} />
-      <GlbTargetsManager nodes={nodes} />
-      <GlbBallSaversManager nodes={nodes} />
-      <GlbPlunger nodes={nodes} />
+      <BumpersManager nodes={nodes} />
+      <SlimBumpersManager nodes={nodes} />
+      <SlingshotsManager nodes={nodes} />
+      <FlippersManager nodes={nodes} />
+      <TargetsManager nodes={nodes} />
+      <BallSaversManager nodes={nodes} />
+      <PlungerManager nodes={nodes} />
     </>
   )
 }

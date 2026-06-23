@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest"
 import {
   PlungerParticlePool,
   type PlungerParticleFrame,
-} from "@/components/plunger/plungerParticlePool"
+} from "@/components/plunger/effects/plungerParticlePool"
 
 const frame: PlungerParticleFrame = {
   front: { x: 0, y: 0, z: 0 },

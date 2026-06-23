@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest"
 import {
   applyMassScaledImpulse,
   readBouncerBallCollision,
-} from "@/components/physics/bouncerCollision"
+} from "@/components/physics/collision/bouncerCollision"
 
 const makeBody = (position: { x: number; y: number; z: number }, mass = 1) => ({
   translation: () => position,

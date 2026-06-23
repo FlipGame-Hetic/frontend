@@ -1,14 +1,14 @@
 import { useCallback, useMemo } from "react"
 import type { CollisionPayload } from "@react-three/rapier"
 import { CuboidCollider, RigidBody } from "@react-three/rapier"
-import { RAIL_COLLISION_GROUPS } from "./railCollisionGroups"
-import { getBallId } from "@/components/balls/ballUserData"
+import { RAIL_COLLISION_GROUPS } from "../rails/railCollisionGroups"
+import { getBallId } from "@/components/balls/runtime/ballUserData"
 import { cloneAtWorldTransform, type PlayfieldNodes } from "./usePlayfieldModel"
-import { enterRail, exitRailNow } from "./railState"
-import { RAIL_ENTRY_SENSORS, RAIL_EXIT_SENSORS, type RailSensorConfig } from "./railConfig"
-import { createBonusZoneHitTester } from "./bonusZoneHitTest"
-import { BONUS_ZONE_RESTITUTION } from "./bonusZoneConfig"
-import { useBonusZoneHitRegistrar } from "./bonusZoneHits"
+import { enterRail, exitRailNow } from "../rails/railState"
+import { RAIL_ENTRY_SENSORS, RAIL_EXIT_SENSORS, type RailSensorConfig } from "../rails/railConfig"
+import { createBonusZoneHitTester } from "../bonusZone/bonusZoneHitTest"
+import { BONUS_ZONE_RESTITUTION } from "../bonusZone/bonusZoneConfig"
+import { useBonusZoneHitRegistrar } from "../bonusZone/bonusZoneHits"
 
 const getBallIdFromPayload = ({ other }: CollisionPayload): string | undefined => {
   if (other.rigidBodyObject?.name !== "ball") return undefined

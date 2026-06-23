@@ -6,9 +6,9 @@ import type { CollisionPayload } from "@react-three/rapier"
 import { CuboidCollider, RigidBody } from "@react-three/rapier"
 import { useControls } from "leva"
 import { useCallback, useEffect, useRef } from "react"
-import { hasBallId } from "@/components/balls/ballUserData"
-import { triggerBallFade } from "@/components/balls/ballFadeRegistry"
-import { TRAIL_FADE_DURATION } from "@/components/balls/ballTrailConfig"
+import { hasBallId } from "@/components/balls/runtime/ballUserData"
+import { triggerBallFade } from "@/components/balls/runtime/ballFadeRegistry"
+import { TRAIL_FADE_DURATION } from "@/components/balls/trail/ballTrailConfig"
 import {
   DRAIN_RESPAWN_DELAY_MS,
   DRAIN_SENSOR_HALF_EXTENTS,

@@ -4,17 +4,17 @@ import { runtimeEnvironment } from "@frontend/utils"
 import type { CameraProps } from "@react-three/fiber"
 import { Leva } from "leva"
 import { Suspense, useEffect } from "react"
-import ReactiveAmbientLight from "./components/audioReactive/ReactiveAmbientLight"
+import SceneAmbientLight from "./components/light/SceneAmbientLight"
 import BallsManager from "./components/balls/BallsManager"
 import CabinetCamera from "./components/CabinetCamera"
 import ControlHints from "./components/controlHints/ControlHints"
 import DebugCamera from "./components/DebugCamera"
 import Drain from "./components/drain/Drain"
 import TronGridFloor from "./components/environment/TronGridFloor"
-import InvisibleWallsManager from "./components/physics/InvisibleWallsManager"
+import InvisibleWallsManager from "./components/physics/walls/InvisibleWallsManager"
 import PhysicsManager from "./components/physics/PhysicsManager"
 import PlayfieldScene from "./components/playfield/PlayfieldScene"
-import TopTunnelAssistManager from "./components/playfield/TopTunnelAssistManager"
+import TopTunnelAssistManager from "./components/topTunnelAssist/TopTunnelAssistManager"
 import PlungerLaneGate from "./components/plunger/PlungerLaneGate"
 import PortalsManager from "./components/portal/PortalsManager"
 import ScorePopupsManager from "./components/scorePopups/ScorePopupsManager"
@@ -58,7 +58,7 @@ const App = () => {
         collapsed
       />
       <World cameraSettings={cameraSettings as CameraProps}>
-        <ReactiveAmbientLight />
+        <SceneAmbientLight />
         <directionalLight
           position={[0, 13, 12]}
           intensity={0.8}

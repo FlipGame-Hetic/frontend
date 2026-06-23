@@ -7,9 +7,9 @@ import type { RapierRigidBody } from "@react-three/rapier"
 import { RigidBody, type CollisionEnterPayload } from "@react-three/rapier"
 import { useCallback, useRef } from "react"
 import type { Group, Mesh } from "three"
-import { createStuckBallTracker } from "../physics/stuckBallTracker"
+import { createStuckBallTracker } from "../physics/collision/stuckBallTracker"
 import { applyBumperImpulse, shouldSkipBumperHit } from "./bumperCollision"
-import { readBouncerBallCollision } from "../physics/bouncerCollision"
+import { readBouncerBallCollision } from "../physics/collision/bouncerCollision"
 import {
   BUMPER_SCALE_FACTOR,
   BUMPER_SIZE_ARGS,
@@ -22,7 +22,7 @@ import {
 import { BALL_MIN_NORMAL_SPEED, BALL_MAX_NORMAL_SPEED } from "../balls/ballConfig"
 import useScreenShakeStore from "@/stores/useScreenShakeStore"
 import { SHAKE_INTENSITY } from "@/components/screenShake/screenShakeConfig"
-import { emitParticleBurst } from "../vfx/particleBurstQueue"
+import { emitParticleBurst } from "../vfx/particles/particleBurstQueue"
 
 interface BumperProps {
   position: PositionType

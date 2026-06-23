@@ -3,7 +3,7 @@ import useKeyboard from "@/hooks/useKeyboard"
 import { CuboidCollider, RigidBody } from "@react-three/rapier"
 import { useMemo } from "react"
 import { Vector3 } from "three"
-import PlungerBeam from "./PlungerBeam"
+import PlungerBeam from "./effects/PlungerBeam"
 import {
   PLUNGER_LANE_FRICTION,
   PLUNGER_POSITION,
@@ -13,11 +13,11 @@ import {
   PLUNGER_SPRING_SPACING,
   PLUNGER_SPRING_TORUS_COUNT,
 } from "./plungerConfig"
-import PlungerEnergyRings from "./PlungerEnergyRings"
-import PlungerNeonTip from "./PlungerNeonTip"
-import PlungerParticles from "./PlungerParticles"
-import PlungerShockwave from "./PlungerShockwave"
-import { type PlungerMeshPart, usePlungerSimulation } from "./usePlungerSimulation"
+import PlungerEnergyRings from "./effects/PlungerEnergyRings"
+import PlungerNeonTip from "./effects/PlungerNeonTip"
+import PlungerParticles from "./effects/PlungerParticles"
+import PlungerShockwave from "./effects/PlungerShockwave"
+import { type PlungerMeshPart, usePlungerSimulation } from "./simulation/usePlungerSimulation"
 
 export type { PlungerMeshPart }
 

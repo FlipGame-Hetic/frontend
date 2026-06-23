@@ -12,8 +12,11 @@ import {
 } from "@react-three/rapier"
 import { useCallback, useMemo, useRef } from "react"
 import type { Group, Mesh } from "three"
-import { createStuckBallTracker } from "../physics/stuckBallTracker"
-import { applyMassScaledImpulse, readBouncerBallCollision } from "../physics/bouncerCollision"
+import { createStuckBallTracker } from "../physics/collision/stuckBallTracker"
+import {
+  applyMassScaledImpulse,
+  readBouncerBallCollision,
+} from "../physics/collision/bouncerCollision"
 import {
   SLINGSHOT_ACTIVE_FACE_POINTS,
   SLINGSHOT_FACE_HEIGHT,
@@ -30,7 +33,7 @@ import {
 } from "./slingshotConfig"
 import useScreenShakeStore from "@/stores/useScreenShakeStore"
 import { SHAKE_INTENSITY } from "@/components/screenShake/screenShakeConfig"
-import { emitParticleBurst } from "../vfx/particleBurstQueue"
+import { emitParticleBurst } from "../vfx/particles/particleBurstQueue"
 
 interface SlingshotProps {
   position: PositionType

@@ -9,7 +9,7 @@ import type { CollisionPayload } from "@react-three/rapier"
 import { CuboidCollider, RigidBody } from "@react-three/rapier"
 import { useCallback } from "react"
 import { Vector3 } from "three"
-import { getBallId } from "@/components/balls/ballUserData"
+import { getBallId } from "@/components/balls/runtime/ballUserData"
 import {
   PORTAL_A_POSITION,
   PORTAL_A_ROTATION,

@@ -8,7 +8,7 @@ import useKeyBinding from "@/hooks/useKeyBinding"
 import { useControls, button } from "leva"
 import { useCallback, useEffect, useRef, useState } from "react"
 import Ball from "./Ball"
-import BallSpawnPreview from "./BallSpawnPreview"
+import BallSpawnPreview from "./preview/BallSpawnPreview"
 import {
   DEFAULT_BALL_SPAWN,
   BALL_MASS,

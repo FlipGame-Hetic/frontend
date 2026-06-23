@@ -1,4 +1,4 @@
-import BallTrail from "./BallTrail"
+import BallTrail from "./trail/BallTrail"
 import useBallStore from "@/stores/useBallStore"
 import usePortalTraversalStore from "@/stores/usePortalTraversalStore"
 import { isPointInPlungerLaneSensor } from "@/components/plunger/plungerConfig"
@@ -8,10 +8,10 @@ import type { RapierRigidBody } from "@react-three/rapier"
 import { BallCollider, RigidBody, useAfterPhysicsStep, useRapier } from "@react-three/rapier"
 import { useEffect, useRef } from "react"
 import { DRAIN_SAFETY_FALLBACK_Y } from "../drain/drainConfig"
-import { registerBallFade, unregisterBallFade } from "./ballFadeRegistry"
-import { registerBallBody, unregisterBallBody } from "./ballBodyRegistry"
-import { removeBallPosition, setBallPosition } from "./ballPositionRegistry"
-import useBallMaterial from "./useBallMaterial"
+import { registerBallFade, unregisterBallFade } from "./runtime/ballFadeRegistry"
+import { registerBallBody, unregisterBallBody } from "./runtime/ballBodyRegistry"
+import { removeBallPosition, setBallPosition } from "./runtime/ballPositionRegistry"
+import useBallMaterial from "./material/useBallMaterial"
 import {
   clampVelocityToPlayfield,
   clampNormalToPlayfield,
@@ -19,21 +19,21 @@ import {
   PLAYFIELD_DOWN,
   PLAYFIELD_UNIT_NORMAL,
 } from "../physics/playfieldPlane"
-import { isPointInSnapExemptZone } from "../physics/snapExemptZones"
+import { isPointInSnapExemptZone } from "../physics/snap/snapExemptZones"
 import {
   BALL_COLLISION_GROUPS_WITH_RAILS,
   BALL_COLLISION_GROUPS_IGNORE_RAILS,
-} from "../playfield/railCollisionGroups"
-import { isOnRail, cleanupRailBall } from "../playfield/railState"
+} from "../rails/railCollisionGroups"
+import { isOnRail, cleanupRailBall } from "../rails/railState"
 import {
   RAIL_BASE_ACCEL,
   RAIL_BOOST_PER_SECOND,
   RAIL_MAX_ACCEL,
   RAIL_MIN_VEL,
-} from "../playfield/railConfig"
+} from "../rails/railConfig"
 import { cleanupPortalBall } from "../portal/portalTraversalState"
 import { BALL_RADIUS, BALL_SNAP_MAX_GAP, BALL_SNAP_EPSILON } from "./ballConfig"
-import { TRAIL_MULTIBALL_POINTS, TRAIL_POINTS } from "./ballTrailConfig"
+import { TRAIL_MULTIBALL_POINTS, TRAIL_POINTS } from "./trail/ballTrailConfig"
 
 interface BallProps {
   id: string

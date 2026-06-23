@@ -11,11 +11,11 @@ import {
 } from "@react-three/rapier"
 import { useCallback, useEffect, useMemo, useRef } from "react"
 import { Box3, MathUtils, type Mesh, Vector3 } from "three"
-import { hasBallId } from "@/components/balls/ballUserData"
+import { hasBallId } from "@/components/balls/runtime/ballUserData"
 import useBallStore from "@/stores/useBallStore"
 import useBallSaverPhaseStore from "@/stores/useBallSaverPhaseStore"
 import { cloneWithWorldOrientation } from "../playfield/usePlayfieldModel"
-import { setBodyCollidersEnabled } from "../physics/rigidBodyColliders"
+import { setBodyCollidersEnabled } from "../physics/collision/rigidBodyColliders"
 import { easeOutCubic } from "@/utils/easing"
 import {
   areBallSaverTargetsDown,

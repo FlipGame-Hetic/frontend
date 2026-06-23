@@ -1,4 +1,4 @@
-import { getBallId } from "@/components/balls/ballUserData"
+import { getBallId } from "@/components/balls/runtime/ballUserData"
 import useBallStore from "@/stores/useBallStore"
 import { useFrame } from "@react-three/fiber"
 import type { CollisionPayload, RapierRigidBody } from "@react-three/rapier"

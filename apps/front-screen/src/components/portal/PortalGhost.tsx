@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react"
 import type { Group } from "three"
 import { BALL_RADIUS } from "../balls/ballConfig"
-import useBallMaterial from "../balls/useBallMaterial"
+import useBallMaterial from "../balls/material/useBallMaterial"
 import { getPortalFrontFacePosition, oppositePortal } from "./portalConfig"
 import { getTraversal, registerGhostRef, unregisterGhostRef } from "./portalTraversalState"
 

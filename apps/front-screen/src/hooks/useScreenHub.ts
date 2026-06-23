@@ -1,4 +1,4 @@
-import { LEFT_KEYS, RIGHT_KEYS } from "@/components/flipperJoints/jointsConfig"
+import { LEFT_KEYS, RIGHT_KEYS } from "@/components/flippers/flipperConfig"
 import { PLUNGER_KEY } from "@/components/plunger/plungerConfig"
 import { setMusicSuspended } from "@/audio/soundEngine"
 import { pressKey, releaseKey, triggerPlungerMaxLaunch } from "@/input/inputState"

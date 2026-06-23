@@ -1,7 +1,7 @@
 import { cleanup, render, act } from "@testing-library/react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import type { ScreenEnvelope } from "@frontend/types"
-import { LEFT_KEYS, RIGHT_KEYS } from "@/components/flipperJoints/jointsConfig"
+import { LEFT_KEYS, RIGHT_KEYS } from "@/components/flippers/flipperConfig"
 import { PLUNGER_KEY } from "@/components/plunger/plungerConfig"
 import { getPlungerInputSnapshot, getPressedKeys, releaseKey } from "@/input/inputState"
 import useGameStore from "@/stores/useGameStore"

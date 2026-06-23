@@ -2,9 +2,9 @@ import { useCurrentBallColor } from "@/config/characterConfig"
 import { useFrame } from "@react-three/fiber"
 import { useCallback, useMemo } from "react"
 import { BufferAttribute, BufferGeometry, DynamicDrawUsage } from "three"
-import { consumeParticleBursts, type QueuedParticleBurst } from "./particleBurstQueue"
-import { ParticleBurstPool } from "./particleBurstPool"
-import { createParticlePointMaterial } from "./particlePointMaterial"
+import { consumeParticleBursts, type QueuedParticleBurst } from "./particles/particleBurstQueue"
+import { ParticleBurstPool } from "./particles/particleBurstPool"
+import { createParticlePointMaterial } from "./particles/particlePointMaterial"
 
 const ParticleBurstManager = () => {
   const ballColor = useCurrentBallColor()

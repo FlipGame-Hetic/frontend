@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest"
-import { setBodyCollidersEnabled } from "@/components/physics/rigidBodyColliders"
+import { setBodyCollidersEnabled } from "@/components/physics/collision/rigidBodyColliders"
 
 describe("setBodyCollidersEnabled", () => {
   it("sets every collider enabled state", () => {

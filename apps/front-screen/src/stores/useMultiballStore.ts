@@ -7,7 +7,7 @@ import {
   recordBounceTime,
   trackSpawnTimer,
   untrackSpawnTimer,
-} from "@/components/playfield/multiballBounceState"
+} from "@/components/bonusZone/multiballGate/multiballBounceState"
 import { SHAKE_INTENSITY } from "@/components/screenShake/screenShakeConfig"
 import useBallStore from "@/stores/useBallStore"
 import useScreenShakeStore from "@/stores/useScreenShakeStore"
