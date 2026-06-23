@@ -43,7 +43,7 @@ vi.mock("@react-three/rapier", () => {
   }
 })
 
-import Bumper from "@/components/bumbers/Bumper"
+import Bumper from "@/components/bumpers/Bumper"
 
 const makePayload = (name = "ball", ballId = "ball-a") => ({
   other: {
