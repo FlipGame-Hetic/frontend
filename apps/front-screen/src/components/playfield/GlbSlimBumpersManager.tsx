@@ -1,6 +1,6 @@
 import { useMemo } from "react"
-import SlimBumper from "../bumbers/SlimBumper"
-import { SLIM_BUMPER_BLOOM_COLOR, SLIM_BUMPER_BLOOM_INTENSITY } from "../bumbers/slimBumperConfig"
+import SlimBumper from "../bumpers/SlimBumper"
+import { SLIM_BUMPER_BLOOM_COLOR, SLIM_BUMPER_BLOOM_INTENSITY } from "../bumpers/slimBumperConfig"
 import { cloneMaterialWithBloom } from "./playfieldBloomMaterials"
 import {
   cloneWithWorldOrientation,

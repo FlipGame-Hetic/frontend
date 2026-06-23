@@ -63,8 +63,8 @@ vi.mock("@react-three/rapier", () => {
   }
 })
 
-import { applyBumperImpulse } from "@/components/bumbers/bumperCollision"
-import { BUMPER_MAX_EXIT_TANGENT_SPEED } from "@/components/bumbers/bumperConfig"
+import { applyBumperImpulse } from "@/components/bumpers/bumperCollision"
+import { BUMPER_MAX_EXIT_TANGENT_SPEED } from "@/components/bumpers/bumperConfig"
 import { clampBallVelocityToPlayfield } from "@/components/physics/playfieldPlane"
 import Bumper from "@/components/bumbers/Bumper"
 

@@ -14,10 +14,9 @@ export const MULTIBALL_SPLIT_SPAWN_POSITIONS: readonly Vector3Tuple[] = [
   [1.35, 1.5, -4.1],
   [-2, 1.5, -4.1],
 ]
+export const RAMPAGE_TIME_SCALE = 1.25
 
 export const DEFAULT_SLOW_FACTOR = 0.25
-
-export const RAMPAGE_TIME_SCALE = 1.25
 
 export const ULTIMATE_ICON_BASE_PATH = "/ultimateIcons"
 

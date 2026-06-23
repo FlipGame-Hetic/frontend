@@ -23,7 +23,7 @@ import { GUTTER_DRAIN_ASSIST_SENSORS } from "./components/sensors/directionalAcc
 import DirectionalAccelerationSensorsManager from "./components/sensors/DirectionalAccelerationSensorsManager"
 import SoundManager from "./components/sound/SoundManager"
 import UltimateBar from "./components/ultimate/UltimateBar"
-import UltimateOverlay from "./components/ultimate/UltimateOverlay"
+import UltimateScreenTint from "./components/ultimate/UltimateScreenTint"
 import ParticleBurstManager from "./components/vfx/ParticleBurstManager"
 import World from "./components/World"
 import { useFlipperButtonRelay } from "./hooks/useFlipperButtonRelay"
@@ -97,7 +97,7 @@ const App = () => {
         <ControlHints />
         <UltimateBar />
       </World>
-      <UltimateOverlay />
+      <UltimateScreenTint />
       <ConnectionOverlay status={hubStatus} />
     </DebugProvider>
   )

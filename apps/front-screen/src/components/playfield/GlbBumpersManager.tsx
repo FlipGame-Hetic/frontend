@@ -1,6 +1,6 @@
 import { useMemo } from "react"
-import Bumper from "../bumbers/Bumper"
-import { BUMPER_RUBBER_BLOOM_COLOR, BUMPER_RUBBER_BLOOM_INTENSITY } from "../bumbers/bumperConfig"
+import Bumper from "../bumpers/Bumper"
+import { BUMPER_RUBBER_BLOOM_COLOR, BUMPER_RUBBER_BLOOM_INTENSITY } from "../bumpers/bumperConfig"
 import { cloneMaterialWithBloom } from "./playfieldBloomMaterials"
 import { buildModuleWithRubber, type PlayfieldNodes } from "./usePlayfieldModel"
 import { BONUS_ZONE_BUMPER_BASE_NAMES } from "./bonusZoneConfig"
