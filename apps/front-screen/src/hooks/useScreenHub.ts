@@ -205,7 +205,7 @@ export const useScreenHub = (): ConnectionStatus => {
     void fetchGameState().then((snapshot) => {
       if (snapshot?.phase !== "in_game") return
       if (useGameStore.getState().phase === GAME_PHASE.Playing) return
-      useGameStore.getState().resumeGame(snapshot.score)
+      useGameStore.getState().resumeGame(snapshot.score, snapshot.character ?? undefined)
     })
   }, [status, playfieldReady])
 

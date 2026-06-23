@@ -1,3 +1,4 @@
+import type { CharacterType } from "./character"
 import type { GamePhase } from "./screenEvents"
 import { GAME_PHASE } from "./screenEvents"
 
@@ -13,6 +14,7 @@ export interface GameStateResponse {
   ultimate_max: number
   shield_active: boolean
   boss_hp_percent: number | null
+  character?: CharacterType | null
 }
 
 export const mapEnginePhaseToGamePhase = (phase: EnginePhase): GamePhase => {
