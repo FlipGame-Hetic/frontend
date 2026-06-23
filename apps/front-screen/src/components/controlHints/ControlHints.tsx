@@ -1,7 +1,7 @@
 import { Html } from "@react-three/drei"
 import { useFrame } from "@react-three/fiber"
 import { useRef, useState, type CSSProperties, type ReactNode } from "react"
-import { CHARACTER_OPTIONS, DEFAULT_CHARACTER } from "@frontend/types"
+import { CHARACTER_OPTIONS, DEFAULT_CHARACTER, GAME_PHASE } from "@frontend/types"
 import { runtimeEnvironment } from "@frontend/utils"
 import {
   CONTROL_HINTS_CONFIG,
@@ -42,7 +42,7 @@ const ControlHints = () => {
   const wasPlayingRef = useRef(false)
 
   useFrame(() => {
-    if (phase !== "playing") {
+    if (phase !== GAME_PHASE.Playing) {
       wasPlayingRef.current = false
       return
     }
@@ -57,7 +57,7 @@ const ControlHints = () => {
     if (!flippersHidden && FLIPPER_KEYS.some((key) => keys.has(key))) setFlippersHidden(true)
   })
 
-  if (phase !== "playing") return null
+  if (phase !== GAME_PHASE.Playing) return null
 
   const character =
     selectedPlayers.find((player) => player.player === currentPlayer)?.character ??

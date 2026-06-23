@@ -1,3 +1,4 @@
+import { GAME_PHASE } from "@frontend/types"
 import type { RenderContext, Scene } from "../types"
 import { setPixel } from "../buffer"
 import { drawString, measureString } from "../font"
@@ -32,7 +33,7 @@ export class ScoreScene implements Scene {
     player: 1,
     totalPlayers: 1,
     ballNumber: 1,
-    phase: "idle",
+    phase: GAME_PHASE.Idle,
     multiplier: 1,
     multiplierStartedAt: 0,
     multiplierDurationMs: 0,

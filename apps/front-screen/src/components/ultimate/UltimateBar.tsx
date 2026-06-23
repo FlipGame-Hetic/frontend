@@ -1,7 +1,7 @@
 import { Html } from "@react-three/drei"
 import { useEffect, useState, type CSSProperties } from "react"
 import { runtimeEnvironment } from "@frontend/utils"
-import { CHARACTER_OPTIONS, DEFAULT_CHARACTER } from "@frontend/types"
+import { CHARACTER_OPTIONS, DEFAULT_CHARACTER, GAME_PHASE } from "@frontend/types"
 import type { CharacterConfig, CharacterType } from "@frontend/types"
 import useGameStore from "@/stores/useGameStore"
 import useUltimateStore from "@/stores/useUltimateStore"
@@ -59,7 +59,7 @@ const UltimateBar = () => {
     }
   }, [active])
 
-  if (phase !== "playing") return null
+  if (phase !== GAME_PHASE.Playing) return null
 
   const character =
     selectedPlayers.find((player) => player.player === currentPlayer)?.character ??

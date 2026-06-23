@@ -2,13 +2,19 @@ import type { ButtonId } from "./buttons"
 import type { CharacterType, UltiId, UltiPayload, UltiShape } from "./character"
 import type { ScreenEnvelope, ScreenId, ScreenTarget } from "./screen"
 
-export type GamePhase =
-  | "idle"
-  | "mode_select"
-  | "character_select"
-  | "playing"
-  | "paused"
-  | "game_over"
+export const GAME_PHASE = {
+  Idle: "idle",
+  ModeSelect: "mode_select",
+  CharacterSelect: "character_select",
+  Playing: "playing",
+  Paused: "paused",
+  GameOver: "game_over",
+} as const
+
+export type GamePhase = (typeof GAME_PHASE)[keyof typeof GAME_PHASE]
+
+// Phases where the player can confirm (all of them except playing and paused game)
+export type MenuContext = Exclude<GamePhase, typeof GAME_PHASE.Playing | typeof GAME_PHASE.Paused>
 
 export type GameMode = "solo" | "duo" | "boss"
 
@@ -32,7 +38,7 @@ export interface ScreenEventPayloads {
   mode_selected: { mode: GameMode }
   character_selected: { player: number; character: CharacterType }
   start_game: { mode: GameMode; players: { player: number; character: CharacterType }[] }
-  menu_confirm: { context: "idle" | "mode_select" | "character_select" | "game_over" }
+  menu_confirm: { context: MenuContext }
   menu_back: EmptyPayload
   playfield_music: { playing: boolean }
   request_resync: EmptyPayload

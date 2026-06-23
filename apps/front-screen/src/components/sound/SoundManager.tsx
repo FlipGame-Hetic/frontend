@@ -1,4 +1,5 @@
 import useGameStore from "@/stores/useGameStore"
+import { GAME_PHASE } from "@frontend/types"
 import { useControls } from "leva"
 import { useEffect, useRef } from "react"
 import { MUSIC_DEFAULT_VOLUME, MUSIC_TRACKS, SFX_DEFAULT_VOLUME } from "@/audio/soundConfig"
@@ -96,7 +97,7 @@ const SoundManager = () => {
 
   useEffect(() => {
     const startWhenPlaying = (phase: ReturnType<typeof useGameStore.getState>["phase"]) => {
-      if (hasStartedMusicRef.current || phase !== "playing") return
+      if (hasStartedMusicRef.current || phase !== GAME_PHASE.Playing) return
       hasStartedMusicRef.current = true
       startMusic()
     }
@@ -109,7 +110,7 @@ const SoundManager = () => {
 
   useEffect(() => {
     return useGameStore.subscribe((state, prev) => {
-      if (state.phase === "game_over" && prev.phase !== "game_over") {
+      if (state.phase === GAME_PHASE.GameOver && prev.phase !== GAME_PHASE.GameOver) {
         playSfx("game_over")
       }
     })

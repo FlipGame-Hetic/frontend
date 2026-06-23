@@ -1,5 +1,6 @@
 import useBallStore from "@/stores/useBallStore"
 import useGameStore from "@/stores/useGameStore"
+import { GAME_PHASE } from "@frontend/types"
 import type { PositionType } from "@/types/worldTypes"
 import { isPointInPlungerLaneSensor, PLUNGER_BALL_SPAWN } from "@/components/plunger/plungerConfig"
 import { useCurrentBallColor } from "@/config/characterColors"
@@ -101,7 +102,7 @@ const BallsManager = () => {
   }, [clearSpawnPreviewHideTimeout])
 
   useEffect(() => {
-    if (phase !== "playing") return
+    if (phase !== GAME_PHASE.Playing) return
     if (useBallStore.getState().balls.length > 0) return
     spawnBall(PLUNGER_BALL_SPAWN, { isPlaying: false })
   }, [phase, ballNumber, spawnBall])

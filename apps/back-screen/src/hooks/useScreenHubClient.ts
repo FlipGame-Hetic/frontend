@@ -1,7 +1,7 @@
 import { useEffect } from "react"
 import { useScreenHub, registerScreenSender, fetchGameState } from "@frontend/ws"
 import { readScreenToken } from "@frontend/utils"
-import { isScreenEvent, mapEnginePhaseToGamePhase } from "@frontend/types"
+import { isScreenEvent, mapEnginePhaseToGamePhase, GAME_PHASE } from "@frontend/types"
 import type { ConnectionStatus, ScreenEnvelope } from "@frontend/types"
 import { useBackScreenStore } from "@/stores/useBackScreenStore"
 import { fetchLeaderboard } from "@/api/leaderboard"
@@ -40,7 +40,7 @@ export function useScreenHubClient(): ConnectionStatus {
       }
       if (isScreenEvent(envelope, "GameOver")) {
         setScore(envelope.payload.final_score)
-        setPhase("game_over")
+        setPhase(GAME_PHASE.GameOver)
         return
       }
       if (isScreenEvent(envelope, "BossUpdate")) {

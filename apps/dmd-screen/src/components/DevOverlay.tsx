@@ -1,14 +1,8 @@
 import type { GamePhase } from "@frontend/types"
+import { GAME_PHASE } from "@frontend/types"
 import type { DmdConfig } from "@/dmd/config"
 
-const PHASES: GamePhase[] = [
-  "idle",
-  "mode_select",
-  "character_select",
-  "playing",
-  "paused",
-  "game_over",
-]
+const PHASES: GamePhase[] = Object.values(GAME_PHASE)
 
 interface DevOverlayProps {
   config: DmdConfig

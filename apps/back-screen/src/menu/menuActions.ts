@@ -1,5 +1,5 @@
 import { sendEventTo } from "@frontend/ws"
-import { BUTTON_IDS, type ButtonId } from "@frontend/types"
+import { BUTTON_IDS, GAME_PHASE, type ButtonId } from "@frontend/types"
 import { playNavigationBackward, playNavigationForward } from "@/audio/menuSound"
 import { playCreditsMusic, stopCreditsMusic } from "@/audio/creditsMusic"
 import { useBackScreenStore } from "@/stores/useBackScreenStore"
@@ -19,10 +19,10 @@ function skipLocked(options: { locked?: boolean }[], from: number, dir: 1 | -1):
 export function menuLeft(): void {
   const { phase, menuIndex, setMenuIndex, creditsActive } = useBackScreenStore.getState()
   if (creditsActive) return
-  if (phase === "mode_select") {
+  if (phase === GAME_PHASE.ModeSelect) {
     playNavigationBackward()
     setMenuIndex(skipLocked(MODE_OPTIONS, menuIndex, -1))
-  } else if (phase === "character_select") {
+  } else if (phase === GAME_PHASE.CharacterSelect) {
     playNavigationBackward()
     setMenuIndex(skipLocked(CHARACTER_OPTIONS, menuIndex, -1))
   }
@@ -31,10 +31,10 @@ export function menuLeft(): void {
 export function menuRight(): void {
   const { phase, menuIndex, setMenuIndex, creditsActive } = useBackScreenStore.getState()
   if (creditsActive) return
-  if (phase === "mode_select") {
+  if (phase === GAME_PHASE.ModeSelect) {
     playNavigationForward()
     setMenuIndex(skipLocked(MODE_OPTIONS, menuIndex, 1))
-  } else if (phase === "character_select") {
+  } else if (phase === GAME_PHASE.CharacterSelect) {
     playNavigationForward()
     setMenuIndex(skipLocked(CHARACTER_OPTIONS, menuIndex, 1))
   }
@@ -53,17 +53,23 @@ export function menuConfirm(): void {
   if (creditsActive) return
 
   switch (phase) {
-    case "idle": {
+    case GAME_PHASE.Idle: {
       playNavigationForward()
-      sendEventTo("front_screen", { event_type: "menu_confirm", payload: { context: "idle" } })
+      sendEventTo("front_screen", {
+        event_type: "menu_confirm",
+        payload: { context: GAME_PHASE.Idle },
+      })
       break
     }
-    case "game_over": {
+    case GAME_PHASE.GameOver: {
       playNavigationForward()
-      sendEventTo("front_screen", { event_type: "menu_confirm", payload: { context: "game_over" } })
+      sendEventTo("front_screen", {
+        event_type: "menu_confirm",
+        payload: { context: GAME_PHASE.GameOver },
+      })
       break
     }
-    case "mode_select": {
+    case GAME_PHASE.ModeSelect: {
       const option = MODE_OPTIONS[menuIndex]
       if (!option || option.locked) return
       playNavigationForward()
@@ -78,7 +84,7 @@ export function menuConfirm(): void {
       sendEventTo("front_screen", { event_type: "mode_selected", payload: { mode } })
       break
     }
-    case "character_select": {
+    case GAME_PHASE.CharacterSelect: {
       const charOption = CHARACTER_OPTIONS[menuIndex]
       if (!charOption || charOption.locked) return
       playNavigationForward()
@@ -109,7 +115,8 @@ export function menuBack(): void {
     setCreditsActive(false)
     return
   }
-  if (phase === "idle" || phase === "playing" || phase === "paused") return
+  if (phase === GAME_PHASE.Idle || phase === GAME_PHASE.Playing || phase === GAME_PHASE.Paused)
+    return
   playNavigationBackward()
   sendEventTo("front_screen", { event_type: "menu_back", payload: {} })
 }

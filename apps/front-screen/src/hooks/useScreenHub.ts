@@ -13,7 +13,7 @@ import type {
   ScreenEvent,
   StartGameEvent,
 } from "@frontend/types"
-import { DEFAULT_CHARACTER, makeEnvelope } from "@frontend/types"
+import { DEFAULT_CHARACTER, GAME_PHASE, makeEnvelope } from "@frontend/types"
 import { readScreenToken } from "@frontend/utils"
 import {
   broadcastEvent,
@@ -126,8 +126,8 @@ const handlers: ScreenEventHandlers = {
 
   menu_confirm: (payload) => {
     const { setPhase, restartGame } = useGameStore.getState()
-    if (payload.context === "idle") setPhase("mode_select")
-    if (payload.context === "game_over") restartGame()
+    if (payload.context === GAME_PHASE.Idle) setPhase(GAME_PHASE.ModeSelect)
+    if (payload.context === GAME_PHASE.GameOver) restartGame()
   },
 
   mode_selected: (payload) => {
@@ -204,7 +204,7 @@ export const useScreenHub = (): ConnectionStatus => {
     if (status !== "connected" || !playfieldReady) return
     void fetchGameState().then((snapshot) => {
       if (snapshot?.phase !== "in_game") return
-      if (useGameStore.getState().phase === "playing") return
+      if (useGameStore.getState().phase === GAME_PHASE.Playing) return
       useGameStore.getState().resumeGame(snapshot.score)
     })
   }, [status, playfieldReady])

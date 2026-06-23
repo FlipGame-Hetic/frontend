@@ -1,5 +1,6 @@
 import { useEffect } from "react"
 import { broadcastEvent } from "@frontend/ws"
+import { GAME_PHASE } from "@frontend/types"
 import useGameStore from "@/stores/useGameStore"
 
 type UltimateInputEventType = "CapacityL2" | "CapacityR2"
@@ -15,7 +16,7 @@ export const useUltimateInput = (): void => {
       if (e.repeat) return
       const eventType = ULTIMATE_EVENT_BY_KEY[e.code]
       if (!eventType) return
-      if (useGameStore.getState().phase !== "playing") return
+      if (useGameStore.getState().phase !== GAME_PHASE.Playing) return
       broadcastEvent({ event_type: eventType, payload: {} })
     }
     window.addEventListener("keydown", handler)

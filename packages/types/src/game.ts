@@ -1,4 +1,5 @@
 import type { GamePhase } from "./screenEvents"
+import { GAME_PHASE } from "./screenEvents"
 
 export interface GameState {
   ballPosition: { x: number; y: number; z: number }
@@ -7,6 +8,7 @@ export interface GameState {
   phase: string
 }
 
+// Not a game phase, that is only used in the payload from the reconnnect game state fetch
 export type EnginePhase = "idle" | "in_game" | "game_over"
 
 export interface GameStateResponse {
@@ -23,10 +25,10 @@ export interface GameStateResponse {
 export const mapEnginePhaseToGamePhase = (phase: EnginePhase): GamePhase => {
   switch (phase) {
     case "in_game":
-      return "playing"
+      return GAME_PHASE.Playing
     case "game_over":
-      return "game_over"
+      return GAME_PHASE.GameOver
     default:
-      return "idle"
+      return GAME_PHASE.Idle
   }
 }
