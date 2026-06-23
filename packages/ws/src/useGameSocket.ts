@@ -31,7 +31,7 @@ export function useGameSocket(options?: UseGameSocketOptions): UseGameSocketRetu
   const send = useCallback((message: GameMessage) => {
     const ws = wsRef.current
     if (ws?.readyState === WebSocket.OPEN) {
-      wsLog(SCOPE, "send →", message)
+      wsLog(SCOPE, "send ->", message)
       ws.send(JSON.stringify(message))
     } else {
       wsWarn(SCOPE, `send dropped (socket not open, readyState=${String(ws?.readyState)})`, message)
@@ -61,10 +61,10 @@ export function useGameSocket(options?: UseGameSocketOptions): UseGameSocketRetu
         const raw = typeof event.data === "string" ? event.data : ""
         try {
           const parsed = JSON.parse(raw) as GameMessage
-          wsLog(SCOPE, "recv ←", parsed)
+          wsLog(SCOPE, "recv <-", parsed)
           onMessageRef.current?.(parsed)
         } catch {
-          wsWarn(SCOPE, "recv ← (unparseable raw frame)", raw)
+          wsWarn(SCOPE, "recv <- (unparseable raw frame)", raw)
           onMessageRef.current?.({
             dir: "inbound",
             device_id: "unknown",

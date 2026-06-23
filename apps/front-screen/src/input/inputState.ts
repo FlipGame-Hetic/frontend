@@ -1,5 +1,5 @@
 /**
- * Non-reactive input State (see apps/front-screen/README.md → State management).
+ * Non-reactive input State (see apps/front-screen/README.md -> State management).
  * Deliberately NOT a Zustand store: keyboard / cabinet events write here and the
  * physics loop reads it every frame, so it must never trigger a React re-render.
  * Components read via useKeyboard(), which returns a ref to this set.

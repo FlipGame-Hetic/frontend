@@ -38,7 +38,7 @@ export function useScreenSocket(options: UseScreenSocketOptions): UseScreenSocke
     (envelope: ScreenEnvelope) => {
       const ws = wsRef.current
       if (ws?.readyState === WebSocket.OPEN) {
-        wsLog(scope, "send →", envelope)
+        wsLog(scope, "send ->", envelope)
         ws.send(JSON.stringify(envelope))
       } else {
         wsWarn(
@@ -81,10 +81,10 @@ export function useScreenSocket(options: UseScreenSocketOptions): UseScreenSocke
         const raw = typeof event.data === "string" ? event.data : ""
         try {
           const parsed = JSON.parse(raw) as ScreenEnvelope
-          wsLog(scope, "recv ←", parsed)
+          wsLog(scope, "recv <-", parsed)
           onMessageRef.current?.(parsed)
         } catch {
-          wsWarn(scope, "recv ← (malformed frame, ignored)", raw)
+          wsWarn(scope, "recv <- (malformed frame, ignored)", raw)
         }
       }
 

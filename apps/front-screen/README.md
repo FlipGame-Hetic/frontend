@@ -11,12 +11,12 @@ Currently, two official plugins are available:
 
 Runtime state lives in one of two worlds, and the choice is deliberate.
 
-**Reactive state → Zustand.** Use a Zustand store when a change must re-render
+**Reactive state -> Zustand.** Use a Zustand store when a change must re-render
 React (score, game phase, ball list, ultimate bar, …). Stores live in `stores/`
 and are named `use*Store.ts`. **`stores/` contains Zustand stores only** — if a
 file in there is not a Zustand store, it is misfiled.
 
-**Non-reactive state → module singletons / refs.** Most gameplay runs in the
+**Non-reactive state -> module singletons / refs.** Most gameplay runs in the
 physics loop (`useFrame`, collision callbacks) at 60 fps. State that is read or
 written there must **not** go through Zustand or component state, because every
 change would trigger a render. It is held as plain module-level values or React
@@ -27,7 +27,7 @@ Non-reactive state is named by a fixed suffix so the pattern is recognizable:
 
 | Suffix      | Meaning                                                                      | Examples                                                                  |
 | ----------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| `*Registry` | A lookup table of `id → live handle` you explicitly register / unregister.   | `ballBodyRegistry`, `ballPositionRegistry`, `ballFadeRegistry`            |
+| `*Registry` | A lookup table of `id -> live handle` you explicitly register / unregister.  | `ballBodyRegistry`, `ballPositionRegistry`, `ballFadeRegistry`            |
 | `*State`    | A mutable status / state machine tracker (flags, phases, per-entity status). | `inputState`, `railState`, `portalTraversalState`, `multiballBounceState` |
 | `*Queue`    | A FIFO buffer drained elsewhere.                                             | `particleBurstQueue`                                                      |
 

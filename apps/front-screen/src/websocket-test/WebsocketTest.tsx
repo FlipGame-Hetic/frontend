@@ -13,7 +13,7 @@ import GameSection from "@/websocket-test/components/sections/GameSection"
 import SpecialsSection from "@/websocket-test/components/sections/SpecialsSection"
 import type { Dispatcher, LogEntry } from "@/websocket-test/types"
 
-const toLogEntry = (type: string, payload: unknown, direction: "→" | "←"): LogEntry => {
+const toLogEntry = (type: string, payload: unknown, direction: "->" | "<-"): LogEntry => {
   return {
     id: Date.now() + Math.random(),
     type: `${direction} ${type}`,
@@ -31,7 +31,7 @@ const WebsocketTest = () => {
   const [log, setLog] = useState<LogEntry[]>([])
 
   const onMessage = useCallback((message: GameMessage) => {
-    setLog((prev) => [toLogEntry(message._type, message, "←"), ...prev.slice(0, 49)])
+    setLog((prev) => [toLogEntry(message._type, message, "<-"), ...prev.slice(0, 49)])
   }, [])
 
   const { status, send } = useGameSocket({ onMessage })
@@ -39,7 +39,7 @@ const WebsocketTest = () => {
   const dispatch = useCallback<Dispatcher>(
     (type, payload = {}) => {
       send({ dir: "outbound", device_id: "front-screen", _type: type, ...(payload as object) })
-      setLog((prev) => [toLogEntry(type, payload, "→"), ...prev.slice(0, 49)])
+      setLog((prev) => [toLogEntry(type, payload, "->"), ...prev.slice(0, 49)])
     },
     [send],
   )
