@@ -8,21 +8,12 @@ import { useCallback, useRef } from "react"
 import type { Group, Mesh, Vector3 } from "three"
 import { normalizedPlayfieldDirection } from "../physics/playfieldPlane"
 import { SHAKE_INTENSITY } from "../screenShake/screenShakeConfig"
+import { getPlungerImpulse, PLUNGER_KEY, PLUNGER_MAX_COMPRESSION } from "./plungerConfig"
 import {
-  clampPlungerPosition,
-  PLUNGER_KEY,
-  PLUNGER_MIN_CHARGE,
-  PLUNGER_MIN_LAUNCH_CHARGE,
-  PLUNGER_BALL_CLEAR_TIMEOUT,
-  PLUNGER_CHARGE_FACTOR,
-  PLUNGER_IMPULSE_MULTIPLIER,
-  PLUNGER_MAX_IMPULSE,
-  PLUNGER_MIN_IMPULSE,
-  PLUNGER_RELEASE_DELAY,
-  PLUNGER_MAX_CHARGE_TIME,
-  PLUNGER_RELEASE_SPEED,
-  PLUNGER_MAX_COMPRESSION,
-} from "./plungerConfig"
+  advancePlungerState,
+  createPlungerSimState,
+  type PlungerSimCommands,
+} from "./plungerSimulationRuntime"
 
 export interface PlungerMeshPart {
   mesh: Mesh
@@ -50,69 +41,53 @@ interface PlungerSimulationResult {
   handleBallExit: (payload: CollisionPayload) => void
 }
 
+const applyPlungerImpulse = (body: RapierRigidBody, charge: number): void => {
+  const dir = normalizedPlayfieldDirection({ x: 0, y: 0, z: -1 })
+  if (!dir) return
+
+  const impulse = getPlungerImpulse(charge)
+  const mass = body.mass()
+
+  body.applyImpulse(
+    {
+      x: dir.x * impulse * mass,
+      y: dir.y * impulse * mass,
+      z: dir.z * impulse * mass,
+    },
+    true,
+  )
+}
+
 export const usePlungerSimulation = ({
   pressedKeys,
   rootPosition,
   tipRestPosition,
   movementAxis,
 }: PlungerSimulationOptions): PlungerSimulationResult => {
-  // Per-instance ref-based State machine (see apps/front-screen/README.md → State
-  // management). The plunger advances these refs every frame inside useFrame;
-  // keeping them as refs instead of store/component state avoids re-rendering
-  // the React tree 60 times a second.
-  const plungerPositionRef = useRef(0)
-  const wasSpacePressed = useRef(false)
-  const releasingRef = useRef(false)
-  const pendingReleaseRef = useRef(false)
-  const releaseTimerRef = useRef(0)
-  const waitForBallClearRef = useRef(false)
-  const ballClearTimerRef = useRef(0)
+  const plungerStateRef = useRef(createPlungerSimState(getPlungerInputSnapshot().releaseToken))
+  const chargeRef = useRef(0)
   const tipGroupRef = useRef<Group | null>(null)
   const rodBodyRef = useRef<RapierRigidBody | null>(null)
   const launchRef = useRef<PlungerLaunchState>({ token: 0, charge: 0 })
-  const lastPlungerReleaseToken = useRef(getPlungerInputSnapshot().releaseToken)
   const ballInLaneRef = useRef<RapierRigidBody | null>(null)
 
-  const releaseFromPosition = useCallback((pos: number) => {
-    const charge = clampPlungerPosition(pos)
+  const applyCommands = useCallback((commands: PlungerSimCommands) => {
+    const ballInLane = ballInLaneRef.current
 
-    if (charge >= PLUNGER_MIN_CHARGE) {
-      if (ballInLaneRef.current) {
-        const isLaunch = charge >= PLUNGER_MIN_LAUNCH_CHARGE
-        playSfx(isLaunch ? "plunger_launch" : "flipper_up")
-        if (isLaunch) {
-          launchRef.current.token += 1
-          launchRef.current.charge = charge
-          useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.plungerLaunch * charge)
-        }
-        waitForBallClearRef.current = true
-        ballClearTimerRef.current = PLUNGER_BALL_CLEAR_TIMEOUT
+    if (commands.wakeBall) {
+      ballInLane?.wakeUp()
+    }
 
-        const scaledCharge = Math.pow(charge, PLUNGER_CHARGE_FACTOR)
-        const impulse =
-          (PLUNGER_MIN_IMPULSE + (PLUNGER_MAX_IMPULSE - PLUNGER_MIN_IMPULSE) * scaledCharge) *
-          PLUNGER_IMPULSE_MULTIPLIER
-        const dir = normalizedPlayfieldDirection({ x: 0, y: 0, z: -1 })
+    if (commands.playSfx) {
+      playSfx(commands.playSfx)
+    }
 
-        if (dir) {
-          ballInLaneRef.current.applyImpulse(
-            {
-              x: dir.x * impulse * ballInLaneRef.current.mass(),
-              y: dir.y * impulse * ballInLaneRef.current.mass(),
-              z: dir.z * impulse * ballInLaneRef.current.mass(),
-            },
-            true,
-          )
-        }
-      } else {
-        waitForBallClearRef.current = false
-        ballClearTimerRef.current = 0
-      }
-
-      pendingReleaseRef.current = true
-      releaseTimerRef.current = PLUNGER_RELEASE_DELAY
-    } else {
-      plungerPositionRef.current = 0
+    if (commands.launch && ballInLane) {
+      const { charge } = commands.launch
+      launchRef.current.token += 1
+      launchRef.current.charge = charge
+      useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.plungerLaunch * charge)
+      applyPlungerImpulse(ballInLane, charge)
     }
   }, [])
 
@@ -131,66 +106,22 @@ export const usePlungerSimulation = ({
   useFrame((_, delta) => {
     const plungerInput = getPlungerInputSnapshot()
     const isSpacePressed = pressedKeys.current.has(PLUNGER_KEY)
-    const isExternallyHeld = !plungerInput.released
 
-    if (
-      plungerInput.releaseToken !== lastPlungerReleaseToken.current &&
-      plungerInput.released &&
-      !releasingRef.current &&
-      !pendingReleaseRef.current
-    ) {
-      lastPlungerReleaseToken.current = plungerInput.releaseToken
-      plungerPositionRef.current = clampPlungerPosition(plungerInput.position)
-      ballInLaneRef.current?.wakeUp()
-      releaseFromPosition(plungerPositionRef.current)
-    } else if (isExternallyHeld && !releasingRef.current && !pendingReleaseRef.current) {
-      ballInLaneRef.current?.wakeUp()
-      plungerPositionRef.current = clampPlungerPosition(plungerInput.position)
-    } else if (!releasingRef.current && !pendingReleaseRef.current) {
-      if (isSpacePressed) {
-        if (!wasSpacePressed.current) {
-          ballInLaneRef.current?.wakeUp()
-        }
-        plungerPositionRef.current = clampPlungerPosition(
-          plungerPositionRef.current + delta / PLUNGER_MAX_CHARGE_TIME,
-        )
-      }
+    const { state, commands } = advancePlungerState(plungerStateRef.current, {
+      dt: delta,
+      isSpacePressed,
+      isExternallyHeld: !plungerInput.released,
+      releaseToken: plungerInput.releaseToken,
+      released: plungerInput.released,
+      externalPosition: plungerInput.position,
+      hasBallInLane: ballInLaneRef.current !== null,
+    })
 
-      if (wasSpacePressed.current && !isSpacePressed) {
-        releaseFromPosition(plungerPositionRef.current)
-      }
-    }
+    plungerStateRef.current = state
+    chargeRef.current = state.position
+    applyCommands(commands)
 
-    if (pendingReleaseRef.current) {
-      if (releaseTimerRef.current > 0) {
-        releaseTimerRef.current -= delta
-      } else if (
-        waitForBallClearRef.current &&
-        ballInLaneRef.current &&
-        ballClearTimerRef.current > 0
-      ) {
-        ballClearTimerRef.current -= delta
-      } else {
-        waitForBallClearRef.current = false
-        ballClearTimerRef.current = 0
-        pendingReleaseRef.current = false
-        releasingRef.current = true
-      }
-    }
-
-    if (releasingRef.current) {
-      plungerPositionRef.current = Math.max(
-        plungerPositionRef.current - delta * PLUNGER_RELEASE_SPEED,
-        0,
-      )
-      if (plungerPositionRef.current <= 0) {
-        releasingRef.current = false
-      }
-    }
-
-    wasSpacePressed.current = isSpacePressed
-
-    const compression = plungerPositionRef.current * PLUNGER_MAX_COMPRESSION
+    const compression = state.position * PLUNGER_MAX_COMPRESSION
     const offset = movementAxis.clone().multiplyScalar(compression)
 
     if (tipGroupRef.current) {
@@ -210,7 +141,7 @@ export const usePlungerSimulation = ({
   return {
     tipGroupRef,
     rodBodyRef,
-    chargeRef: plungerPositionRef,
+    chargeRef,
     launchRef,
     handleBallEnter,
     handleBallExit,

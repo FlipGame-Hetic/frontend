@@ -49,6 +49,38 @@ const pruneHits = (hits: HitRecord[], now: number): HitRecord[] => {
   return fresh.length > HITS_CAP ? fresh.slice(fresh.length - HITS_CAP) : fresh
 }
 
+const findMatchingHit = (
+  hits: HitRecord[],
+  now: number,
+  reason?: string,
+  ballId?: string,
+): { index: number; hit?: HitRecord } => {
+  // Prefer a recent hit from the same ball for precise collision popup placement
+  if (ballId) {
+    for (let i = hits.length - 1; i >= 0; i--) {
+      const hit = hits[i]
+      if (hit?.ballId === ballId && now - hit.ts < HIT_MATCH_WINDOW_MS) {
+        return { index: i, hit }
+      }
+    }
+  }
+  // Fallback to the scoring reason when the delta cannot be matched to a recent ball hit
+  if (reason) {
+    const index = hits.findIndex((hit) => hit.reason === reason)
+    if (index >= 0) return { index, hit: hits[index] }
+  }
+  // Last chance: keep any hit from the same ball, even outside the match window
+  if (ballId) {
+    for (let i = hits.length - 1; i >= 0; i--) {
+      const hit = hits[i]
+      if (hit?.ballId === ballId) {
+        return { index: i, hit }
+      }
+    }
+  }
+  return { index: -1 }
+}
+
 const useScorePopupsStore = create<ScorePopupsState>((set, get) => ({
   popups: [],
   recentHits: [],
@@ -78,33 +110,7 @@ const useScorePopupsStore = create<ScorePopupsState>((set, get) => ({
 
     const now = performance.now()
     const hits = pruneHits(get().recentHits, now)
-    let matchedHit: HitRecord | undefined
-
-    let index = -1
-    if (ballId) {
-      for (let i = hits.length - 1; i >= 0; i--) {
-        const hit = hits[i]
-        if (hit?.ballId === ballId && now - hit.ts < HIT_MATCH_WINDOW_MS) {
-          index = i
-          matchedHit = hit
-          break
-        }
-      }
-    }
-    if (index === -1 && reason) {
-      index = hits.findIndex((hit) => hit.reason === reason)
-      matchedHit = index >= 0 ? hits[index] : undefined
-    }
-    if (index === -1 && ballId) {
-      for (let i = hits.length - 1; i >= 0; i--) {
-        const hit = hits[i]
-        if (hit?.ballId === ballId) {
-          index = i
-          matchedHit = hit
-          break
-        }
-      }
-    }
+    const { index, hit: matchedHit } = findMatchingHit(hits, now, reason, ballId)
 
     let position: Position
     if (matchedHit) {

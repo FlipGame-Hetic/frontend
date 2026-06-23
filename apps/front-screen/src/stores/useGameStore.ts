@@ -50,10 +50,20 @@ const TOTAL_BALLS_BY_MODE: Record<GameMode, number> = {
   boss: 5,
 }
 
-const INITIAL_STATE = {
+const INITIAL_STATE: Pick<
+  GameStore,
+  | "phase"
+  | "mode"
+  | "selectedPlayers"
+  | "score"
+  | "ballNumber"
+  | "totalBalls"
+  | "totalPlayers"
+  | "currentPlayer"
+> = {
   phase: GAME_PHASE.Idle,
-  mode: null as GameMode | null,
-  selectedPlayers: [] as SelectedPlayer[],
+  mode: null,
+  selectedPlayers: [],
   score: 0,
   ballNumber: 1,
   totalBalls: 3,

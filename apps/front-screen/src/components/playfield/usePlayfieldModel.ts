@@ -35,27 +35,45 @@ export interface PlayfieldModel {
   animations: AnimationClip[]
 }
 
+interface ClassificationRule {
+  bucket: keyof PlayfieldNodes
+  matches: (name: string) => boolean
+}
+
+const CLASSIFICATION_RULES: ClassificationRule[] = [
+  { bucket: "animatedGroups", matches: (name) => name === "globe" },
+  { bucket: "bonusZone", matches: (name) => name === "central_bonus_zone_inter" },
+  { bucket: "multiballGateFrame", matches: (name) => name === "arch" },
+  {
+    bucket: "multiballGateDoors",
+    matches: (name) => name === "door_top" || name === "door_bottom",
+  },
+  { bucket: "spinner", matches: (name) => name === "spinner" },
+  { bucket: "plunger", matches: (name) => name === "tip" || /^ring_\d+$/.test(name) },
+  { bucket: "ballSavers", matches: (name) => name.includes("_ball_saver") },
+  { bucket: "rails", matches: (name) => name === "l_rail" || name === "r_rail" },
+  { bucket: "overhead", matches: (name) => name.includes("rail") || name.includes("tunnel") },
+  {
+    bucket: "flippers",
+    matches: (name) => name.startsWith("l_flipper") || name.startsWith("r_flipper"),
+  },
+  { bucket: "lockedBall", matches: (name) => name === "locked_ball" },
+  { bucket: "slimBumpers", matches: (name) => name.includes("_bumper_slim") },
+  {
+    bucket: "bumperRubbers",
+    matches: (name) => name.includes("_bumper") && name.includes("_rubber"),
+  },
+  { bucket: "bumpers", matches: (name) => name.includes("_bumper") && name.includes("_base") },
+  { bucket: "slingshotRubbers", matches: (name) => name.includes("_slingshot_rubber") },
+  { bucket: "slingshots", matches: (name) => name.includes("_slingshot_module") },
+  { bucket: "targets", matches: (name) => name.includes("_target_") },
+  { bucket: "playfield", matches: (name) => name.endsWith("_shape") || name.endsWith("_zone") },
+  { bucket: "cabinet", matches: (name) => name === "l_flipper_arm" || name === "r_flipper_arm" },
+]
+
 export const classifyMesh = (name: string): keyof PlayfieldNodes | null => {
-  if (name === "globe") return "animatedGroups"
-  if (name === "central_bonus_zone_inter") return "bonusZone"
-  if (name === "arch") return "multiballGateFrame"
-  if (name === "door_top" || name === "door_bottom") return "multiballGateDoors"
-  if (name === "spinner") return "spinner"
-  if (name === "tip" || /^ring_\d+$/.test(name)) return "plunger"
-  if (name.includes("_ball_saver")) return "ballSavers"
-  if (name === "l_rail" || name === "r_rail") return "rails"
-  if (name.includes("rail") || name.includes("tunnel")) return "overhead"
-  if (name === "l_flipper_arm" || name === "r_flipper_arm") return "cabinet"
-  if (name.startsWith("l_flipper") || name.startsWith("r_flipper")) return "flippers"
-  if (name === "locked_ball") return "lockedBall"
-  if (name.includes("_bumper_slim")) return "slimBumpers"
-  if (name.includes("_bumper") && name.includes("_rubber")) return "bumperRubbers"
-  if (name.includes("_bumper") && name.includes("_base")) return "bumpers"
-  if (name.includes("_slingshot_rubber")) return "slingshotRubbers"
-  if (name.includes("_slingshot_module")) return "slingshots"
-  if (name.includes("_target_")) return "targets"
-  if (name.endsWith("_shape") || name.endsWith("_zone")) return "playfield"
-  return "cabinet"
+  // Unknown visible meshes are treated as cabinet decorations by default
+  return CLASSIFICATION_RULES.find((rule) => rule.matches(name))?.bucket ?? "cabinet"
 }
 
 const isVisibleInHierarchy = (object: Object3D): boolean => {

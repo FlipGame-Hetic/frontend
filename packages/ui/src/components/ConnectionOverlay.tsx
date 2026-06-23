@@ -13,17 +13,6 @@ const STATUS_COPY: Record<
   disconnected: { label: "Connexion perdue", color: "#f43f5e" },
 }
 
-const getStatusCopy = (status: ConnectionStatus): { label: string; color: string } | null => {
-  switch (status) {
-    case "connecting":
-      return STATUS_COPY.connecting
-    case "disconnected":
-      return STATUS_COPY.disconnected
-    case "connected":
-      return null
-  }
-}
-
 const containerStyle: CSSProperties = {
   position: "fixed",
   top: 16,
@@ -46,7 +35,7 @@ const containerStyle: CSSProperties = {
 }
 
 export const ConnectionOverlay: FC<ConnectionOverlayProps> = ({ status }) => {
-  const copy = getStatusCopy(status)
+  const copy = status === "connected" ? null : STATUS_COPY[status]
   if (!copy) return null
 
   const { label, color } = copy
