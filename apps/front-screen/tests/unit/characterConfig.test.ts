@@ -1,15 +1,28 @@
-import { afterEach, describe, it, expect } from "vitest"
+import { afterEach, describe, expect, it } from "vitest"
 import { act, renderHook } from "@testing-library/react"
 import {
   getBallColorForCharacter,
+  getCharacterConfig,
   getCurrentBallColorSnapshot,
+  getCurrentCharacterConfigSnapshot,
   useCurrentBallColor,
-} from "@/config/characterColors"
+  useCurrentCharacterConfig,
+} from "@/config/characterConfig"
 import useGameStore from "@/stores/useGameStore"
 
 afterEach(() => {
   act(() => {
     useGameStore.setState({ currentPlayer: 1, selectedPlayers: [] })
+  })
+})
+
+describe("getCharacterConfig", () => {
+  it("returns the matching character config", () => {
+    expect(getCharacterConfig("viper").label).toBe("VIPER")
+  })
+
+  it("returns the default character config when character is undefined", () => {
+    expect(getCharacterConfig(undefined).id).toBe("enforcer")
   })
 })
 
@@ -33,13 +46,16 @@ describe("getBallColorForCharacter", () => {
   it("returns enforcer color when character is undefined", () => {
     expect(getBallColorForCharacter(undefined)).toBe("#FFAA00")
   })
+})
 
-  it("can read the current player color as an explicit snapshot", () => {
+describe("current character config", () => {
+  it("can read the current player config as an explicit snapshot", () => {
     useGameStore.setState({
       currentPlayer: 2,
       selectedPlayers: [{ player: 2, character: "viper" }],
     })
 
+    expect(getCurrentCharacterConfigSnapshot().id).toBe("viper")
     expect(getCurrentBallColorSnapshot()).toBe("#7FFF00")
   })
 
@@ -51,8 +67,10 @@ describe("getBallColorForCharacter", () => {
       })
     })
 
-    const { result } = renderHook(() => useCurrentBallColor())
+    const { result: config } = renderHook(() => useCurrentCharacterConfig())
+    const { result: color } = renderHook(() => useCurrentBallColor())
 
-    expect(result.current).toBe("#FF2D78")
+    expect(config.current.id).toBe("ghost")
+    expect(color.current).toBe("#FF2D78")
   })
 })

@@ -1,4 +1,4 @@
-import { useCurrentBallColor } from "@/config/characterColors"
+import { useCurrentBallColor } from "@/config/characterConfig"
 import useKeyboard from "@/hooks/useKeyboard"
 import { CuboidCollider, RigidBody } from "@react-three/rapier"
 import { useMemo } from "react"

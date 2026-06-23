@@ -7,7 +7,7 @@ import {
   MULTIBALL_TRIGGER_POPUP_SCALE_START,
   SCORE_POPUP_RISE_HEIGHT,
 } from "./scorePopupConfig"
-import { easeOutBack, easeOutCubic } from "./popupEasing"
+import { easeOutBack, easeOutCubic } from "@/utils/easing"
 import PopupTextStack from "./PopupTextStack"
 
 interface MultiballPopupProps {

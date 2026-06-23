@@ -2,6 +2,7 @@ import type { RenderContext, Scene } from "../types"
 import { drawString, measureString } from "../font"
 import { drawBigString, measureBigString } from "../font-big"
 import { setPixel } from "../buffer"
+import { padScore } from "@frontend/utils"
 
 export class GameOverScene implements Scene {
   private score = 0
@@ -18,7 +19,7 @@ export class GameOverScene implements Scene {
       drawString(buffer, cols, title, Math.floor((cols - titleW) / 2), Math.floor(rows * 0.1))
     }
 
-    const scoreText = String(this.score).padStart(6, "0")
+    const scoreText = padScore(this.score)
     const scoreW = measureBigString(scoreText)
     drawBigString(buffer, cols, scoreText, Math.floor((cols - scoreW) / 2), Math.floor(rows * 0.4))
 

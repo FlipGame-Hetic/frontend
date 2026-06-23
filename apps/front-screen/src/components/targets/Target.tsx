@@ -8,6 +8,8 @@ import { cloneWithWorldOrientation } from "../playfield/usePlayfieldModel"
 import useScreenShakeStore from "@/stores/useScreenShakeStore"
 import { SHAKE_INTENSITY } from "@/components/screenShake/screenShakeConfig"
 import { emitParticleBurst } from "../vfx/particleBurstQueue"
+import { easeOutCubic } from "@/utils/easing"
+import { setBodyCollidersEnabled } from "../physics/rigidBodyColliders"
 
 interface TargetProps {
   mesh: Mesh
@@ -21,10 +23,6 @@ const DROP_TARGET_DURATION = 140
 export const DROP_TARGET_RETURN_DURATION = 220
 const DROP_TARGET_VISIBLE_HEIGHT = 0.08
 const DROP_TARGET_MIN_DROP_RATIO = 0.75
-
-const easeOutCubic = (t: number) => {
-  return 1 - (1 - t) ** 3
-}
 
 const hashName = (name: string) => {
   let hash = 0
@@ -40,13 +38,6 @@ const getTiltAxis = (name: string) => {
   const zAmount = 0.25 + (((hash >> 8) % 100) / 100) * 0.75
   const zSign = hash % 2 === 0 ? 1 : -1
   return new Vector3(xAmount, 0, zAmount * zSign).normalize()
-}
-
-const setTargetCollidersEnabled = (body: RapierRigidBody | null, enabled: boolean) => {
-  if (!body) return
-  for (let i = 0; i < body.numColliders(); i += 1) {
-    body.collider(i).setEnabled(enabled)
-  }
 }
 
 const Target = ({ mesh, worldPosition }: TargetProps) => {
@@ -71,7 +62,7 @@ const Target = ({ mesh, worldPosition }: TargetProps) => {
 
   const setCollidersEnabled = useCallback((enabled: boolean) => {
     if (!bodyRef.current || collidersEnabledRef.current === enabled) return
-    setTargetCollidersEnabled(bodyRef.current, enabled)
+    setBodyCollidersEnabled(bodyRef.current, enabled)
     collidersEnabledRef.current = enabled
   }, [])
 

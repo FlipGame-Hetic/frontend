@@ -1,7 +1,7 @@
 import { Html } from "@react-three/drei"
 import { useFrame } from "@react-three/fiber"
 import { useRef, useState, type CSSProperties, type ReactNode } from "react"
-import { CHARACTER_OPTIONS, DEFAULT_CHARACTER, GAME_PHASE } from "@frontend/types"
+import { GAME_PHASE } from "@frontend/types"
 import { runtimeEnvironment } from "@frontend/utils"
 import {
   CONTROL_HINTS_CONFIG,
@@ -12,6 +12,7 @@ import { LEFT_KEYS, RIGHT_KEYS } from "@/components/flipperJoints/jointsConfig"
 import { PLUNGER_KEY } from "@/components/plunger/plungerConfig"
 import { getPressedKeys } from "@/input/inputState"
 import useGameStore from "@/stores/useGameStore"
+import { useCurrentCharacterConfig } from "@/config/characterConfig"
 
 const FLIPPER_KEYS = [...LEFT_KEYS, ...RIGHT_KEYS]
 const isCabinet = runtimeEnvironment.isProductionCabinet
@@ -35,8 +36,7 @@ const flipperNode = (side: "left" | "right"): ReactNode => {
 
 const ControlHints = () => {
   const phase = useGameStore((state) => state.phase)
-  const selectedPlayers = useGameStore((state) => state.selectedPlayers)
-  const currentPlayer = useGameStore((state) => state.currentPlayer)
+  const characterConfig = useCurrentCharacterConfig()
   const [plungerHidden, setPlungerHidden] = useState(false)
   const [flippersHidden, setFlippersHidden] = useState(false)
   const wasPlayingRef = useRef(false)
@@ -59,13 +59,7 @@ const ControlHints = () => {
 
   if (phase !== GAME_PHASE.Playing) return null
 
-  const character =
-    selectedPlayers.find((player) => player.player === currentPlayer)?.character ??
-    DEFAULT_CHARACTER.id
-  const color = (
-    CHARACTER_OPTIONS.find((option) => option.id === character) ?? CHARACTER_OPTIONS[0]
-  ).color
-  const wrapStyle = { "--control-hint-color": color } as CSSProperties
+  const wrapStyle = { "--control-hint-color": characterConfig.color } as CSSProperties
 
   const hints: { key: string; placement: ControlHintPlacement; node: ReactNode }[] = []
 

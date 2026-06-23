@@ -1,4 +1,4 @@
-import { getCurrentBallColorSnapshot } from "@/config/characterColors"
+import { getCurrentBallColorSnapshot } from "@/config/characterConfig"
 
 export const hasBallId = (value: unknown): value is { ballId: string } => {
   return (

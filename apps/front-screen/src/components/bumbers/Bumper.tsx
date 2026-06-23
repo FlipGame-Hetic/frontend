@@ -7,10 +7,9 @@ import type { RapierRigidBody } from "@react-three/rapier"
 import { RigidBody, type CollisionEnterPayload } from "@react-three/rapier"
 import { useCallback, useRef } from "react"
 import type { Group, Mesh } from "three"
-import { normalizedPlayfieldDirection } from "../physics/playfieldPlane"
 import { createStuckBallTracker } from "../physics/stuckBallTracker"
 import { applyBumperImpulse, shouldSkipBumperHit } from "./bumperCollision"
-import { getBallId } from "../balls/ballUserData"
+import { readBouncerBallCollision } from "../physics/bouncerCollision"
 import {
   BUMPER_SCALE_FACTOR,
   BUMPER_SIZE_ARGS,
@@ -69,11 +68,11 @@ const Bumper = ({
         isBouncing.current = false
       }, 150)
 
-      if (!bodyRef.current || !other.rigidBody) return
-      if (other.rigidBodyObject?.name !== "ball") return
-      if (shouldSkipBumperHit(other.rigidBody)) return
+      const collision = readBouncerBallCollision(other, bodyRef.current)
+      if (!collision) return
+      if (shouldSkipBumperHit(collision.ballBody)) return
 
-      const ballId = getBallId(other.rigidBodyObject.userData) ?? ""
+      const { ballBody, ballId, ballPosition, exitDirection } = collision
       if (awardScore) {
         broadcastEvent({ event_type: "Bumper", payload: { ball_id: ballId } })
       }
@@ -81,37 +80,27 @@ const Bumper = ({
       playRandomSfx("bumpers")
       useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.bumper)
 
-      const bumperPos = bodyRef.current.translation()
-      const ballPos = other.rigidBody.translation()
       if (awardScore) {
-        useScorePopupsStore
-          .getState()
-          .recordHit({ x: ballPos.x, y: ballPos.y, z: ballPos.z }, ballId, "bumper")
+        useScorePopupsStore.getState().recordHit(ballPosition, ballId, "bumper")
       }
-
-      const dir = normalizedPlayfieldDirection({
-        x: ballPos.x - bumperPos.x,
-        y: ballPos.y - bumperPos.y,
-        z: ballPos.z - bumperPos.z,
-      })
 
       emitParticleBurst({
         kind: "bumper",
-        position: ballPos,
-        direction: dir ?? undefined,
+        position: ballPosition,
+        direction: exitDirection ?? undefined,
       })
 
-      if (!dir) return
+      if (!exitDirection) return
 
       applyBumperImpulse(
-        other.rigidBody,
-        dir,
+        ballBody,
+        exitDirection,
         BUMPER_IMPULSE_STRENGTH,
         BALL_MIN_NORMAL_SPEED,
         BALL_MAX_NORMAL_SPEED,
       )
 
-      stuckTracker.current.arm(other.rigidBody)
+      stuckTracker.current.arm(ballBody)
     },
     [awardScore, onBonusHit],
   )

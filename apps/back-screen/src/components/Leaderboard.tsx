@@ -1,5 +1,5 @@
 import type { ScoreEntry } from "@frontend/types"
-import { formatScore } from "@/utils/formatScore"
+import { formatScore } from "@frontend/utils"
 
 interface LeaderboardProps {
   entries: ScoreEntry[]

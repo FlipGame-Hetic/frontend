@@ -16,7 +16,7 @@ import {
   SCORE_POPUP_SHADOW_RED,
   SCORE_POPUP_Y_OFFSET,
 } from "./scorePopupConfig"
-import { easeOutCubic } from "./popupEasing"
+import { easeOutCubic } from "@/utils/easing"
 import PopupTextLayer from "./PopupTextLayer"
 import { setTextMaterialOpacity, signedNoise } from "./popupTextMaterial"
 

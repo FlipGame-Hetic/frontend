@@ -1,6 +1,6 @@
 import { useBackScreenStore } from "@/stores/useBackScreenStore"
 import { Leaderboard } from "@/components/Leaderboard"
-import { formatScore } from "@/utils/formatScore"
+import { formatScore } from "@frontend/utils"
 
 const ACCENT = "#C5003C"
 

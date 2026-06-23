@@ -1,5 +1,5 @@
 import { useBackScreenStore } from "@/stores/useBackScreenStore"
-import { formatScore } from "@/utils/formatScore"
+import { formatScore } from "@frontend/utils"
 
 export default function GameplayHud() {
   const ballNumber = useBackScreenStore((s) => s.ballNumber)

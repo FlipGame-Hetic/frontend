@@ -1,4 +1,4 @@
-import { useCurrentBallColor } from "@/config/characterColors"
+import { useCurrentBallColor } from "@/config/characterConfig"
 import { useFrame } from "@react-three/fiber"
 import { useCallback, useMemo } from "react"
 import { BufferAttribute, BufferGeometry, DynamicDrawUsage } from "three"

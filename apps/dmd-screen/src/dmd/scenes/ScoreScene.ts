@@ -5,6 +5,7 @@ import { drawString, measureString } from "../font"
 import { drawBigString, measureBigString } from "../font-big"
 import { drawHearts } from "../icons"
 import { MAX_BALLS, heartsWidth } from "../constants"
+import { padScore } from "@frontend/utils"
 
 const BAR_WIDTH = 60
 const BAR_Y = 14
@@ -85,7 +86,7 @@ export class ScoreScene implements Scene {
       }
     }
 
-    const scoreText = String(score).padStart(6, "0")
+    const scoreText = padScore(score)
     const scoreWidth = measureBigString(scoreText)
     const scoreX = Math.floor((cols - scoreWidth) / 2)
     const scoreY = Math.floor(rows * SCORE_Y_RATIO)

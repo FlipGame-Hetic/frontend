@@ -1,7 +1,7 @@
 import useBallStore from "@/stores/useBallStore"
 import usePortalTraversalStore from "@/stores/usePortalTraversalStore"
 import useScorePopupsStore from "@/stores/useScorePopupsStore"
-import { useCurrentBallColor } from "@/config/characterColors"
+import { useCurrentBallColor } from "@/config/characterConfig"
 import { playRandomSfx } from "@/audio/soundEngine"
 import { broadcastEvent } from "@frontend/ws"
 import { useFrame } from "@react-three/fiber"

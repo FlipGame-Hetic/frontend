@@ -15,6 +15,8 @@ import { hasBallId } from "@/components/balls/ballUserData"
 import useBallStore from "@/stores/useBallStore"
 import useBallSaverPhaseStore from "@/stores/useBallSaverPhaseStore"
 import { cloneWithWorldOrientation } from "../playfield/usePlayfieldModel"
+import { setBodyCollidersEnabled } from "../physics/rigidBodyColliders"
+import { easeOutCubic } from "@/utils/easing"
 import {
   areBallSaverTargetsDown,
   BALL_SAVER_COOLDOWN_MS,
@@ -36,17 +38,6 @@ interface BallSaverProps {
 }
 
 type BallCollisionTarget = CollisionEnterPayload["other"]
-
-const easeOutCubic = (t: number) => {
-  return 1 - (1 - t) ** 3
-}
-
-const setBodyCollidersEnabled = (body: RapierRigidBody | null, enabled: boolean) => {
-  if (!body) return
-  for (let i = 0; i < body.numColliders(); i += 1) {
-    body.collider(i).setEnabled(enabled)
-  }
-}
 
 const getBallCollisionKey = (other: BallCollisionTarget): string | null => {
   if (other.rigidBodyObject?.name !== "ball") return null
