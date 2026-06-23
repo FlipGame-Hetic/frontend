@@ -113,13 +113,13 @@ describe("Bumper — handleCollision", () => {
 
   describe("success — ball collision", () => {
     it("calls broadcastEvent exactly once when the ball hits the bumper", () => {
-      render(<Bumper position={[0, 0, 0]} bumperId={3} />)
+      render(<Bumper position={[0, 0, 0]} />)
       callHandler(makeBallPayload())
       expect(mockBroadcastEvent).toHaveBeenCalledOnce()
     })
 
     it("broadcasts the back-screen bumper event with the ball id", () => {
-      render(<Bumper position={[0, 0, 0]} bumperId={3} />)
+      render(<Bumper position={[0, 0, 0]} />)
       callHandler(makeBallPayload({ ballId: "ball-7" }))
       expect(mockBroadcastEvent).toHaveBeenCalledWith({
         event_type: "Bumper",
@@ -136,28 +136,19 @@ describe("Bumper — handleCollision", () => {
         setLinvel: vi.fn(),
       }
 
-      render(<Bumper position={[0, 0, 0]} bumperId={3} awardScore={false} />)
+      render(<Bumper position={[0, 0, 0]} awardScore={false} />)
       callHandler(makeBallPayload({ rigidBody: ballBody }))
 
       expect(mockBroadcastEvent).not.toHaveBeenCalled()
       expect(ballBody.applyImpulse).toHaveBeenCalledOnce()
     })
 
-    it("includes ball id but not bumper id in payload", () => {
-      render(<Bumper position={[0, 0, 0]} bumperId={0} />)
+    it("includes only the ball id in payload", () => {
+      render(<Bumper position={[0, 0, 0]} />)
       callHandler(makeBallPayload({ ballId: "ball-left" }))
       expect(mockBroadcastEvent).toHaveBeenLastCalledWith({
         event_type: "Bumper",
         payload: { ball_id: "ball-left" },
-      })
-
-      mockBroadcastEvent.mockReset()
-
-      render(<Bumper position={[0, 0, 0]} bumperId={8} />)
-      callHandler(makeBallPayload({ ballId: "ball-right" }))
-      expect(mockBroadcastEvent).toHaveBeenLastCalledWith({
-        event_type: "Bumper",
-        payload: { ball_id: "ball-right" },
       })
     })
 
@@ -188,19 +179,19 @@ describe("Bumper — handleCollision", () => {
 
   describe("error — non-ball collision", () => {
     it("does not broadcast when the collider is a wall", () => {
-      render(<Bumper position={[0, 0, 0]} bumperId={0} />)
+      render(<Bumper position={[0, 0, 0]} />)
       callHandler(makeBallPayload({ name: "wall" }))
       expect(mockBroadcastEvent).not.toHaveBeenCalled()
     })
 
     it("does not broadcast when the collider is a gutter", () => {
-      render(<Bumper position={[0, 0, 0]} bumperId={0} />)
+      render(<Bumper position={[0, 0, 0]} />)
       callHandler(makeBallPayload({ name: "gutter" }))
       expect(mockBroadcastEvent).not.toHaveBeenCalled()
     })
 
     it("does not broadcast when rigidBodyObject is null (sensor collider)", () => {
-      render(<Bumper position={[0, 0, 0]} bumperId={0} />)
+      render(<Bumper position={[0, 0, 0]} />)
       callHandler(makeBallPayload({ rigidBodyObject: null }))
       expect(mockBroadcastEvent).not.toHaveBeenCalled()
     })
@@ -208,7 +199,7 @@ describe("Bumper — handleCollision", () => {
 
   describe("edge — missing rigidBody on other object", () => {
     it("returns early and does not broadcast when other.rigidBody is null", () => {
-      render(<Bumper position={[0, 0, 0]} bumperId={2} />)
+      render(<Bumper position={[0, 0, 0]} />)
       callHandler(makeBallPayload({ rigidBody: null }))
       expect(mockBroadcastEvent).not.toHaveBeenCalled()
     })

@@ -10,7 +10,7 @@ const BONUS_ZONE_BUMPER_BASE_NAME_SET = new Set<string>(BONUS_ZONE_BUMPER_BASE_N
 const GlbBumpersManager = ({ nodes }: { nodes: PlayfieldNodes }) => {
   const bumpers = useMemo(
     () =>
-      nodes.bumpers.map((base, i) => {
+      nodes.bumpers.map((base) => {
         const module = buildModuleWithRubber(base, nodes.bumperRubbers, (name) =>
           name.replace("_base", "_rubber"),
         )
@@ -23,7 +23,6 @@ const GlbBumpersManager = ({ nodes }: { nodes: PlayfieldNodes }) => {
         }
 
         return {
-          id: i,
           isCenterMultiballBumper: BONUS_ZONE_BUMPER_BASE_NAME_SET.has(base.name),
           ...module,
         }
@@ -33,11 +32,10 @@ const GlbBumpersManager = ({ nodes }: { nodes: PlayfieldNodes }) => {
 
   return (
     <>
-      {bumpers.map(({ id, position, baseClone, rubberClone, isCenterMultiballBumper }) => (
+      {bumpers.map(({ position, baseClone, rubberClone, isCenterMultiballBumper }) => (
         <Bumper
           key={baseClone.uuid}
           position={position}
-          bumperId={id}
           meshOverride={baseClone}
           rubberMesh={rubberClone}
           awardScore={!isCenterMultiballBumper}

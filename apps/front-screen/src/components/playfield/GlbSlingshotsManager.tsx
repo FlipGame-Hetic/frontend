@@ -14,7 +14,7 @@ import {
 const GlbSlingshotsManager = ({ nodes }: { nodes: PlayfieldNodes }) => {
   const slingshots = useMemo(
     () =>
-      nodes.slingshots.map((mod, i) => {
+      nodes.slingshots.map((mod) => {
         const rubberName = mod.name.replace("_module", "_rubber")
         const rubber = nodes.slingshotRubbers.find((m) => m.name === rubberName)
         const side: "left" | "right" = mod.name.startsWith("l_") ? "left" : "right"
@@ -27,7 +27,6 @@ const GlbSlingshotsManager = ({ nodes }: { nodes: PlayfieldNodes }) => {
         }
 
         return {
-          id: i,
           side,
           position: getWorldPosition(mod),
           moduleClone: cloneWithWorldOrientation(mod),
@@ -39,12 +38,11 @@ const GlbSlingshotsManager = ({ nodes }: { nodes: PlayfieldNodes }) => {
 
   return (
     <>
-      {slingshots.map(({ id, side, position, moduleClone, rubberClone }) => (
+      {slingshots.map(({ side, position, moduleClone, rubberClone }) => (
         <Slingshot
           key={moduleClone.uuid}
           position={position}
           side={side}
-          slingshotId={id}
           moduleMesh={moduleClone}
           rubberMesh={rubberClone}
         />

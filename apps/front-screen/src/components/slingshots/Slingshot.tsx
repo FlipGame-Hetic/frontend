@@ -35,18 +35,11 @@ import { emitParticleBurst } from "../vfx/particleBurstQueue"
 interface SlingshotProps {
   position: PositionType
   side: "left" | "right"
-  slingshotId: number
   moduleMesh: Mesh
   rubberMesh?: Mesh
 }
 
-const Slingshot = ({
-  position,
-  side,
-  slingshotId: _slingshotId,
-  moduleMesh,
-  rubberMesh,
-}: SlingshotProps) => {
+const Slingshot = ({ position, side, moduleMesh, rubberMesh }: SlingshotProps) => {
   const bodyRef = useRef<RapierRigidBody>(null)
   const rubberGroupRef = useRef<Group>(null)
   const hitAt = useRef(-Infinity)

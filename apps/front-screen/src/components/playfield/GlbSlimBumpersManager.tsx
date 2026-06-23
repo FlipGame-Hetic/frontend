@@ -11,7 +11,7 @@ import {
 const GlbSlimBumpersManager = ({ nodes }: { nodes: PlayfieldNodes }) => {
   const bumpers = useMemo(
     () =>
-      nodes.slimBumpers.map((mesh, i) => {
+      nodes.slimBumpers.map((mesh) => {
         const clone = cloneWithWorldOrientation(mesh)
         clone.material = cloneMaterialWithBloom(clone.material, {
           emissiveColor: SLIM_BUMPER_BLOOM_COLOR,
@@ -19,7 +19,6 @@ const GlbSlimBumpersManager = ({ nodes }: { nodes: PlayfieldNodes }) => {
         })
 
         return {
-          id: i,
           position: getWorldPosition(mesh),
           clone,
         }
@@ -29,8 +28,8 @@ const GlbSlimBumpersManager = ({ nodes }: { nodes: PlayfieldNodes }) => {
 
   return (
     <>
-      {bumpers.map(({ id, position, clone }) => (
-        <SlimBumper key={clone.uuid} position={position} bumperId={id} meshOverride={clone} />
+      {bumpers.map(({ position, clone }) => (
+        <SlimBumper key={clone.uuid} position={position} meshOverride={clone} />
       ))}
     </>
   )

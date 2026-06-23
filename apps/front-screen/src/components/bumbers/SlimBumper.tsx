@@ -28,11 +28,10 @@ import { emitParticleBurst } from "../vfx/particleBurstQueue"
 
 interface SlimBumperProps {
   position: PositionType
-  bumperId: number
   meshOverride: Mesh
 }
 
-const SlimBumper = ({ position, bumperId: _bumperId, meshOverride }: SlimBumperProps) => {
+const SlimBumper = ({ position, meshOverride }: SlimBumperProps) => {
   const bodyRef = useRef<RapierRigidBody>(null)
   const hitAt = useRef(-Infinity)
   const baseScale = useRef(new Vector3())

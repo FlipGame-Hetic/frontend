@@ -80,7 +80,7 @@ describe("Slingshot — handleCollision", () => {
   })
 
   it("broadcasts the triangle event and applies a mass-scaled impulse", () => {
-    render(<Slingshot position={[0, 0, 0]} side="left" slingshotId={1} moduleMesh={{} as never} />)
+    render(<Slingshot position={[0, 0, 0]} side="left" moduleMesh={{} as never} />)
 
     callCollision()
 

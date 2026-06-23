@@ -26,7 +26,6 @@ import { emitParticleBurst } from "../vfx/particleBurstQueue"
 
 interface BumperProps {
   position: PositionType
-  bumperId: number
   meshOverride?: Mesh
   rubberMesh?: Mesh
   awardScore?: boolean
@@ -35,7 +34,6 @@ interface BumperProps {
 
 const Bumper = ({
   position,
-  bumperId: _bumperId,
   meshOverride,
   rubberMesh,
   awardScore = true,
