@@ -1,6 +1,6 @@
-import { runtimeEnvironment } from "@frontend/utils"
-import { ConnectionOverlay } from "@frontend/ui"
 import DebugProvider from "@/debug/DebugProvider"
+import { ConnectionOverlay } from "@frontend/ui"
+import { runtimeEnvironment } from "@frontend/utils"
 import type { CameraProps } from "@react-three/fiber"
 import { Leva } from "leva"
 import { Suspense, useEffect } from "react"
@@ -26,7 +26,6 @@ import UltimateBar from "./components/ultimate/UltimateBar"
 import UltimateOverlay from "./components/ultimate/UltimateOverlay"
 import ParticleBurstManager from "./components/vfx/ParticleBurstManager"
 import World from "./components/World"
-import { useDebugKeys } from "./hooks/useDebugKeys"
 import { useFlipperButtonRelay } from "./hooks/useFlipperButtonRelay"
 import { useScreenHub } from "./hooks/useScreenHub"
 import { useUltimateInput } from "./hooks/useUltimateInput"
@@ -38,7 +37,6 @@ const isWsTest =
 
 const App = () => {
   const hubStatus = useScreenHub()
-  useDebugKeys()
   useFlipperButtonRelay()
   useUltimateInput()
 

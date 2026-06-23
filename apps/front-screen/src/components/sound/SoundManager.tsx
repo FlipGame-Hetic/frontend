@@ -14,6 +14,7 @@ import {
   setSfxVolume,
   startMusic,
 } from "@/audio/soundEngine"
+import useKeyBinding from "@/hooks/useKeyBinding"
 
 const MUSIC_TRACK_OPTIONS = Object.fromEntries(
   MUSIC_TRACKS.map((_, index) => [`Track ${String(index + 1)}`, index]),
@@ -57,6 +58,22 @@ const SoundManager = () => {
 
   const sfxMutedRef = useRef(sound.sfxMuted)
   const musicMutedRef = useRef(sound.musicMuted)
+
+  useKeyBinding(
+    "l",
+    () => {
+      setSound({ sfxMuted: !sfxMutedRef.current })
+    },
+    { match: "key" },
+  )
+
+  useKeyBinding(
+    "m",
+    () => {
+      setSound({ musicMuted: !musicMutedRef.current })
+    },
+    { match: "key" },
+  )
 
   useEffect(() => {
     sfxMutedRef.current = sound.sfxMuted
@@ -115,25 +132,6 @@ const SoundManager = () => {
       }
     })
   }, [])
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.repeat) return
-      const target = e.target as HTMLElement | null
-      if (target?.isContentEditable || target?.closest("input, textarea, select")) return
-
-      if (e.key.toLowerCase() === "l") {
-        setSound({ sfxMuted: !sfxMutedRef.current })
-      } else if (e.key.toLowerCase() === "m") {
-        setSound({ musicMuted: !musicMutedRef.current })
-      }
-    }
-
-    window.addEventListener("keydown", handler)
-    return () => {
-      window.removeEventListener("keydown", handler)
-    }
-  }, [setSound])
 
   return null
 }

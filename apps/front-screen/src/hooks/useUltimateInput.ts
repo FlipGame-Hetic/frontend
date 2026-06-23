@@ -1,27 +1,21 @@
-import { useEffect } from "react"
 import { broadcastEvent } from "@frontend/ws"
 import { GAME_PHASE } from "@frontend/types"
+import useKeyBinding from "@/hooks/useKeyBinding"
 import useGameStore from "@/stores/useGameStore"
-
-type UltimateInputEventType = "CapacityL2" | "CapacityR2"
-
-const ULTIMATE_EVENT_BY_KEY: Partial<Record<string, UltimateInputEventType>> = {
-  ArrowDown: "CapacityL2",
-  ArrowUp: "CapacityR2",
-}
+import {
+  getUltimateEventTypeForKey,
+  ULTIMATE_INPUT_KEYS,
+} from "@/components/ultimate/ultimateConfig"
 
 export const useUltimateInput = (): void => {
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.repeat) return
-      const eventType = ULTIMATE_EVENT_BY_KEY[e.code]
+  useKeyBinding(
+    ULTIMATE_INPUT_KEYS,
+    (e) => {
+      const eventType = getUltimateEventTypeForKey(e.code)
       if (!eventType) return
-      if (useGameStore.getState().phase !== GAME_PHASE.Playing) return
+
       broadcastEvent({ event_type: eventType, payload: {} })
-    }
-    window.addEventListener("keydown", handler)
-    return () => {
-      window.removeEventListener("keydown", handler)
-    }
-  }, [])
+    },
+    { when: () => useGameStore.getState().phase === GAME_PHASE.Playing },
+  )
 }

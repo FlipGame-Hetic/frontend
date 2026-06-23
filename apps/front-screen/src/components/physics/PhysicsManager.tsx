@@ -2,9 +2,11 @@ import { Stats } from "@react-three/drei"
 import { Physics } from "@react-three/rapier"
 import { useControls } from "leva"
 import { useEffect, useRef, type ReactNode } from "react"
+import useKeyBinding from "@/hooks/useKeyBinding"
 import useUltimateStore from "@/stores/useUltimateStore"
 import { GRAVITY_Y, GRAVITY_Z, SLOW_MOTION_SPEED, TIME_STEP } from "./physicsConfig"
 import SlowMotionStepper from "./SlowMotionStepper"
+import { runtimeEnvironment } from "@frontend/utils"
 
 interface PhysicsManagerProps {
   isDebug: boolean
@@ -37,23 +39,13 @@ const PhysicsManager = ({ children, isDebug }: PhysicsManagerProps) => {
     slowMotionRef.current = slowMotion
   }, [slowMotion])
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement | null
-      if (
-        e.repeat ||
-        e.code !== "ControlLeft" ||
-        target?.isContentEditable ||
-        target?.closest("input, textarea, select")
-      )
-        return
+  useKeyBinding(
+    "ControlLeft",
+    () => {
       setMotion({ slowMotion: !slowMotionRef.current })
-    }
-    window.addEventListener("keydown", handleKeyDown)
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown)
-    }
-  }, [setMotion])
+    },
+    { enabled: runtimeEnvironment.isLocal },
+  )
 
   return (
     <Physics

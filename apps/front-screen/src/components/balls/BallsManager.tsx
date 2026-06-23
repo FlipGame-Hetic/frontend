@@ -4,6 +4,7 @@ import { GAME_PHASE } from "@frontend/types"
 import type { PositionType } from "@/types/worldTypes"
 import { isPointInPlungerLaneSensor, PLUNGER_BALL_SPAWN } from "@/components/plunger/plungerConfig"
 import { useCurrentBallColor } from "@/config/characterColors"
+import useKeyBinding from "@/hooks/useKeyBinding"
 import { useControls, button } from "leva"
 import { useCallback, useEffect, useRef, useState } from "react"
 import Ball from "./Ball"
@@ -20,6 +21,7 @@ import {
   BALL_MIN_NORMAL_SPEED,
   BALL_MAX_NORMAL_SPEED,
 } from "./ballConfig"
+import { runtimeEnvironment } from "@frontend/utils"
 
 const SPAWN_PREVIEW_HIDE_DELAY_MS = 1000
 
@@ -120,23 +122,8 @@ const BallsManager = () => {
     spawnBall(PLUNGER_BALL_SPAWN, { isPlaying: false })
   }, [spawnBall])
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement | null
-
-      if (e.repeat || target?.isContentEditable || target?.closest("input, textarea, select")) {
-        return
-      }
-
-      if (e.code === "KeyS") handleSpawn()
-      else if (e.code === "KeyP") handleSpawnInPlunger()
-    }
-
-    window.addEventListener("keydown", handleKeyDown)
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown)
-    }
-  }, [handleSpawn, handleSpawnInPlunger])
+  useKeyBinding("KeyS", handleSpawn, { enabled: runtimeEnvironment.isLocal })
+  useKeyBinding("KeyP", handleSpawnInPlunger, { enabled: runtimeEnvironment.isLocal })
 
   useControls(
     "Ball Spawner",
