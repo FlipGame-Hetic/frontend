@@ -234,7 +234,7 @@ describe("front-screen useScreenHub", () => {
         from: "backend",
         to: { kind: "screen", id: "front_screen" },
         event_type: "CapacityL2",
-        payload: null,
+        payload: {},
       })
     })
 

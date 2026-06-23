@@ -16,7 +16,7 @@ export const useUltimateInput = (): void => {
       const eventType = ULTIMATE_EVENT_BY_KEY[e.code]
       if (!eventType) return
       if (useGameStore.getState().phase !== "playing") return
-      broadcastEvent({ event_type: eventType, payload: null })
+      broadcastEvent({ event_type: eventType, payload: {} })
     }
     window.addEventListener("keydown", handler)
     return () => {

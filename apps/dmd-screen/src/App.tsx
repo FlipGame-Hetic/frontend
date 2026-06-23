@@ -131,7 +131,7 @@ function App() {
 
   useEffect(() => {
     if (status !== "connected") return
-    sendEventTo("front_screen", { event_type: "RequestResync", payload: {} })
+    sendEventTo("front_screen", { event_type: "request_resync", payload: {} })
   }, [status])
 
   const effectivePhase = devPhase ?? phase

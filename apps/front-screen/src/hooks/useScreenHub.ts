@@ -38,8 +38,11 @@ const applyKeysState = (keys: string[], state: number): void => {
 }
 
 type ScreenEventType = ScreenEvent["event_type"]
+// Uses the extract to find the payload of a specified ScreenEvent
 type PayloadFor<K extends ScreenEventType> = Extract<ScreenEvent, { event_type: K }>["payload"]
+
 type ScreenEventHandler<K extends ScreenEventType> = (payload: PayloadFor<K>) => void
+// Optional handler per event type, which receives that event's payload
 type ScreenEventHandlers = { [K in ScreenEventType]?: ScreenEventHandler<K> }
 
 const handlers: ScreenEventHandlers = {
@@ -101,7 +104,7 @@ const handlers: ScreenEventHandlers = {
     endGame()
   },
 
-  RequestResync: () => {
+  request_resync: () => {
     const { phase, score, ballNumber, currentPlayer } = useGameStore.getState()
     broadcastEvent({
       event_type: "phase_change",
@@ -153,6 +156,7 @@ const handlers: ScreenEventHandlers = {
 const handleScreenEvent = (envelope: ScreenEnvelope): void => {
   wsLog("front-screen", `handleScreenEvent "${envelope.event_type}"`, envelope)
 
+  // event_type is a runtime string, so we cast it to the key union to index the map; the second cast loosens the result to a plain (payload) => void because the per-key payload link can't survive a dynamic lookup.
   const handler = handlers[envelope.event_type as ScreenEventType] as
     | ((payload: unknown) => void)
     | undefined
