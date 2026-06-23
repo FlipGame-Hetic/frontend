@@ -1,13 +1,6 @@
 import type { GamePhase } from "./screenEvents"
 import { GAME_PHASE } from "./screenEvents"
 
-export interface GameState {
-  ballPosition: { x: number; y: number; z: number }
-  score: [number, number]
-  currentPlayer: 1 | 2
-  phase: string
-}
-
 // Not a game phase, that is only used in the payload from the reconnnect game state fetch
 export type EnginePhase = "idle" | "in_game" | "game_over"
 

@@ -9,7 +9,7 @@ export interface UltiPayload {
   slow_factor?: number
 }
 
-export interface CharacterChargeProfile {
+interface CharacterChargeProfile {
   weight_bumper: number
   weight_rail: number
   weight_combo: number

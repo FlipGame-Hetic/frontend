@@ -11,8 +11,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@frontend/types": "workspace:*",
-    "@frontend/utils": "workspace:*"
+    "@frontend/types": "workspace:*"
   },
   "devDependencies": {
     "@frontend/tsconfig": "workspace:*",

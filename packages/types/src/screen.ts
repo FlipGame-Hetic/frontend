@@ -1,5 +1,5 @@
 export type ScreenId = "front_screen" | "back_screen" | "dmd_screen"
-export type ScreenSource = ScreenId | "backend" | "game_engine"
+type ScreenSource = ScreenId | "backend" | "game_engine"
 
 export type ScreenTarget = { kind: "screen"; id: ScreenId } | { kind: "broadcast" }
 

@@ -14,14 +14,14 @@ export const GAME_PHASE = {
 export type GamePhase = (typeof GAME_PHASE)[keyof typeof GAME_PHASE]
 
 // Phases where the player can confirm (all of them except playing and paused game)
-export type MenuContext = Exclude<GamePhase, typeof GAME_PHASE.Playing | typeof GAME_PHASE.Paused>
+type MenuContext = Exclude<GamePhase, typeof GAME_PHASE.Playing | typeof GAME_PHASE.Paused>
 
 export type GameMode = "solo" | "duo" | "boss"
 
 export type ComboDirection = "L" | "R"
 
 // Payload for events that intentionally carry no data
-export type EmptyPayload = Record<string, never>
+type EmptyPayload = Record<string, never>
 
 export interface ScoreEntry {
   id: number
@@ -32,7 +32,7 @@ export interface ScoreEntry {
 }
 
 // Source of truth: maps each `event_type` to its payload type.
-export interface ScreenEventPayloads {
+interface ScreenEventPayloads {
   // snake_case - screen-to-screen communication (menu/phase coordination)
   phase_change: { phase: GamePhase; ball?: number; player?: number; score?: number }
   mode_selected: { mode: GameMode }
@@ -104,7 +104,7 @@ export interface ScreenEventPayloads {
   LeaderboardUpdate: ScoreEntry[]
 }
 
-export type ScreenEventType = keyof ScreenEventPayloads
+type ScreenEventType = keyof ScreenEventPayloads
 
 // Maps the ScreenEventType to create singulars ScreenEvent for each event type with corresponding payload
 export type ScreenEvent = {
