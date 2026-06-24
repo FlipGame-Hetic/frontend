@@ -45,7 +45,7 @@ const Drain = () => {
       triggerBallFade(ballId)
 
       drainFadeTimeoutRef.current = setTimeout(() => {
-        const { ballNumber, totalBalls, nextBall } = useGameStore.getState()
+        const { isFinalBall, nextBall } = useGameStore.getState()
         const drainResult = useBallStore.getState().drainBall(ballId)
         if (!drainResult.wasTracked) return
 
@@ -55,7 +55,7 @@ const Drain = () => {
 
         broadcastEvent({ event_type: "BallLost", payload: {} })
 
-        if (ballNumber >= totalBalls) {
+        if (isFinalBall()) {
           nextBall()
           return
         }

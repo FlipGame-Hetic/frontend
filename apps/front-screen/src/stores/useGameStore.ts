@@ -38,6 +38,7 @@ interface GameStore {
   resume: () => void
   setScore: (score: number) => void
   resumeGame: (score: number, character?: CharacterType) => void
+  isFinalBall: () => boolean
   nextBall: () => void
   menuBack: () => void
   reset: () => void
@@ -80,7 +81,7 @@ const resetGameplayRuntime = (): void => {
   useUltimateStore.getState().reset()
 }
 
-const useGameStore = create<GameStore>()((set) => ({
+const useGameStore = create<GameStore>()((set, get) => ({
   ...INITIAL_STATE,
 
   setPhase: (phase) => {
@@ -143,13 +144,17 @@ const useGameStore = create<GameStore>()((set) => ({
     }))
   },
 
+  isFinalBall: () => {
+    const { ballNumber, totalBalls } = get()
+    return ballNumber >= totalBalls
+  },
+
   nextBall: () => {
-    set((state) => {
-      if (state.ballNumber >= state.totalBalls) {
-        return { phase: GAME_PHASE.GameOver }
-      }
-      return { ballNumber: state.ballNumber + 1 }
-    })
+    if (get().isFinalBall()) {
+      set({ phase: GAME_PHASE.GameOver })
+      return
+    }
+    set((state) => ({ ballNumber: state.ballNumber + 1 }))
   },
 
   menuBack: () => {
