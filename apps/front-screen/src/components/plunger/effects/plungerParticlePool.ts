@@ -69,7 +69,7 @@ export class PlungerParticlePool {
     let changed = this.updateActive(delta)
     setRgbFromColor(color, undefined, this.colorScratch)
 
-    // Emits launch particles only when the token changes to ensure a held launch state cannot retrigger the burst.
+    // Emits launch particles only when the token changes to ensure a held launch state cannot retrigger the burst
     if (launchToken !== this.lastLaunchToken) {
       this.lastLaunchToken = launchToken
       if (launchToken > 0) {

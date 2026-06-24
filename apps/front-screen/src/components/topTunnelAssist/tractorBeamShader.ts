@@ -29,25 +29,25 @@ const float SWIRL = 2.0;
 const float LINE_WIDTH = 0.045;
 
 void main() {
-  // vUv.y: 0 = embouchure (base, cote camera), 1 = apex (pointe, dans le plateau)
+  // vUv.y: 0 = mouth (base, camera side), 1 = apex (tip, inside the playfield)
   float axis = vUv.y;
 
-  // Puits gravitationnel: anneaux resserres vers l'apex
+  // Gravity well: rings tighten toward the apex
   float well = pow(axis, WELL_POWER);
 
-  // Anneaux aspires vers l'apex + leger vortex pilote par l'angle (vUv.x)
+  // Rings pulled toward the apex + slight vortex driven by the angle (vUv.x)
   float phase = well * RING_COUNT + vUv.x * SWIRL - uTime * RING_SPEED;
 
-  // Lignes fines anti-aliasees (largeur stable au pixel via fwidth)
+  // Thin anti-aliased lines (pixel-stable width via fwidth)
   float fp = fract(phase);
   float dist = min(fp, 1.0 - fp);
   float aa = fwidth(phase);
   float rings = 1.0 - smoothstep(LINE_WIDTH, LINE_WIDTH + aa, dist);
 
-  // Glow de bord (fresnel) discret, concentre sur la silhouette
+  // Subtle edge glow (fresnel), concentrated on the silhouette
   float edge = pow(vFresnel, 3.0);
 
-  // Attenuation douce aux extremites du cone
+  // Soft fade at both ends of the cone
   float ends = smoothstep(0.0, 0.12, axis) * smoothstep(1.0, 0.82, axis);
 
   float intensity = (rings + edge * 0.35) * ends;

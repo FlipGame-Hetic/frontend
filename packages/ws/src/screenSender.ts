@@ -1,11 +1,11 @@
 import type { ScreenEvent, ScreenId } from "@frontend/types"
 import { makeEnvelope } from "@frontend/types"
-import type { UseScreenSocketReturn } from "./useScreenSocket"
+import type { UseScreenHubReturn } from "./useScreenHub"
 import { wsLog, wsWarn } from "./wsLog"
 
 const SCOPE = "sender"
 
-type SendFn = UseScreenSocketReturn["send"]
+type SendFn = UseScreenHubReturn["send"]
 
 let _screenId: ScreenId | null = null
 let _send: SendFn | null = null

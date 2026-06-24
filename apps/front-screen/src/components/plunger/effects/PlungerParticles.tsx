@@ -21,7 +21,7 @@ const getParticleFrame = (
 ): PlungerParticleFrame => {
   const front = restPositions[0] ?? new Vector3()
   const back = restPositions.at(-1) ?? front
-  // Projects a helper axis off movementAxis to ensure the particle frame has a perpendicular basis.
+  // Projects a helper axis off movementAxis to ensure the particle frame has a perpendicular basis
   const basisA = new Vector3(1, 0, 0).addScaledVector(
     movementAxis,
     -movementAxis.dot(new Vector3(1, 0, 0)),

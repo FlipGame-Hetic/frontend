@@ -240,7 +240,7 @@ The visual theme is defined once in `packages/tailwind-config/theme.css` and imp
 **Music**
 
 - _Invader_, _Diabolic_, _Only a Dream_, _That House_, _Blind_, _Thrasher_, _Cobra_
-  — [DANCE WITH THE DEAD](https://dancewiththedead.bandcamp.com) — used with the
+  — [Dance With The Dead](https://dancewiththedead.bandcamp.com) — used with the
   band's written permission, with attribution and for non-commercial purposes only.
 
 **Sound effects**

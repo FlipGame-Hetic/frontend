@@ -17,7 +17,7 @@ export const getCurrentCharacterConfigSnapshot = (): CharacterConfig => {
 }
 
 export const useCurrentCharacterConfig = (): CharacterConfig => {
-  // Reads through Zustand's selector to ensure components re-render when the active player changes.
+  // Reads through Zustand's selector to ensure components re-render when the active player changes
   return useGameStore((state) => {
     const character = state.selectedPlayers.find(
       (player) => player.player === state.currentPlayer,

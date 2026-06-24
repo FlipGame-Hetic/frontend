@@ -1,5 +1,3 @@
-// WebSocket types
-
 export type ConnectionStatus = "disconnected" | "connecting" | "connected"
 
 // General type, accepts any message, including unknown future types

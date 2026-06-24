@@ -1,6 +1,6 @@
 export type CharacterType = "enforcer" | "viper" | "ghost" | "oracle"
 
-export type UltiId = "multiball_split" | "rampage" | "time_slow" | "mimic"
+export type UltiId = "multiball_split" | "rampage" | "mimic" | "time_slow"
 
 export type UltiShape = "instant" | "sustained" | "inherited"
 
@@ -10,10 +10,12 @@ export interface UltiPayload {
 }
 
 interface CharacterChargeProfile {
+  // Weights is a ratio used to multiply the ultimate charge gained per event type (0 = no charge, 1 = normal, >1 = boosted)
   weight_bumper: number
   weight_rail: number
   weight_combo: number
   weight_other: number
+  // Passive charge accrued over time, independent of hits (0 = none, 1 = fills just by playing)
   time_rate: number
 }
 
@@ -33,10 +35,13 @@ export interface CharacterConfig {
   label: string
   description: string
   description_ultimate: string
+  // Color, gradient and glow are used for plain CSS back-screen character selection scene
   color: string
   gradient: string
   glow: string
+  // Material is used as material color for Three.js meshes
   material: string
+  // Locked characters will be shown as "Available soon" for future expansions
   locked?: boolean
 }
 
@@ -96,6 +101,7 @@ export const CHARACTER_OPTIONS: NonEmptyArray<CharacterConfig> = [
 
 export const DEFAULT_CHARACTER: CharacterConfig = CHARACTER_OPTIONS[0]
 
+// These are default values that are not supposed to be used in a normal game, only as fallback in case of backend downtime
 export const GAMEPLAY_FALLBACK: Record<CharacterType, CharacterGameplay> = {
   enforcer: {
     id: "enforcer",

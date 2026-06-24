@@ -120,7 +120,7 @@ export class ParticleBurstPool {
     let dirY = hasDirection ? direction.y : 0
     let dirZ = hasDirection ? direction.z : 0
     const len = Math.hypot(dirX, dirY, dirZ)
-    // Normalizes the optional burst direction to ensure caller vector length cannot scale particle speed.
+    // Normalizes the optional burst direction to ensure caller vector length cannot scale particle speed
     if (len > 0.0001) {
       dirX /= len
       dirY /= len
@@ -213,7 +213,7 @@ export class ParticleBurstPool {
       }
     }
 
-    // Reuses the oldest active slot when the pool is full to ensure new bursts stay visible under load.
+    // Reuses the oldest active slot when the pool is full to ensure new bursts stay visible under load
     let oldest = 0
     let oldestTime = Number.POSITIVE_INFINITY
     for (let i = 0; i < this.maxParticles; i += 1) {

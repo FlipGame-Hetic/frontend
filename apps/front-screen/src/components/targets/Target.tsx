@@ -94,7 +94,7 @@ const Target = ({ mesh, worldPosition }: TargetProps) => {
       if (other.rigidBodyObject?.name !== "ball") return
 
       const ballPos = other.rigidBody?.translation()
-      // Falls back to the target world position to ensure payloads without a rigid body can emit a burst.
+      // Falls back to the target world position to ensure payloads without a rigid body can emit a burst
       const burstPosition = ballPos ?? {
         x: worldPosition[0],
         y: worldPosition[1],

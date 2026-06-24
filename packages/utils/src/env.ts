@@ -1,11 +1,14 @@
 type RuntimeEnvRecord = Record<string, string | undefined>
 
+// globalThis.__ENV__ is injected at runtime by the deployment dashboard, which does not read the env vars bundled at build time
 const readRuntimeRecord = (): RuntimeEnvRecord =>
   (globalThis as unknown as { __ENV__?: RuntimeEnvRecord }).__ENV__ ?? {}
 
+// import.meta.env is baked in at build time by Vite, the fallback for local dev and any build that does read bundled vars
 const readBuildRecord = (): RuntimeEnvRecord =>
   (import.meta as unknown as { env?: RuntimeEnvRecord }).env ?? {}
 
+// Runtime values win over build values so that the dashboard deploy can override what was bundled
 export const readRuntimeEnv = (key: string): string | undefined =>
   readRuntimeRecord()[key] ?? readBuildRecord()[key]
 
@@ -21,6 +24,7 @@ export interface RuntimeEnvironmentFlags {
 
 const readEnvironment = (): string => readRuntimeEnv("VITE_ENVIRONMENT")?.trim() ?? "local"
 
+// Exposes several booleans for conditional rendering
 export const getRuntimeEnvironmentFlags = (
   environment = readEnvironment(),
 ): RuntimeEnvironmentFlags => {

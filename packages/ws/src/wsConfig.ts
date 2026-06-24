@@ -6,13 +6,11 @@ const RECONNECT_MAX_MS = 15000
 
 export const nextBackoffDelay = (attempt: number): number => {
   const exponential = Math.min(RECONNECT_MAX_MS, RECONNECT_BASE_MS * 2 ** attempt)
+  // Approx. 20% jitter so every screen doesn't reconnect on the same beat and stampede the server after an outage
   const jitter = exponential * 0.2 * (Math.random() * 2 - 1)
 
   return Math.round(exponential + jitter)
 }
-
-const GAME_WS_PATH = "/ws/bridge"
-const LOOPBACK_HOSTNAMES = new Set(["localhost", "127.0.0.1", "::1"])
 
 type WsEnvKey = "VITE_WS_URL" | "VITE_SCREEN_HUB_URL" | "VITE_API_URL"
 
@@ -46,6 +44,8 @@ const defaultScreenHubUrl = (): string => {
   return `${protocol}//${hostname}`
 }
 
+const GAME_WS_PATH = "/ws/bridge"
+
 const defaultGameWsUrl = (): string => {
   return `${defaultScreenHubUrl()}${GAME_WS_PATH}`
 }
@@ -66,12 +66,15 @@ const readUrlHostname = (value: string): string | undefined => {
   }
 }
 
+const LOOPBACK_HOSTNAMES = new Set(["localhost", "127.0.0.1", "::1"])
+
 const isLoopbackHostname = (hostname: string | undefined): boolean => {
   if (!hostname) return false
 
   return LOOPBACK_HOSTNAMES.has(hostname.toLowerCase())
 }
 
+// A loopback env URL (e.g. a build baked with localhost) is only trusted when the app itself runs on loopback, otherwise other devices would be pointed at their own machine instead of the host
 const shouldUseConfiguredUrl = (url: string): boolean => {
   const configuredHostname = readUrlHostname(url)
 
