@@ -1,5 +1,4 @@
 import { Howl } from "howler"
-import { connectMusicNode } from "./musicAnalyser"
 import {
   LOOPING_SFX_FADE_OUT_MS,
   MUSIC_DEFAULT_VOLUME,
@@ -184,9 +183,6 @@ const playTrackByIndex = (index: number): void => {
   const h = new Howl({
     src: [path],
     volume: musicEnabled ? musicVolume : 0,
-    onplay: () => {
-      connectMusicNode(h)
-    },
     onend: () => {
       if (currentMusic !== h) return
       currentMusic = null

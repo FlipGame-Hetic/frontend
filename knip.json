@@ -11,7 +11,7 @@
       "ignore": ["public/config.js"]
     },
     "apps/front-screen": {
-      "ignore": ["scripts/**", "public/config.js"]
+      "ignore": ["public/config.js"]
     },
     "packages/*": {}
   }
