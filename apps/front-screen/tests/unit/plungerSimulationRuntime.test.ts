@@ -15,7 +15,7 @@ import {
 
 const makeInput = (overrides: Partial<PlungerSimInput> = {}): PlungerSimInput => ({
   dt: 0,
-  isSpacePressed: false,
+  isHeld: false,
   isExternallyHeld: false,
   releaseToken: 0,
   released: true,
@@ -28,7 +28,7 @@ describe("plungerSimulationRuntime", () => {
   it("charges from keyboard input and wakes the ball only on the initial press", () => {
     const firstFrame = advancePlungerState(
       createPlungerSimState(0),
-      makeInput({ dt: PLUNGER_MAX_CHARGE_TIME / 2, isSpacePressed: true }),
+      makeInput({ dt: PLUNGER_MAX_CHARGE_TIME / 2, isHeld: true }),
     )
 
     expect(firstFrame.commands.wakeBall).toBe(true)
@@ -37,7 +37,7 @@ describe("plungerSimulationRuntime", () => {
 
     const heldFrame = advancePlungerState(
       firstFrame.state,
-      makeInput({ dt: PLUNGER_MAX_CHARGE_TIME / 4, isSpacePressed: true }),
+      makeInput({ dt: PLUNGER_MAX_CHARGE_TIME / 4, isHeld: true }),
     )
 
     expect(heldFrame.commands.wakeBall).toBe(false)

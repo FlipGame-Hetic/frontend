@@ -1,11 +1,8 @@
 import { useAnimations } from "@react-three/drei"
 import { useEffect, useMemo } from "react"
-import type { AnimationClip, Object3D } from "three"
-import { LoopRepeat, PropertyBinding } from "three"
+import { LoopRepeat, PropertyBinding, type AnimationClip, type Object3D } from "three"
+import { cloneAtWorldTransform } from "../usePlayfieldModel"
 import { applyGlobeBloomMaterialConfig } from "./decorationMaterials"
-import { cloneAtWorldTransform, type PlayfieldNodes } from "../usePlayfieldModel"
-
-const GLOBE_GROUP_NAME = "globe"
 
 const getObjectNames = (object: Object3D): Set<string> => {
   const names = new Set<string>()
@@ -23,6 +20,7 @@ const getTrackNodeName = (trackName: string): string | undefined => {
   }
 }
 
+// Only the animations whose track targets an existing node in the clone
 const targetsObject = (clip: AnimationClip, objectNames: Set<string>): boolean => {
   return clip.tracks.some((track) => {
     const nodeName = getTrackNodeName(track.name)
@@ -42,10 +40,12 @@ const AnimatedGroup = ({
     applyGlobeBloomMaterialConfig(clone)
     return clone
   }, [source])
+
   const clips = useMemo(() => {
     const objectNames = getObjectNames(object)
     return animations.filter((clip) => targetsObject(clip, objectNames))
   }, [animations, object])
+
   const { actions } = useAnimations(clips, object)
 
   useEffect(() => {
@@ -68,22 +68,4 @@ const AnimatedGroup = ({
   return <primitive object={object} />
 }
 
-const AnimatedGroups = ({
-  nodes,
-  animations,
-}: {
-  nodes: PlayfieldNodes
-  animations: AnimationClip[]
-}) => {
-  return (
-    <>
-      {nodes.animatedGroups
-        .filter((group) => group.name === GLOBE_GROUP_NAME)
-        .map((group) => (
-          <AnimatedGroup key={group.uuid} source={group} animations={animations} />
-        ))}
-    </>
-  )
-}
-
-export default AnimatedGroups
+export default AnimatedGroup

@@ -1,20 +1,21 @@
 import BallSaversManager from "../ballSavers/BallSaversManager"
 import BumpersManager from "../bumpers/BumpersManager"
 import SlimBumpersManager from "../bumpers/SlimBumpersManager"
-import AnimatedGroups from "./decorations/AnimatedGroups"
+import AnimatedGroupsManager from "./decorations/AnimatedGroupsManager"
 import FlippersManager from "../flippers/FlippersManager"
 import MultiballGate from "../bonusZone/multiballGate/MultiballGate"
 import PlungerManager from "../plunger/PlungerManager"
 import SlingshotsManager from "../slingshots/SlingshotsManager"
 import TargetsManager from "../targets/TargetsManager"
 import StaticPlayfield from "./StaticPlayfield"
-import { usePlayfieldModel } from "./usePlayfieldModel"
+import usePlayfieldModel from "./usePlayfieldModel"
 import { useEffect } from "react"
 import usePlayfieldReadyStore from "@/stores/usePlayfieldReadyStore"
 
 const PlayfieldScene = () => {
   const { nodes, animations } = usePlayfieldModel()
 
+  // Signal the rest of the app that the playfield model is mounted, so the resync / game-state fetch can run
   useEffect(() => {
     usePlayfieldReadyStore.getState().setReady(true)
     return () => {
@@ -25,7 +26,7 @@ const PlayfieldScene = () => {
   return (
     <>
       <StaticPlayfield nodes={nodes} />
-      <AnimatedGroups nodes={nodes} animations={animations} />
+      <AnimatedGroupsManager nodes={nodes} animations={animations} />
       <MultiballGate nodes={nodes} />
       <BumpersManager nodes={nodes} />
       <SlimBumpersManager nodes={nodes} />

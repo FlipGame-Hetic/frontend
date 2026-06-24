@@ -1,11 +1,12 @@
 import { useMemo } from "react"
-import Plunger, { type PlungerMeshPart } from "./Plunger"
+import Plunger from "./Plunger"
 import type { PositionType } from "@/types/worldTypes"
 import {
   cloneWithWorldOrientation,
   getWorldPosition,
   type PlayfieldNodes,
 } from "../playfield/usePlayfieldModel"
+import type { PlungerMeshPart } from "./simulation/usePlungerSimulation"
 
 const getRingIndex = (name: string): number => {
   return Number(name.replace("ring_", ""))

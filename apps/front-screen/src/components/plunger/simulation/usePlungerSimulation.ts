@@ -42,12 +42,14 @@ interface PlungerSimulationResult {
 }
 
 const applyPlungerImpulse = (body: RapierRigidBody, charge: number): void => {
+  // Launch straight up the lane (-z) projected onto the tilt
   const dir = normalizedPlayfieldDirection({ x: 0, y: 0, z: -1 })
   if (!dir) return
 
   const impulse = getPlungerImpulse(charge)
   const mass = body.mass()
 
+  // Scale launch by the impulse and ball mass
   body.applyImpulse(
     {
       x: dir.x * impulse * mass,
@@ -91,6 +93,7 @@ export const usePlungerSimulation = ({
     }
   }, [])
 
+  // Remember the ball currently sitting in the plunger lane so a launch can target it
   const handleBallEnter = useCallback(({ other }: CollisionPayload) => {
     if (other.rigidBodyObject?.name === "ball" && other.rigidBody) {
       ballInLaneRef.current = other.rigidBody
@@ -103,13 +106,14 @@ export const usePlungerSimulation = ({
     }
   }, [])
 
+  // Each frame : feed input into the pure reducer, apply its commands, then move the visual tip and the kinematic rod collider
   useFrame((_, delta) => {
     const plungerInput = getPlungerInputSnapshot()
-    const isSpacePressed = pressedKeys.current.has(PLUNGER_KEY)
+    const isHeld = pressedKeys.current.has(PLUNGER_KEY)
 
     const { state, commands } = advancePlungerState(plungerStateRef.current, {
       dt: delta,
-      isSpacePressed,
+      isHeld,
       isExternallyHeld: !plungerInput.released,
       releaseToken: plungerInput.releaseToken,
       released: plungerInput.released,

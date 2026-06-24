@@ -1,5 +1,5 @@
 import type { Material, Object3D } from "three"
-import { Mesh } from "three"
+import { isMesh } from "../usePlayfieldModel"
 import { SPINNING_GLOBE_MATERIAL_EMISSIVE_INTENSITY_BY_NAME } from "./decorationConfig"
 
 interface EmissiveIntensityMaterial extends Material {
@@ -24,10 +24,6 @@ const cloneGlobeMaterial = (material: Material): Material => {
   cloned.emissiveIntensity = emissiveIntensity
   cloned.needsUpdate = true
   return cloned
-}
-
-const isMesh = (node: Object3D): node is Mesh => {
-  return node instanceof Mesh
 }
 
 export const cloneMaterialWithGlobeBloomConfig = <T extends Material | Material[]>(

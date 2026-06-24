@@ -1,3 +1,5 @@
+export const GLOBE_GROUP_NAME = "globe"
+
 export const SPINNING_GLOBE_MATERIAL_EMISSIVE_INTENSITY_BY_NAME = {
   "Material.016": 2.0, // ocean grid
   "Material.017": 1.6, // lat/long lines

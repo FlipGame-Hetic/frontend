@@ -24,6 +24,7 @@ const PlungerLaneGate = () => {
       const ballPosition = payload.other.rigidBody?.translation()
       if (!ballPosition) return
 
+      // Ball left the sensor on the far side of the gate plane (onto the table), so mark it as playing
       if (
         isPastPlungerLaneGate(ballPosition, PLUNGER_LANE_GATE_POSITION, PLUNGER_LANE_GATE_NORMAL)
       ) {
@@ -43,6 +44,8 @@ const PlungerLaneGate = () => {
         rotation={PLUNGER_LANE_GATE_ROTATION}
         onIntersectionExit={handleSensorExit}
       />
+
+      {/* Solid gate only exists while a ball is in play, so it blocks re-entry into the lane, otherwise the lane stays open */}
       {isGateActive && (
         <CuboidCollider
           name="plunger-lane-gate"

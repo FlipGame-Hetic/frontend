@@ -1,6 +1,7 @@
 import type { PositionType } from "@/types/worldTypes"
 
-export const RAIL_BASE_ACCEL = 0.5
+// Acceleration applied to a ball riding a rail upward, capped at RAIL_MAX_ACCEL and only while its upward speed stays above RAIL_MIN_VEL
+export const RAIL_BASE_ACCEL = 0.4
 export const RAIL_BOOST_PER_SECOND = 0.05
 export const RAIL_MAX_ACCEL = 0.4
 export const RAIL_MIN_VEL = 0.2

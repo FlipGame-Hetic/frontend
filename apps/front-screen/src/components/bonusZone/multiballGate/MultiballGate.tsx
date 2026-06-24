@@ -7,7 +7,18 @@ import type { CollisionEnterPayload, CollisionPayload, RapierRigidBody } from "@
 import { CuboidCollider, RigidBody } from "@react-three/rapier"
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react"
 import type { Material, Object3D } from "three"
-import { Box3, Color, Euler, Matrix4, Mesh, Plane, Vector3 } from "three"
+import { Box3, Color, Euler, Matrix4, Plane, Vector3 } from "three"
+import {
+  cloneMaterialWithBloom,
+  hasEmissiveControls,
+  type BloomMaterialOptions,
+  type EmissiveMaterial,
+} from "../../playfield/playfieldBloomMaterials"
+import {
+  cloneAtWorldTransform,
+  isMesh,
+  type PlayfieldNodes,
+} from "../../playfield/usePlayfieldModel"
 import {
   BONUS_ZONE_RESTITUTION,
   MULTIBALL_GATE_ARCH_BLOOM_INTENSITY,
@@ -17,7 +28,7 @@ import {
   MULTIBALL_GATE_OPEN_DISTANCE,
   MULTIBALL_GATE_POSITION,
 } from "../bonusZoneConfig"
-import { useBonusZoneHitRegistrar } from "../bonusZoneHits"
+import { useBonusZoneHitRegistry } from "../bonusZoneHits"
 import {
   advanceMultiballGateState,
   createOpenMultiballGateState,
@@ -26,14 +37,8 @@ import {
   shouldCloseMultiballGateFromSensorExit,
   shouldTrackMultiballGateSensorBall,
   triggerMultiballGateClose,
+  type MultiballGateState,
 } from "./multiballGateRuntime"
-import {
-  cloneMaterialWithBloom,
-  hasEmissiveControls,
-  type BloomMaterialOptions,
-  type EmissiveMaterial,
-} from "../../playfield/playfieldBloomMaterials"
-import { cloneAtWorldTransform, type PlayfieldNodes } from "../../playfield/usePlayfieldModel"
 
 interface PreparedGate {
   frame?: Object3D
@@ -63,33 +68,25 @@ const isMultiballGateArchBloomMaterial = (material: Material): boolean => {
   return material.name === "softbluelight"
 }
 
-const clonePlainMaterial = (material: Material | Material[]) => {
-  return Array.isArray(material) ? material.map((m) => m.clone()) : material.clone()
-}
-
-const applyClippingPlane = (material: Material | Material[], clippingPlane?: Plane) => {
-  if (!clippingPlane) return
-  const materials = Array.isArray(material) ? material : [material]
-  for (const m of materials) {
-    m.clippingPlanes = [clippingPlane]
-    m.needsUpdate = true
-  }
-}
-
-const cloneMaterial = (
+const cloneNodeMaterial = (
   material: Material | Material[],
   clippingPlane?: Plane,
   bloomOptions?: BloomMaterialOptions,
 ) => {
   const cloned = bloomOptions
     ? cloneMaterialWithBloom(material, bloomOptions)
-    : clonePlainMaterial(material)
-  applyClippingPlane(cloned, clippingPlane)
-  return cloned
-}
+    : Array.isArray(material)
+      ? material.map((m) => m.clone())
+      : material.clone()
 
-const isMesh = (node: Object3D): node is Mesh => {
-  return node instanceof Mesh
+  if (clippingPlane) {
+    for (const m of Array.isArray(cloned) ? cloned : [cloned]) {
+      m.clippingPlanes = [clippingPlane]
+      m.needsUpdate = true
+    }
+  }
+
+  return cloned
 }
 
 const cloneMaterials = (
@@ -99,7 +96,7 @@ const cloneMaterials = (
 ) => {
   object.traverse((node) => {
     if (!isMesh(node)) return
-    node.material = cloneMaterial(node.material, clippingPlane, bloomOptions)
+    node.material = cloneNodeMaterial(node.material, clippingPlane, bloomOptions)
   })
 }
 
@@ -293,7 +290,7 @@ const applyGateArchBloom = (gate: PreparedGate, closedAmount: number) => {
 }
 
 const PreparedMultiballGate = ({ gate }: { gate: PreparedGate }) => {
-  const registerBonusHit = useBonusZoneHitRegistrar()
+  const registerBonusHit = useBonusZoneHitRegistry()
   const gateStateRef = useRef(createOpenMultiballGateState())
   const colliderActiveRef = useRef(false)
   const pendingGateBallsRef = useRef(new Map<string, RapierRigidBody>())
@@ -306,7 +303,7 @@ const PreparedMultiballGate = ({ gate }: { gate: PreparedGate }) => {
   }, [])
 
   const syncGateState = useCallback(
-    (state: ReturnType<typeof createOpenMultiballGateState>) => {
+    (state: MultiballGateState) => {
       gateStateRef.current = state
       syncColliderActive(state.colliderActive)
       applyGateAnimation(gate, state.closedAmount)
@@ -324,17 +321,24 @@ const PreparedMultiballGate = ({ gate }: { gate: PreparedGate }) => {
     applyGateArchBloom(gate, openState.closedAmount)
   }, [gate])
 
+  const closeGate = useCallback(
+    (state: MultiballGateState, now: number) => {
+      pendingGateBallsRef.current.clear()
+      syncGateState(triggerMultiballGateClose(state, now))
+    },
+    [syncGateState],
+  )
+
   const closeGateIfOpen = useCallback(
     (now: number): boolean => {
       const current = advanceMultiballGateState(gateStateRef.current, now)
       syncGateState(current)
       if (current.phase !== "open") return false
 
-      pendingGateBallsRef.current.clear()
-      syncGateState(triggerMultiballGateClose(current, now))
+      closeGate(current, now)
       return true
     },
-    [syncGateState],
+    [closeGate, syncGateState],
   )
 
   const handleSensorEnter = useCallback(
@@ -356,14 +360,13 @@ const PreparedMultiballGate = ({ gate }: { gate: PreparedGate }) => {
           payload.other.rigidBody.linvel(),
         )
       ) {
-        pendingGateBallsRef.current.clear()
-        syncGateState(triggerMultiballGateClose(current, now))
+        closeGate(current, now)
         return
       }
 
       pendingGateBallsRef.current.set(ballId, payload.other.rigidBody)
     },
-    [syncGateState],
+    [closeGate, syncGateState],
   )
 
   const handleSensorExit = useCallback(

@@ -52,7 +52,7 @@ export const registerBonusZoneHit = (
   return result
 }
 
-export const useBonusZoneHitRegistrar = () => {
+export const useBonusZoneHitRegistry = () => {
   const { bounceThreshold, ballCount } = useDebugControls()
 
   return useCallback(
