@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+export VITE_ENVIRONMENT=${VITE_ENVIRONMENT:-production-browser}
 CHROME_APP=${CHROME_APP:-Google Chrome}
 FRONT_URL=${FRONT_URL:-http://localhost:3000}
 BACK_URL=${BACK_URL:-http://localhost:3001}

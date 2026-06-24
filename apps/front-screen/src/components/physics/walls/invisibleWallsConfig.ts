@@ -9,6 +9,7 @@ export interface InvisibleWallConfig {
   friction?: number
 }
 
+// Invisible fixed colliders that prevent unwanted behaviours from the balls (getting stuck, leaving the playfield...)
 export const INVISIBLE_WALLS: InvisibleWallConfig[] = [
   {
     id: "ceiling",

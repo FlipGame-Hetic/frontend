@@ -44,17 +44,21 @@ const Drain = () => {
 
       triggerBallFade(ballId)
 
+      // Wait for the trail fade to finish before committing the drain, so the ball visually disappears first
       drainFadeTimeoutRef.current = setTimeout(() => {
         const { isFinalBall, nextBall } = useGameStore.getState()
         const drainResult = useBallStore.getState().drainBall(ballId)
+        // Duplicate sensor hit for an already-removed ball, nothing to drain
         if (!drainResult.wasTracked) return
 
         playRandomSfx("ball_lost")
 
+        // Mid-multiball drain : this ball is gone but there all balls left, so no life is lost and we stop here
         if (!drainResult.isLifeLost) return
 
         broadcastEvent({ event_type: "BallLost", payload: {} })
 
+        // If it was the finalBall, nextBall will end the game immediately, otherwise wait respawnDelay before serving the next ball
         if (isFinalBall()) {
           nextBall()
           return

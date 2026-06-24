@@ -11,6 +11,7 @@ export interface SnapExemptZoneConfig {
   halfExtents: PositionType
 }
 
+// Inflate the tunnel sensor volumes so snapping is suppressed slightly before the ball reaches the mouth, avoiding a jolt on entry
 const TUNNEL_ZONE_INFLATION: PositionType = [0.25, 0.3, 0.15]
 
 const tunnelSegmentZones: SnapExemptZoneConfig[] = TOP_TUNNEL_ASSIST_SEGMENTS.map((segment) => ({

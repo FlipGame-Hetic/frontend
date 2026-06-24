@@ -1,5 +1,6 @@
 import * as THREE from "three"
 
+// Pushes the line color above 1.0 so the bloom pass makes the ball's circuit lines glow
 const HDR_FACTOR = 3.5
 
 const VERTEX_SHADER = `

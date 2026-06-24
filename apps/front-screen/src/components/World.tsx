@@ -18,6 +18,7 @@ const World = ({ cameraSettings, children }: WorldProps) => {
         shadows="percentage"
         camera={cameraSettings}
         onCreated={({ gl }) => {
+          // Enables material.clippingPlanes so the multiball gate can trim the parts of its meshes that overflow its frame
           gl.localClippingEnabled = true
         }}
       >

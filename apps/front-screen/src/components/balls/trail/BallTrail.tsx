@@ -16,10 +16,12 @@ import {
   TRAIL_TELEPORT_THRESHOLD_SQ,
 } from "./ballTrailConfig"
 
+// Playfield normal components inlined here (this runs per-vertex every frame), the height ribbon is offset along it so the trail lies flat on the tilt
 const PF_NL = Math.hypot(0, 1, 0.21)
 const PF_NY = 1 / PF_NL
 const PF_NZ = 0.21 / PF_NL
 
+// Passthrough vertex shader : just forwards the uv, the ribbon geometry is built on the CPU with the fragment shader
 const VERTEX_SHADER = `
   varying vec2 vUv;
   void main() {
@@ -28,6 +30,7 @@ const VERTEX_SHADER = `
   }
 `
 
+// In the fragment shader, v (vUv.y) fades the trail from head to tail, lateral (sin across vUv.x) softens the side edges, and fadeAlpha is the overall fade-out
 const FRAGMENT_SHADER = `
   uniform vec3 trailColor;
   uniform float fadeAlpha;
@@ -54,23 +57,29 @@ const BallTrail = ({
   color,
   pointCount = TRAIL_POINTS,
 }: BallTrailProps) => {
+  // Preallocated buffers reused every frame to prevent a new allocation inside useFrame
   const centerPos = useRef(new Float32Array(TRAIL_POINTS * 3))
   const ribPos = useRef(new Float32Array(TRAIL_POINTS * 4 * 3))
   const ribUv = useRef(new Float32Array(TRAIL_POINTS * 4 * 2))
 
+  // All trail states live in refs so the update at 60fps never triggers a React re-render
   const prevPos = useRef<{ x: number; y: number; z: number } | null>(null)
   const initialized = useRef(false)
-  const fadeProgress = useRef(0)
-  const fadeCompleted = useRef(false)
   const isIdleRef = useRef(false)
   const activePointCountRef = useRef(pointCount)
   const previousPointCountRef = useRef(pointCount)
+
+  // On drain, progress from 0 to 1, then fadeCompleted
+  const fadeProgress = useRef(0)
+  const fadeCompleted = useRef(false)
   const onFadeCompleteRef = useRef(onFadeComplete)
   onFadeCompleteRef.current = onFadeComplete
+
   const positionAttrRef = useRef<THREE.BufferAttribute | null>(null)
   const uvAttrRef = useRef<THREE.BufferAttribute | null>(null)
   const disposeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  // Created once, trailColor is updated on color change (effect below), fadeAlpha is animated every frame
   const uniforms = useMemo(
     () => ({
       trailColor: { value: new THREE.Color(color).multiplyScalar(TRAIL_HDR_FACTOR) },
@@ -82,6 +91,7 @@ const BallTrail = ({
 
   const geo = useMemo(() => new THREE.BufferGeometry(), [])
 
+  // Additive blending + no depth write to make the trail glow and layer over the scene without occluding itself
   const mat = useMemo(
     () =>
       new THREE.ShaderMaterial({
@@ -101,9 +111,11 @@ const BallTrail = ({
   }, [color, uniforms])
 
   useEffect(() => {
+    // At least 2 points so the ribbon has a segment to draw, capped at the preallocated buffer size
     activePointCountRef.current = THREE.MathUtils.clamp(Math.floor(pointCount), 2, TRAIL_POINTS)
   }, [pointCount])
 
+  // Build the index buffer once. Every point has 4 vertices, and the gap between two points is filled by 2 ribbons (one tall, one wide) of 2 triangles each. That makes 12 indices per gap, which is the *12 step below, with v and n being this point's and the next point's vertices
   useEffect(() => {
     const indices = new Uint16Array((TRAIL_POINTS - 1) * 12)
     for (let i = 0; i < TRAIL_POINTS - 1; i++) {
@@ -134,6 +146,7 @@ const BallTrail = ({
       ribUv.current[base + 6] = 1
     }
 
+    // DynamicDrawUsage indicates that these buffers will be rewritten every frame,  the GPU will optimize for frequent updates
     const posAttr = new THREE.BufferAttribute(ribPos.current, 3)
     posAttr.usage = THREE.DynamicDrawUsage
     const uvAttr = new THREE.BufferAttribute(ribUv.current, 2)
@@ -142,6 +155,7 @@ const BallTrail = ({
     geo.setIndex(new THREE.BufferAttribute(indices, 1))
     geo.setAttribute("position", posAttr)
     geo.setAttribute("uv", uvAttr)
+    // three.js hides objects whose bounding sphere is off-screen. We move the vertices by hand without recomputing the bounds, so we force one big sphere that stays on-screen, otherwise the trail can blink out
     geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0, 0), 30)
     positionAttrRef.current = posAttr
     uvAttrRef.current = uvAttr
@@ -154,6 +168,7 @@ const BallTrail = ({
     }
 
     return () => {
+      // Defer disposal for a tick so a fast unmount/remount (StrictMode, color change) doesn't free buffers that the next instance could reuse
       disposeTimeoutRef.current = setTimeout(() => {
         mat.dispose()
         geo.dispose()
@@ -167,6 +182,7 @@ const BallTrail = ({
   useFrame((_, delta) => {
     const activePointCount = activePointCountRef.current
 
+    // Ball draining : run the one-shot fade-out, then signal completion once so the ball can be removed
     if (fadingRef.current) {
       if (!fadeCompleted.current) {
         fadeProgress.current += delta / TRAIL_FADE_DURATION
@@ -184,6 +200,7 @@ const BallTrail = ({
 
     const pos = body.translation()
 
+    // On the first frame or a changed point count (multiball), seat every point at the current position and update how many segments draw
     if (!initialized.current || previousPointCountRef.current !== activePointCount) {
       for (let i = 0; i < activePointCount; i++) {
         centerPos.current[i * 3] = pos.x
@@ -198,6 +215,7 @@ const BallTrail = ({
     if (prevPos.current) {
       const p = prevPos.current
       const dsq = (pos.x - p.x) ** 2 + (pos.y - p.y) ** 2 + (pos.z - p.z) ** 2
+      // When a ball jumped (portal teleport), snap the whole trail onto the new spot so it doesn't streak across the table
       if (dsq > TRAIL_TELEPORT_THRESHOLD_SQ) {
         for (let i = 0; i < activePointCount; i++) {
           centerPos.current[i * 3] = pos.x
@@ -209,10 +227,12 @@ const BallTrail = ({
     }
     prevPos.current = { x: pos.x, y: pos.y, z: pos.z }
 
+    // Ease the trail alpha toward 0 while the ball is idle (resting), back to 1 once it moves again
     const targetAlpha = isIdleRef.current ? TRAIL_IDLE_ALPHA : 1.0
     uniforms.fadeAlpha.value +=
       (targetAlpha - uniforms.fadeAlpha.value) * Math.min(1, TRAIL_IDLE_LERP_SPEED * delta)
 
+    // Shift the point history back by one slot, then write the current position as the new head
     centerPos.current.copyWithin(0, 3, activePointCount * 3)
 
     const last = (activePointCount - 1) * 3
@@ -230,6 +250,7 @@ const BallTrail = ({
       const cz = centerPos.current[ci + 2] ?? 0
 
       const linearFade = i / (activePointCount - 1)
+      // Square the tail fade so the oldest points vanish smoothly instead of cutting off
       const tailSoftener = i < TRAIL_TAIL_FADE_POINTS ? (i / TRAIL_TAIL_FADE_POINTS) ** 2 : 1
       const v = linearFade * tailSoftener
 

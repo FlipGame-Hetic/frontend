@@ -4,6 +4,7 @@ interface Position {
   z: number
 }
 
+// Latest position of each live ball, written every frame by Ball and read by off-React code (score popups, portals) without re-rendering
 const positions = new Map<string, Position>()
 
 export const setBallPosition = (id: string, position: Position): void => {
@@ -18,7 +19,9 @@ export const getBallPosition = (id: string): Position | undefined => {
   return positions.get(id)
 }
 
+// Any live ball's position, a fallback when a specific ball id can't be resolved
 export const getAnyBallPosition = (): Position | undefined => {
-  const first = positions.values().next()
-  return first.done ? undefined : first.value
+  const firstElement = positions.values().next()
+  // '.done' is true if this element is after the last of the map, so if it is true then the map was empty
+  return firstElement.done ? undefined : firstElement.value
 }

@@ -5,8 +5,8 @@ import { useEffect, useRef, type ReactNode } from "react"
 import useKeyBinding from "@/hooks/useKeyBinding"
 import useUltimateStore from "@/stores/useUltimateStore"
 import { GRAVITY_Y, GRAVITY_Z, SLOW_MOTION_SPEED, TIME_STEP } from "./physicsConfig"
-import SlowMotionStepper from "./SlowMotionStepper"
 import { runtimeEnvironment } from "@frontend/utils"
+import TimeStepper from "./TimeStepper"
 
 interface PhysicsManagerProps {
   isDebug: boolean
@@ -31,9 +31,11 @@ const PhysicsManager = ({ children, isDebug }: PhysicsManagerProps) => {
 
   const ultiTimeScale = useUltimateStore((state) => state.timeScale)
   const isUltiTimeActive = ultiTimeScale !== 1
+  // When slow-mo or an ulti time-scale is active, Rapier's own loop is paused and TimeStepper handles the stepping instead
   const stepperActive = slowMotion || isUltiTimeActive
   const stepperSpeed = isUltiTimeActive ? ultiTimeScale : slowMotionSpeed
 
+  // Mirror in a ref so the debug keyhandler toggles from the current value without re-subscribing the binding
   const slowMotionRef = useRef(slowMotion)
   useEffect(() => {
     slowMotionRef.current = slowMotion
@@ -55,7 +57,7 @@ const PhysicsManager = ({ children, isDebug }: PhysicsManagerProps) => {
       paused={stepperActive}
     >
       {isDebug && <Stats showPanel={0} />}
-      {stepperActive && <SlowMotionStepper speed={stepperSpeed} />}
+      {stepperActive && <TimeStepper speed={stepperSpeed} />}
       {children}
     </Physics>
   )

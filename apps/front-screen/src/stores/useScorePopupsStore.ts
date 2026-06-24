@@ -2,7 +2,7 @@ import {
   getAnyBallPosition,
   getBallPosition,
 } from "@/components/balls/runtime/ballPositionRegistry"
-import { getCurrentBallColor } from "@/components/balls/runtime/ballUserData"
+import { getCurrentBallColorSnapshot } from "@/config/characterConfig"
 import { create } from "zustand"
 
 interface Position {
@@ -91,7 +91,7 @@ const useScorePopupsStore = create<ScorePopupsState>((set, get) => ({
   popups: [],
   recentHits: [],
   addPopup: (amount, position) => {
-    const color = getCurrentBallColor()
+    const color = getCurrentBallColorSnapshot()
 
     set((state) => ({
       popups: [...state.popups, { id: nextId++, kind: "score", amount, position, color }],
@@ -102,7 +102,7 @@ const useScorePopupsStore = create<ScorePopupsState>((set, get) => ({
   },
   recordHit: (position, ballId, reason) => {
     const now = performance.now()
-    const color = getCurrentBallColor()
+    const color = getCurrentBallColorSnapshot()
 
     set((state) => ({
       recentHits: pruneHits(
@@ -125,7 +125,7 @@ const useScorePopupsStore = create<ScorePopupsState>((set, get) => ({
       position = (ballId ? getBallPosition(ballId) : undefined) ??
         getAnyBallPosition() ?? { x: 0, y: 0, z: 0 }
     }
-    const color = matchedHit?.color ?? getCurrentBallColor()
+    const color = matchedHit?.color ?? getCurrentBallColorSnapshot()
     const remainingHits = index >= 0 ? hits.filter((_, i) => i !== index) : hits
 
     set((state) => ({
@@ -134,7 +134,7 @@ const useScorePopupsStore = create<ScorePopupsState>((set, get) => ({
     }))
   },
   spawnMultiballCountdownPopup: (remaining, position) => {
-    const color = getCurrentBallColor()
+    const color = getCurrentBallColorSnapshot()
 
     set((state) => ({
       popups: [
@@ -150,7 +150,7 @@ const useScorePopupsStore = create<ScorePopupsState>((set, get) => ({
     }))
   },
   spawnMultiballTriggeredPopup: (position) => {
-    const color = getCurrentBallColor()
+    const color = getCurrentBallColorSnapshot()
 
     set((state) => ({
       popups: [

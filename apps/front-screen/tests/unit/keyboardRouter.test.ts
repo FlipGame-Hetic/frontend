@@ -10,13 +10,13 @@ const activeBindings: KeyBinding[] = []
 
 const bind = (
   keys: string[],
-  handler: (e: KeyboardEvent) => void,
+  onPress: (e: KeyboardEvent) => void,
   options: { match?: KeyMatchMode; when?: () => boolean } = {},
 ): KeyBinding => {
   const binding: KeyBinding = {
     keys: new Set(keys),
     match: options.match ?? "code",
-    handler,
+    onPress,
     when: options.when,
   }
 

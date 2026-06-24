@@ -33,7 +33,7 @@ describe("plungerSimulationRuntime", () => {
 
     expect(firstFrame.commands.wakeBall).toBe(true)
     expect(firstFrame.state.position).toBeCloseTo(0.5)
-    expect(firstFrame.state.wasSpacePressed).toBe(true)
+    expect(firstFrame.state.wasHeld).toBe(true)
 
     const heldFrame = advancePlungerState(
       firstFrame.state,
@@ -48,7 +48,7 @@ describe("plungerSimulationRuntime", () => {
     const chargedState: PlungerSimState = {
       ...createPlungerSimState(0),
       position: PLUNGER_MIN_LAUNCH_CHARGE,
-      wasSpacePressed: true,
+      wasHeld: true,
     }
 
     const { state, commands } = advancePlungerState(
@@ -71,7 +71,7 @@ describe("plungerSimulationRuntime", () => {
     const chargedState: PlungerSimState = {
       ...createPlungerSimState(0),
       position: PLUNGER_MIN_CHARGE,
-      wasSpacePressed: true,
+      wasHeld: true,
     }
 
     const { commands } = advancePlungerState(chargedState, makeInput({ hasBallInLane: true }))
@@ -86,7 +86,7 @@ describe("plungerSimulationRuntime", () => {
     const lowChargeState: PlungerSimState = {
       ...createPlungerSimState(0),
       position: PLUNGER_MIN_CHARGE / 2,
-      wasSpacePressed: true,
+      wasHeld: true,
     }
 
     const { state, commands } = advancePlungerState(
@@ -104,7 +104,7 @@ describe("plungerSimulationRuntime", () => {
     const chargedState: PlungerSimState = {
       ...createPlungerSimState(0),
       position: 0.5,
-      wasSpacePressed: true,
+      wasHeld: true,
     }
 
     const released = advancePlungerState(chargedState, makeInput({ hasBallInLane: true })).state

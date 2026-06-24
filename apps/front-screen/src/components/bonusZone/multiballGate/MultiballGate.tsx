@@ -1,4 +1,5 @@
-import { getBallId, getCurrentBallColor } from "@/components/balls/runtime/ballUserData"
+import { getBallId } from "@/components/balls/runtime/ballUserData"
+import { getCurrentBallColorSnapshot } from "@/config/characterConfig"
 import useBallStore from "@/stores/useBallStore"
 import type { PositionType } from "@/types/worldTypes"
 import { useFrame } from "@react-three/fiber"
@@ -282,7 +283,7 @@ const applyGateArchBloom = (gate: PreparedGate, closedAmount: number) => {
     MULTIBALL_GATE_ARCH_BLOOM_INTENSITY +
     (MULTIBALL_GATE_ARCH_CLOSED_BLOOM_INTENSITY - MULTIBALL_GATE_ARCH_BLOOM_INTENSITY) *
       closedAmount
-  ARCH_CLOSED_COLOR.set(getCurrentBallColor())
+  ARCH_CLOSED_COLOR.set(getCurrentBallColorSnapshot())
 
   for (const material of gate.archBloomMaterials) {
     material.emissive.lerpColors(ARCH_OPEN_COLOR, ARCH_CLOSED_COLOR, closedAmount)

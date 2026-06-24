@@ -30,6 +30,7 @@ export const readBouncerBallCollision = (
 
   const sourcePosition = sourceBody.translation()
   const ballPosition = other.rigidBody.translation()
+  // Direction from the bouncer center to the ball, flattened onto the playfield so the kick stays in-plane
   const exitDirection = normalizedPlayfieldDirection({
     x: ballPosition.x - sourcePosition.x,
     y: ballPosition.y - sourcePosition.y,
@@ -44,6 +45,7 @@ export const readBouncerBallCollision = (
   }
 }
 
+// Scale the impulse by the ball mass so the resulting velocity kick is identical whatever the ball's mass
 export const applyMassScaledImpulse = (
   body: RapierRigidBody,
   direction: BouncerCollisionVector,

@@ -30,11 +30,15 @@ const BallsManager = () => {
   const phase = useGameStore((s) => s.phase)
   const ballNumber = useGameStore((s) => s.ballNumber)
   const ballColor = useCurrentBallColor()
+
+  // Spawn position used when spawning a ball manually using Leva sliders
   const [spawnPos, setSpawnPos] = useState<[number, number, number]>([
     DEFAULT_BALL_SPAWN[0],
     DEFAULT_BALL_SPAWN[1],
     DEFAULT_BALL_SPAWN[2],
   ])
+
+  // Spawn preview used when spawning a ball manually using Leva sliders
   const [isSpawnPreviewVisible, setIsSpawnPreviewVisible] = useState(false)
   const spawnPreviewHideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isEditingSpawnSliderRef = useRef(false)
@@ -103,6 +107,7 @@ const BallsManager = () => {
     }
   }, [clearSpawnPreviewHideTimeout])
 
+  // On entering Playing (or a new ball number) with no ball on the table, serve one into the plunger lane
   useEffect(() => {
     if (phase !== GAME_PHASE.Playing) return
     if (useBallStore.getState().balls.length > 0) return
@@ -112,6 +117,7 @@ const BallsManager = () => {
   const handleSpawn = useCallback(() => {
     const [x, y, z] = spawnPos
     const position: PositionType = [x, y, z]
+    // A hand-spawned ball counts as in-play unless it lands in the plunger lane, where it waits to be launched
     const isPlaying = !isPointInPlungerLaneSensor({ x, y, z })
     setIsSpawnPreviewVisible(false)
     spawnBall(position, { isPlaying })
@@ -182,6 +188,7 @@ const BallsManager = () => {
   return (
     <>
       {isSpawnPreviewVisible && <BallSpawnPreview position={spawnPos} color={ballColor} />}
+
       {balls.map((ball) => (
         <Ball
           key={ball.id}

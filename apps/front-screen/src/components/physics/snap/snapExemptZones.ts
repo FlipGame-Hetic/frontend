@@ -12,6 +12,7 @@ export const isPointInSnapExemptZone = (point: VectorLike): boolean => {
       point.y - zone.position[1],
       point.z - zone.position[2],
     )
+    // The exempt zone may be rotated, so we make testing easier by moving the localPoint relatively to the zone center to align its axis before comparing
     euler.set(-zone.rotation[0], -zone.rotation[1], -zone.rotation[2], "XYZ")
     localPoint.applyEuler(euler)
 

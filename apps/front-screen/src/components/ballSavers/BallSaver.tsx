@@ -56,15 +56,22 @@ const getBallCollisionKey = (other: BallCollisionTarget): string | null => {
 
 const BallSaver = ({ mesh, side, worldPosition }: BallSaverProps) => {
   const bodyRef = useRef<RapierRigidBody>(null)
+  // Tracks the current collider on/off state to avoid triggering redundant Rapier toggles every frame
   const collidersEnabledRef = useRef<boolean | null>(null)
+  // Collision keys of the balls currently touching the saver
   const activeContactsRef = useRef(new Set<string>())
+  // Timestamp at which the consume fires once the last ball leaves, null when disarmed
   const pendingConsumeAtRef = useRef<number | null>(null)
+  // When the first ball touched, paired with lastExit to measure how long balls rested on the saver
   const firstContactAtRef = useRef<number | null>(null)
   const lastExitAtRef = useRef<number | null>(null)
+  // Current vertical sink below the table, 0 when fully raised
   const currentYOffsetRef = useRef(0)
+  // Offset captured when retraction begins so the retract animation eases from wherever the saver was
   const retractStartYOffsetRef = useRef(0)
   const phaseStartedAtRef = useRef(0)
   const phaseRef = useRef<BallSaverPhase>("down")
+  // Store setters to publish this side's phase and cooldown end to the rest of the UI
   const publishPhase = useBallSaverPhaseStore((state) => state.setPhase)
   const publishCooldownEndsAt = useBallSaverPhaseStore((state) => state.setCooldownEndsAt)
 
@@ -73,6 +80,7 @@ const BallSaver = ({ mesh, side, worldPosition }: BallSaverProps) => {
   )
 
   const clone = useMemo(() => cloneWithWorldOrientation(mesh), [mesh])
+  // How far the saver sinks below the table when down, derived from the mesh height so it fully hides
   const dropDistance = useMemo(() => {
     const size = new Vector3()
     new Box3().setFromObject(clone).getSize(size)
@@ -110,6 +118,7 @@ const BallSaver = ({ mesh, side, worldPosition }: BallSaverProps) => {
     })
   }, [side])
 
+  // A ball rested on the raised saver long enough : retract it and burn the protection for this side
   const consumeProtection = useCallback(
     (now = performance.now()) => {
       if (phaseRef.current !== "active") return
@@ -125,6 +134,7 @@ const BallSaver = ({ mesh, side, worldPosition }: BallSaverProps) => {
     [setCollidersEnabled, setPhase],
   )
 
+  // Raise the saver when this side's targets are all down, drop it back instantly if they get re-enabled mid-cycle
   useEffect(() => {
     if (targetsDown) {
       if (phaseRef.current === "down") {
@@ -156,6 +166,7 @@ const BallSaver = ({ mesh, side, worldPosition }: BallSaverProps) => {
     const key = getBallCollisionKey(other)
     if (!key || phaseRef.current !== "active") return
 
+    // Stamp when the first ball touches, used later to measure how long it actually rested on the saver
     if (activeContactsRef.current.size === 0) {
       firstContactAtRef.current = performance.now()
     }
@@ -168,12 +179,14 @@ const BallSaver = ({ mesh, side, worldPosition }: BallSaverProps) => {
     if (!key || phaseRef.current !== "active") return
     if (!activeContactsRef.current.delete(key)) return
 
+    // Last ball left : arm a delayed consume so a ball that only grazes and bounces straight off doesn't burn protection
     if (activeContactsRef.current.size === 0) {
       lastExitAtRef.current = performance.now()
       pendingConsumeAtRef.current = performance.now() + BALL_SAVER_POST_EXIT_DELAY_MS
     }
   }, [])
 
+  // Drives the kinematic saver each frame through its rise -> active -> retract -> cooldown phases
   useFrame(() => {
     const body = bodyRef.current
     if (!body) return
@@ -185,6 +198,7 @@ const BallSaver = ({ mesh, side, worldPosition }: BallSaverProps) => {
       pendingConsumeAtRef.current !== null &&
       now >= pendingConsumeAtRef.current
     ) {
+      // Only burn protection if the ball rested long enough, a brief graze is ignored and the saver stays active
       const contactDuration = (lastExitAtRef.current ?? now) - (firstContactAtRef.current ?? now)
       if (contactDuration >= BALL_SAVER_MIN_CONTACT_DURATION_MS) {
         consumeProtection(now)
@@ -231,6 +245,7 @@ const BallSaver = ({ mesh, side, worldPosition }: BallSaverProps) => {
     }
 
     currentYOffsetRef.current = yOffset
+    // Kinematic body : drive its Y by hand each frame instead of letting physics move it
     body.setNextKinematicTranslation({
       x: worldPosition[0],
       y: worldPosition[1] - yOffset,
