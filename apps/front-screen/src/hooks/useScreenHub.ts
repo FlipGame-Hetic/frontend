@@ -29,6 +29,7 @@ const DEFAULT_START_MODE: GameMode = "solo"
 
 const TOKEN = readScreenToken()
 
+// Tracks whether the cabinet plunger is being physically held, to differenciate a press/release apart from a tap that means a max launch
 let cabinetPlungerHeld = false
 
 const applyKeysState = (keys: string[], state: number): void => {
@@ -66,6 +67,7 @@ const handlers: ScreenEventHandlers = {
       return
     }
 
+    // Release with no preceding hold (a button tap) launches at full charge
     triggerPlungerMaxLaunch()
   },
 
@@ -89,6 +91,7 @@ const handlers: ScreenEventHandlers = {
   },
 
   ScoreDelta: (payload) => {
+    // timer_bonus deltas update the score but must not spawn a popup, the end-of-ball bonus has its own UI
     if (payload.reason !== "timer_bonus") {
       useScorePopupsStore
         .getState()
@@ -153,7 +156,7 @@ const handlers: ScreenEventHandlers = {
 }
 
 const handleScreenEvent = (envelope: ScreenEnvelope): void => {
-  // event_type is a runtime string, so we cast it to the key union to index the map; the second cast loosens the result to a plain (payload) => void because the per-key payload link can't survive a dynamic lookup.
+  // handlers is keyed by the event_type literals, but envelope.event_type is only a string, so the first 'as ScreenEventType' is what lets us index the handlers map to ScreenEventHandlers. Every handler becomes merged into one, so the second 'as' widens it back to (payload: unknown) => void to call it
   const handler = handlers[envelope.event_type as ScreenEventType] as
     | ((payload: unknown) => void)
     | undefined

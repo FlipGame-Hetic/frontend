@@ -24,6 +24,8 @@ const getKeyList = (keys: KeyBindingKeys): readonly string[] => {
   return typeof keys === "string" ? [keys] : keys
 }
 
+// ASCII separators, chosen because they never appear in a key name
+// Separates the match mode (e.key || e.code) from the actual key
 const MATCH_SEPARATOR = "\u001E"
 const KEY_SEPARATOR = "\u001F"
 
@@ -32,8 +34,10 @@ const getKeysId = (keys: KeyBindingKeys, match: KeyMatchMode): string => {
   return `${match}${MATCH_SEPARATOR}${normalizedKeys.join(KEY_SEPARATOR)}`
 }
 
+// Decodes a keysId back into its match mode and key set
 const getBindingConfigFromKeysId = (keysId: string): BindingConfig => {
   const separatorIndex = keysId.indexOf(MATCH_SEPARATOR)
+  // Match mode sits before the separator and the encoded keys after it, a missing separator falls back to an empty key set
   const matchToken = separatorIndex === -1 ? keysId : keysId.slice(0, separatorIndex)
   const keysToken = separatorIndex === -1 ? "" : keysId.slice(separatorIndex + 1)
   const match: KeyMatchMode = matchToken === "key" ? "key" : "code"
@@ -46,20 +50,23 @@ const getBindingConfigFromKeysId = (keysId: string): BindingConfig => {
 
 const useKeyBinding = (
   keys: KeyBindingKeys,
-  handler: (e: KeyboardEvent) => void,
+  onPress: (e: KeyboardEvent) => void,
   options: UseKeyBindingOptions = {},
 ): void => {
+  // 'enabled' toggles registration itself : flipping it adds or removes the key listener
   const enabled = options.enabled ?? true
   const match = options.match ?? "code"
+  // 'when' is checked at each keypress, which differentiates it from 'enabled', the binding stays registered but the onPress is skipped while it returns false
   const when = options.when
   const keysId = getKeysId(keys, match)
-  const handlerRef = useRef(handler)
+  // Latest 'onPress' and 'when' held in refs so a new callback identity does not re-register the binding, it only happens one onMount or when the option's value changes
+  const onPressRef = useRef(onPress)
   const whenRef = useRef(when)
 
   useLayoutEffect(() => {
-    handlerRef.current = handler
+    onPressRef.current = onPress
     whenRef.current = when
-  }, [handler, when])
+  }, [onPress, when])
 
   useEffect(() => {
     if (!enabled) return
@@ -68,8 +75,8 @@ const useKeyBinding = (
     const binding: KeyBinding = {
       keys: config.keys,
       match: config.match,
-      handler: (e) => {
-        handlerRef.current(e)
+      onPress: (e) => {
+        onPressRef.current(e)
       },
       when: () => whenRef.current?.() ?? true,
     }

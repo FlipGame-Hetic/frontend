@@ -72,6 +72,7 @@ const INITIAL_STATE: Pick<
   currentPlayer: 1,
 }
 
+// Wipes every gameplay-runtime store that lives outside useGameStore so a new or restarted game starts clean
 const resetGameplayRuntime = (): void => {
   useTargetStore.getState().resetTargets()
   useBallStore.getState().resetBalls()

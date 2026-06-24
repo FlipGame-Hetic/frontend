@@ -4,6 +4,7 @@ import useKeyBinding from "@/hooks/useKeyBinding"
 import useBallStore from "@/stores/useBallStore"
 
 export const useFlipperButtonRelay = (): void => {
+  // Only relay flipper presses while a ball is in play, so menu/idle button press are not sent to the cabinet
   const when = () => useBallStore.getState().playingBallIds.length > 0
 
   useKeyBinding(

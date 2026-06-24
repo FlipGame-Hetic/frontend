@@ -4,7 +4,7 @@ export type KeyMatchMode = "code" | "key"
 export interface KeyBinding {
   keys: Set<string>
   match: KeyMatchMode
-  handler: (e: KeyboardEvent) => void
+  onPress: (e: KeyboardEvent) => void
   when?: () => boolean
 }
 
@@ -37,7 +37,7 @@ const handleKeyDown = (e: KeyboardEvent): void => {
     if (!binding.keys.has(key)) continue
     if (binding.when?.() === false) continue
 
-    binding.handler(e)
+    binding.onPress(e)
   }
 }
 

@@ -41,10 +41,13 @@ interface ScorePopupsState {
   spawnMultiballTriggeredPopup: (position: Position) => void
 }
 
+// Monotonic id source kept outside the store so incrementing it doesn't trigger a render on its own
 let nextId = 0
 
+// Max number of hits that can be displayed at once
 const HITS_CAP = 16
 const HIT_EXPIRY_MS = 2000
+// Shorter than HIT_EXPIRY_MS : a hit can still be retained yet too old to confidently pair with an incoming delta
 const HIT_MATCH_WINDOW_MS = 1500
 
 const pruneHits = (hits: HitRecord[], now: number): HitRecord[] => {

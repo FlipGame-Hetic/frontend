@@ -19,6 +19,7 @@ import { DebugContext, type DebugControls } from "@/debug/debugContext"
 import { getDebugBallId } from "@/debug/getDebugBallId"
 
 const DebugProvider = ({ children }: { children: ReactNode }) => {
+  // Uses the live tweak slider with a Ref so the 'Trigger Mutiball' button reads the current count after changing it via Leva
   const ballCountRef = useRef(MULTIBALL_BALL_COUNT)
 
   const mainControls = useControls(

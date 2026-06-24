@@ -1,5 +1,7 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+import { getMultiballDebugSnapshot } from "@/components/bonusZone/multiballGate/multiballBounceState"
+import useMultiballStore from "@/stores/useMultiballStore"
 import type { Vector3Tuple } from "three"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 const { addTraumaMock, ballStoreState, broadcastEventMock, playSfxMock, spawnBallMock } =
   vi.hoisted(() => ({
@@ -30,9 +32,6 @@ vi.mock("@frontend/ws", () => ({
   broadcastEvent: broadcastEventMock,
   registerScreenSender: vi.fn(),
 }))
-
-import { getMultiballDebugSnapshot } from "@/components/bonusZone/multiballGate/multiballBounceState"
-import useMultiballStore from "@/stores/useMultiballStore"
 
 const POS_1: Vector3Tuple = [-2.7, 1.6, -4.1]
 const POS_2: Vector3Tuple = [2.1, 1.6, -4.1]

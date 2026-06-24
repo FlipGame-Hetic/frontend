@@ -64,6 +64,7 @@ const useMultiballStore = create<MultiballStore>()((set, get) => {
       set({ bounceCount: 0 })
 
       const spawnBall = useBallStore.getState().spawnBall
+      // Stagger the extra balls over spawnIntervalMs and track each timer so reset() can cancel any still pending
       for (let i = 0; i < ballCount; i++) {
         const timer = setTimeout(() => {
           untrackSpawnTimer(timer)

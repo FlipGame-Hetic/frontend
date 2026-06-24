@@ -17,6 +17,7 @@ const DefaultCamera = ({ cameraPosition, cameraFov }: DefaultCameraProps) => {
 
   useEffect(() => {
     if (enabled) return
+    // Wait for next frame so our placement runs after R3F finishes setting up its camera, otherwise our gets overwritten
     requestAnimationFrame(() => {
       const { camera } = getState()
       camera.position.set(...cameraPosition)

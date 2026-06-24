@@ -33,7 +33,7 @@ const PlungerLaneGate = () => {
       if (
         isPastPlungerLaneGate(ballPosition, PLUNGER_LANE_GATE_POSITION, PLUNGER_LANE_GATE_NORMAL)
       ) {
-        setBallPlaying(ballId, true)
+        setBallPlaying(ballId)
       }
     },
     [setBallPlaying],
