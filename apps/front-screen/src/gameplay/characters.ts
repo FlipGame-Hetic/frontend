@@ -1,6 +1,6 @@
 import { GAMEPLAY_FALLBACK } from "@frontend/types"
 import type { CharacterGameplay, CharacterType } from "@frontend/types"
-import { resolveApiUrl, wsWarn } from "@frontend/ws"
+import { resolveApiUrl } from "@frontend/ws"
 
 export type CharactersBySlug = Record<CharacterType, CharacterGameplay>
 
@@ -18,7 +18,7 @@ export const fetchCharacters = async (): Promise<CharactersBySlug> => {
       }
     }
   } catch (error) {
-    wsWarn("characters", "GET /characters failed — using local gameplay fallback", error)
+    console.warn("[characters] GET /characters failed — using local gameplay fallback", error)
   }
 
   return bySlug

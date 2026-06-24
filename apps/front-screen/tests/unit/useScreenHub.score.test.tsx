@@ -21,8 +21,6 @@ vi.mock("@frontend/ws", () => ({
   registerScreenSender: registerScreenSenderMock,
   sendEventTo: vi.fn(),
   useScreenHub: useScreenHubBaseMock,
-  wsLog: vi.fn(),
-  wsWarn: vi.fn(),
 }))
 
 function ScreenHubHarness() {

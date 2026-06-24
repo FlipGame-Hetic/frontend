@@ -1,11 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import type { ConnectionStatus } from "@frontend/types"
 import { nextBackoffDelay } from "./wsConfig"
-import { wsLog, wsWarn } from "./wsLog"
 
 export interface UseReconnectingSocketOptions<T> {
   url: string
-  scope: string
   // When false the socket stays closed (e.g. missing auth token) — no connect, no reconnect
   enabled?: boolean
   onMessage?: (message: T) => void
@@ -21,7 +19,7 @@ export interface UseReconnectingSocketReturn<T> {
 export function useReconnectingSocket<T>(
   options: UseReconnectingSocketOptions<T>,
 ): UseReconnectingSocketReturn<T> {
-  const { url, scope, enabled = true } = options
+  const { url, enabled = true } = options
 
   const [status, setStatus] = useState<ConnectionStatus>("disconnected")
   // Active socket kept in a ref so send and teardown reach it without re-rendering
@@ -39,23 +37,13 @@ export function useReconnectingSocket<T>(
     // No dependency : runs on every render to keep the refs pointing at the current handlers
   })
 
-  // Stable identity (scope only): reaches the live socket through wsRef instead of closing over it
-  const send = useCallback(
-    (message: T) => {
-      const ws = wsRef.current
-      if (ws?.readyState === WebSocket.OPEN) {
-        wsLog(scope, "send ->", message)
-        ws.send(JSON.stringify(message))
-      } else {
-        wsWarn(
-          scope,
-          `send dropped (socket not open, readyState=${String(ws?.readyState)})`,
-          message,
-        )
-      }
-    },
-    [scope],
-  )
+  // Stable identity: reaches the live socket through wsRef instead of closing over it
+  const send = useCallback((message: T) => {
+    const ws = wsRef.current
+    if (ws?.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify(message))
+    }
+  }, [])
 
   useEffect(() => {
     if (!enabled) return
@@ -66,7 +54,6 @@ export function useReconnectingSocket<T>(
     function connect() {
       if (disposed) return
       setStatus("connecting")
-      wsLog(scope, "connecting to", url)
 
       const ws = new WebSocket(url)
       wsRef.current = ws
@@ -75,7 +62,6 @@ export function useReconnectingSocket<T>(
         if (disposed) return
         reconnectAttempt.current = 0
         setStatus("connected")
-        wsLog(scope, "OPEN", url)
       }
 
       ws.onmessage = (event: MessageEvent) => {
@@ -83,7 +69,6 @@ export function useReconnectingSocket<T>(
         const raw = typeof event.data === "string" ? event.data : ""
         try {
           const parsed = JSON.parse(raw) as T
-          wsLog(scope, "recv <-", parsed)
           onMessageRef.current?.(parsed)
         } catch {
           const fallback = onParseErrorRef.current?.(raw)
@@ -91,21 +76,16 @@ export function useReconnectingSocket<T>(
         }
       }
 
-      ws.onclose = (event: CloseEvent) => {
+      ws.onclose = () => {
         if (disposed) return
         setStatus("disconnected")
         // Increases the delay before next attempt
         const delay = nextBackoffDelay(reconnectAttempt.current++)
-        wsWarn(
-          scope,
-          `CLOSED code=${String(event.code)} reason="${event.reason}" wasClean=${String(event.wasClean)} — reconnecting in ${String(delay)}ms`,
-        )
         reconnectTimer.current = setTimeout(connect, delay)
       }
 
       ws.onerror = () => {
         // onerror is always followed by onclose - let onclose handle reconnect
-        wsWarn(scope, "ERROR on", url)
         ws.close()
       }
     }
@@ -117,7 +97,7 @@ export function useReconnectingSocket<T>(
       clearTimeout(reconnectTimer.current)
       wsRef.current?.close()
     }
-  }, [url, scope, enabled])
+  }, [url, enabled])
 
   return { status, send }
 }

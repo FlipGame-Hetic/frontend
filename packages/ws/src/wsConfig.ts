@@ -1,5 +1,4 @@
 import { readRuntimeEnv } from "@frontend/utils"
-import { wsLog, wsWarn } from "./wsLog"
 
 const RECONNECT_BASE_MS = 1000
 const RECONNECT_MAX_MS = 15000
@@ -87,27 +86,22 @@ const resolveUrl = (key: WsEnvKey, fallback: () => string, override?: string): s
   const overrideUrl = cleanUrl(override)
 
   if (overrideUrl) {
-    wsLog("config", `resolved ${key} from OVERRIDE`, overrideUrl)
     return overrideUrl
   }
 
   const envUrl = cleanUrl(readRuntimeEnv(key))
 
   if (envUrl && shouldUseConfiguredUrl(envUrl)) {
-    wsLog("config", `resolved ${key} from ENV`, envUrl)
     return envUrl
   }
 
   const fallbackUrl = fallback()
 
   if (envUrl) {
-    wsWarn(
-      "config",
-      `${key} env value "${envUrl}" ignored (loopback host on non-loopback runtime "${readRuntimeHostname()}") — falling back to default`,
+    console.warn(
+      `[ws] ${key} env value "${envUrl}" ignored (loopback host on non-loopback runtime "${readRuntimeHostname()}") — falling back to default`,
       fallbackUrl,
     )
-  } else {
-    wsLog("config", `resolved ${key} from DEFAULT (no env set)`, fallbackUrl)
   }
 
   return fallbackUrl

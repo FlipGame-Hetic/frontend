@@ -21,7 +21,6 @@ import {
   registerScreenSender,
   sendEventTo,
   useScreenHub as useScreenHubBase,
-  wsLog,
 } from "@frontend/ws"
 import { useEffect } from "react"
 
@@ -154,8 +153,6 @@ const handlers: ScreenEventHandlers = {
 }
 
 const handleScreenEvent = (envelope: ScreenEnvelope): void => {
-  wsLog("front-screen", `handleScreenEvent "${envelope.event_type}"`, envelope)
-
   // event_type is a runtime string, so we cast it to the key union to index the map; the second cast loosens the result to a plain (payload) => void because the per-key payload link can't survive a dynamic lookup.
   const handler = handlers[envelope.event_type as ScreenEventType] as
     | ((payload: unknown) => void)
