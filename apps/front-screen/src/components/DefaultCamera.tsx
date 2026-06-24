@@ -4,12 +4,12 @@ import { useDebugControls } from "@/debug/debugContext"
 import { useEffect, useRef, type ComponentRef } from "react"
 import type { Vector3Tuple } from "three"
 
-interface DebugCameraProps {
+interface DefaultCameraProps {
   cameraPosition: Vector3Tuple
   cameraFov: number
 }
 
-const DebugCamera = ({ cameraPosition, cameraFov }: DebugCameraProps) => {
+const DefaultCamera = ({ cameraPosition, cameraFov }: DefaultCameraProps) => {
   const controlsRef = useRef<ComponentRef<typeof OrbitControls>>(null)
   const getState = useThree((s) => s.get)
 
@@ -33,4 +33,4 @@ const DebugCamera = ({ cameraPosition, cameraFov }: DebugCameraProps) => {
   return <OrbitControls ref={controlsRef} makeDefault />
 }
 
-export default DebugCamera
+export default DefaultCamera

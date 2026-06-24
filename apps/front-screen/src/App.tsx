@@ -4,17 +4,16 @@ import { runtimeEnvironment } from "@frontend/utils"
 import type { CameraProps } from "@react-three/fiber"
 import { Leva } from "leva"
 import { Suspense, useEffect } from "react"
-import SceneAmbientLight from "./components/light/SceneAmbientLight"
 import BallsManager from "./components/balls/BallsManager"
 import CabinetCamera from "./components/CabinetCamera"
 import ControlHints from "./components/controlHints/ControlHints"
-import DebugCamera from "./components/DebugCamera"
+import DefaultCamera from "./components/DefaultCamera"
 import Drain from "./components/drain/Drain"
 import TronGridFloor from "./components/environment/TronGridFloor"
-import InvisibleWallsManager from "./components/physics/walls/InvisibleWallsManager"
+import SceneAmbientLight from "./components/light/SceneAmbientLight"
 import PhysicsManager from "./components/physics/PhysicsManager"
+import InvisibleWallsManager from "./components/physics/walls/InvisibleWallsManager"
 import PlayfieldScene from "./components/playfield/PlayfieldScene"
-import TopTunnelAssistManager from "./components/topTunnelAssist/TopTunnelAssistManager"
 import PlungerLaneGate from "./components/plunger/PlungerLaneGate"
 import PortalsManager from "./components/portal/PortalsManager"
 import ScorePopupsManager from "./components/scorePopups/ScorePopupsManager"
@@ -22,6 +21,7 @@ import ScreenShakeController from "./components/screenShake/ScreenShakeControlle
 import { GUTTER_DRAIN_ASSIST_SENSORS } from "./components/sensors/directionalAccelerationSensorsConfig"
 import DirectionalAccelerationSensorsManager from "./components/sensors/DirectionalAccelerationSensorsManager"
 import SoundManager from "./components/sound/SoundManager"
+import TopTunnelAssistManager from "./components/topTunnelAssist/TopTunnelAssistManager"
 import UltimateBar from "./components/ultimate/UltimateBar"
 import UltimateScreenTint from "./components/ultimate/UltimateScreenTint"
 import ParticleBurstManager from "./components/vfx/ParticleBurstManager"
@@ -30,10 +30,6 @@ import { useFlipperButtonRelay } from "./hooks/useFlipperButtonRelay"
 import { useScreenHub } from "./hooks/useScreenHub"
 import { useUltimateInput } from "./hooks/useUltimateInput"
 import useCharactersStore from "./stores/useCharactersStore"
-import WebsocketTest from "./websocket-test/WebsocketTest"
-
-const isWsTest =
-  !runtimeEnvironment.isProduction && new URLSearchParams(window.location.search).has("wstest")
 
 const App = () => {
   const hubStatus = useScreenHub()
@@ -45,8 +41,6 @@ const App = () => {
   }, [])
 
   const cameraSettings = { position: [0, 13, 15] as [number, number, number], fov: 35 }
-
-  if (isWsTest) return <WebsocketTest />
 
   return (
     <DebugProvider>
@@ -76,7 +70,7 @@ const App = () => {
         {runtimeEnvironment.isProductionCabinet ? (
           <CabinetCamera />
         ) : (
-          <DebugCamera cameraPosition={cameraSettings.position} cameraFov={cameraSettings.fov} />
+          <DefaultCamera cameraPosition={cameraSettings.position} cameraFov={cameraSettings.fov} />
         )}
         <ScreenShakeController />
         <TronGridFloor />
