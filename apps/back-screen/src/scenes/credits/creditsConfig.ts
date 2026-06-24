@@ -29,7 +29,7 @@ export const CREDITS_SECTIONS: CreditSection[] = [
       },
       {
         message:
-          "Merci au groupe DANCE WITH THE DEAD de nous avoir permis d'utiliser leurs musiques :",
+          "Merci au groupe Dance With The Dead de nous avoir permis d'utiliser leurs musiques :",
         items: [
           "Invader",
           "Diabolic",
