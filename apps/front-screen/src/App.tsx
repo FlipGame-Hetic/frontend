@@ -30,11 +30,16 @@ import { useFlipperButtonRelay } from "./hooks/useFlipperButtonRelay"
 import { useScreenHub } from "./hooks/useScreenHub"
 import { useUltimateInput } from "./hooks/useUltimateInput"
 import useCharactersStore from "./stores/useCharactersStore"
+import useDebugOverlayStore from "./stores/useDebugOverlayStore"
 
 const App = () => {
   const hubStatus = useScreenHub()
   useFlipperButtonRelay()
   useUltimateInput()
+
+  const debugVisible = useDebugOverlayStore((state) => state.visible)
+  // Overlays show in dev, or on demand via window.debug() so the cabinet can toggle them without a reload
+  const overlayShown = !runtimeEnvironment.isProduction || debugVisible
 
   useEffect(() => {
     void useCharactersStore.getState().load()
@@ -46,7 +51,7 @@ const App = () => {
     <DebugProvider>
       <SoundManager />
       <Leva
-        hidden={runtimeEnvironment.isProduction}
+        hidden={!overlayShown}
         titleBar={{ title: "Tweaks GUI" }}
         theme={{ sizes: { rootWidth: "350px" } }}
         collapsed
@@ -74,7 +79,7 @@ const App = () => {
         )}
         <ScreenShakeController />
         <TronGridFloor />
-        <PhysicsManager isDebug={!runtimeEnvironment.isProduction}>
+        <PhysicsManager showStats={overlayShown}>
           <BallsManager />
           <Drain />
           <DirectionalAccelerationSensorsManager sensors={GUTTER_DRAIN_ASSIST_SENSORS} />
