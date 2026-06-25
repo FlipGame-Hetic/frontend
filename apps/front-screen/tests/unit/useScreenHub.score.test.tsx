@@ -3,7 +3,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 import type { ScreenEnvelope } from "@frontend/types"
 import { LEFT_KEYS, RIGHT_KEYS } from "@/components/flippers/flipperConfig"
 import { PLUNGER_KEY } from "@/components/plunger/plungerConfig"
-import { getPlungerInputSnapshot, getPressedKeys, releaseKey } from "@/input/inputState"
+import {
+  getPlungerInputSnapshot,
+  getPressedKeys,
+  pressKey,
+  resetInputState,
+  triggerPlungerMaxLaunch,
+} from "@/input/inputState"
 import useGameStore from "@/stores/useGameStore"
 import { useScreenHub } from "@/hooks/useScreenHub"
 
@@ -35,7 +41,16 @@ const lastScreenHubOptions = (): { onEvent?: (envelope: ScreenEnvelope) => void 
 }
 
 const releaseKnownInputKeys = (): void => {
-  ;[...LEFT_KEYS, ...RIGHT_KEYS, PLUNGER_KEY].forEach(releaseKey)
+  resetInputState()
+}
+
+const startSoloGame = (): void => {
+  act(() => {
+    useGameStore.getState().startGame({
+      mode: "solo",
+      players: [{ player: 1, character: "enforcer" }],
+    })
+  })
 }
 
 describe("front-screen useScreenHub", () => {
@@ -119,6 +134,25 @@ describe("front-screen useScreenHub", () => {
 
     act(() => {
       options.onEvent?.({
+        from: "backend",
+        to: { kind: "screen", id: "front_screen" },
+        event_type: "FlipperLeft",
+        payload: { state: 1 },
+      })
+      pressKey(PLUNGER_KEY)
+      triggerPlungerMaxLaunch()
+    })
+
+    expect(LEFT_KEYS.some((key) => getPressedKeys().has(key))).toBe(true)
+    expect(getPressedKeys().has(PLUNGER_KEY)).toBe(true)
+    expect(getPlungerInputSnapshot()).toMatchObject({
+      position: 1,
+      released: true,
+    })
+    const releaseTokenBeforeGameOver = getPlungerInputSnapshot().releaseToken
+
+    act(() => {
+      options.onEvent?.({
         from: "game_engine",
         to: { kind: "broadcast" },
         event_type: "GameOver",
@@ -129,6 +163,13 @@ describe("front-screen useScreenHub", () => {
     expect(useGameStore.getState()).toMatchObject({
       phase: "game_over",
       score: 9876,
+    })
+    expect(LEFT_KEYS.every((key) => !getPressedKeys().has(key))).toBe(true)
+    expect(getPressedKeys().has(PLUNGER_KEY)).toBe(false)
+    expect(getPlungerInputSnapshot()).toMatchObject({
+      position: 0,
+      released: true,
+      releaseToken: releaseTokenBeforeGameOver + 1,
     })
     expect(sendMock).toHaveBeenCalledWith({
       from: "front_screen",
@@ -145,6 +186,7 @@ describe("front-screen useScreenHub", () => {
 
   it("maps cabinet flipper state events to local input keys", () => {
     render(<ScreenHubHarness />)
+    startSoloGame()
 
     const options = lastScreenHubOptions()
 
@@ -174,6 +216,7 @@ describe("front-screen useScreenHub", () => {
 
   it("maps PlungerCharge hold and release to the Space input", () => {
     render(<ScreenHubHarness />)
+    startSoloGame()
 
     const options = lastScreenHubOptions()
 
@@ -202,6 +245,7 @@ describe("front-screen useScreenHub", () => {
 
   it("launches the plunger at max charge when PlungerCharge release has no matching hold", () => {
     render(<ScreenHubHarness />)
+    startSoloGame()
 
     const options = lastScreenHubOptions()
     const before = getPlungerInputSnapshot().releaseToken
@@ -220,6 +264,32 @@ describe("front-screen useScreenHub", () => {
       released: true,
       releaseToken: before + 1,
     })
+  })
+
+  it("ignores cabinet gameplay input while the game is not playing", () => {
+    render(<ScreenHubHarness />)
+
+    const options = lastScreenHubOptions()
+    const before = getPlungerInputSnapshot().releaseToken
+
+    act(() => {
+      options.onEvent?.({
+        from: "backend",
+        to: { kind: "screen", id: "front_screen" },
+        event_type: "FlipperLeft",
+        payload: { state: 1 },
+      })
+      options.onEvent?.({
+        from: "backend",
+        to: { kind: "screen", id: "front_screen" },
+        event_type: "PlungerCharge",
+        payload: { state: 0 },
+      })
+    })
+
+    expect(LEFT_KEYS.every((key) => !getPressedKeys().has(key))).toBe(true)
+    expect(getPressedKeys().has(PLUNGER_KEY)).toBe(false)
+    expect(getPlungerInputSnapshot().releaseToken).toBe(before)
   })
 
   it("no longer reacts to capacity cabinet events (back is the ultimate state machine)", () => {

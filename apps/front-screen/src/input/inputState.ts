@@ -46,6 +46,12 @@ const setPlungerReleased = (released: boolean): void => {
   plungerInput.released = released
 }
 
+export const resetInputState = (): void => {
+  pressedKeys.clear()
+  plungerInput.position = 0
+  setPlungerReleased(true)
+}
+
 export const triggerPlungerMaxLaunch = (): void => {
   setPlungerPosition(1)
   setPlungerReleased(true)

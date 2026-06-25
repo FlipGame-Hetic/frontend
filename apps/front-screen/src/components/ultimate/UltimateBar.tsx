@@ -97,7 +97,9 @@ const UltimateBar = () => {
         style={{ pointerEvents: "none" }}
       >
         <div className="ultimate-hud" data-state={state} style={style}>
-          <span className="ultimate-hud__icon" aria-hidden="true" />
+          <span className="ultimate-hud__icon-frame" aria-hidden="true">
+            <span className="ultimate-hud__icon" />
+          </span>
           <div className="ultimate-hud__bar-shell" aria-hidden="true">
             <div className="ultimate-hud__bar">
               <span className="ultimate-hud__bar-fill" />
@@ -118,19 +120,9 @@ const UltimateBar = () => {
             </svg>
             <span className="ultimate-hud__button" aria-hidden="true">
               {runtimeEnvironment.isProductionCabinet ? (
-                "R2"
+                <span className="ultimate-hud__button-label">R2</span>
               ) : (
-                <svg
-                  fill="none"
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="m5 12 7-7 7 7" />
-                  <path d="M12 19V5" />
-                </svg>
+                <span className="ultimate-hud__button-glyph ultimate-hud__button-glyph--up" />
               )}
             </span>
           </div>

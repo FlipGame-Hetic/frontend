@@ -32,6 +32,14 @@ const TOKEN = readScreenToken()
 // Tracks whether the cabinet plunger is being physically held, to differenciate a press/release apart from a tap that means a max launch
 let cabinetPlungerHeld = false
 
+const resetCabinetInputLatch = (): void => {
+  cabinetPlungerHeld = false
+}
+
+const isPlaying = (): boolean => {
+  return useGameStore.getState().phase === GAME_PHASE.Playing
+}
+
 const applyKeysState = (keys: string[], state: number): void => {
   const apply = state > 0 ? pressKey : releaseKey
   keys.forEach(apply)
@@ -47,14 +55,21 @@ type ScreenEventHandlers = { [K in ScreenEventType]?: ScreenEventHandler<K> }
 
 const handlers: ScreenEventHandlers = {
   FlipperLeft: (payload) => {
+    if (!isPlaying()) return
     applyKeysState(LEFT_KEYS, payload.state)
   },
 
   FlipperRight: (payload) => {
+    if (!isPlaying()) return
     applyKeysState(RIGHT_KEYS, payload.state)
   },
 
   PlungerCharge: (payload) => {
+    if (!isPlaying()) {
+      resetCabinetInputLatch()
+      return
+    }
+
     if (payload.state > 0) {
       cabinetPlungerHeld = true
       pressKey(PLUNGER_KEY)
@@ -102,6 +117,7 @@ const handlers: ScreenEventHandlers = {
 
   GameOver: (payload) => {
     const { setScore, endGame } = useGameStore.getState()
+    resetCabinetInputLatch()
     setScore(payload.final_score)
     endGame()
   },
@@ -141,6 +157,7 @@ const handlers: ScreenEventHandlers = {
   },
 
   start_game: (payload) => {
+    resetCabinetInputLatch()
     useGameStore.getState().startGame(payload)
     const player = payload.players[0]
     if (player) {
@@ -211,6 +228,10 @@ export const useScreenHub = (): ConnectionStatus => {
 
   useEffect(() => {
     const unsub = useGameStore.subscribe((state, prev) => {
+      if (state.phase === GAME_PHASE.GameOver && prev.phase !== GAME_PHASE.GameOver) {
+        resetCabinetInputLatch()
+      }
+
       if (state.score !== prev.score) {
         send({
           from: SCREEN_ID,

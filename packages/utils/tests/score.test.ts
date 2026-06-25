@@ -21,6 +21,10 @@ describe("formatScore", () => {
   })
 
   it("keeps the final group at three digits for larger scores", () => {
-    expect(formatScore(1234567)).toBe("1234.567")
+    expect(formatScore(1234567)).toBe("1.234.567")
+  })
+
+  it("formats every thousands group for seven-digit scores", () => {
+    expect(formatScore(1354000)).toBe("1.354.000")
   })
 })

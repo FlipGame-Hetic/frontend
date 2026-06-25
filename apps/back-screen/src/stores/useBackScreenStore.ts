@@ -1,7 +1,9 @@
 import { create } from "zustand"
 import type { GamePhase, GameMode, CharacterType, ScoreEntry } from "@frontend/types"
-import { GAME_PHASE } from "@frontend/types"
+import { CHARACTER_OPTIONS, GAME_PHASE } from "@frontend/types"
 import { isBigDamage } from "@/boss/bossDamageConfig"
+
+export const LAST_CHARACTER_STORAGE_KEY = "spamer:last-character"
 
 interface BossState {
   bossId: number
@@ -16,6 +18,36 @@ interface DamageEvent {
 }
 
 const NO_DAMAGE: DamageEvent = { at: 0, delta: 0, big: false }
+
+// Adds last used character to localStorage to pre-select for the next game
+const writeLastCharacter = (character: CharacterType): void => {
+  try {
+    globalThis.localStorage.setItem(LAST_CHARACTER_STORAGE_KEY, character)
+  } catch {
+    // Storage can be unavailable in privacy modes or tests; gameplay should continue without it.
+  }
+}
+
+const isKnownCharacter = (value: string | null): value is CharacterType => {
+  return CHARACTER_OPTIONS.some((option) => option.id === value)
+}
+
+const readLastCharacter = (): CharacterType | null => {
+  try {
+    const stored = globalThis.localStorage.getItem(LAST_CHARACTER_STORAGE_KEY) ?? null
+    return isKnownCharacter(stored) ? stored : null
+  } catch {
+    return null
+  }
+}
+
+const getLastCharacterMenuIndex = (): number => {
+  const character = readLastCharacter()
+  if (!character) return 0
+
+  const index = CHARACTER_OPTIONS.findIndex((option) => option.id === character && !option.locked)
+  return index === -1 ? 0 : index
+}
 
 interface BackScreenStore {
   phase: GamePhase
@@ -69,7 +101,11 @@ export const useBackScreenStore = create<BackScreenStore>()((set) => ({
   lastDamage: NO_DAMAGE,
 
   setPhase: (phase) => {
-    set({ phase, menuIndex: 0, creditsActive: false })
+    set({
+      phase,
+      menuIndex: phase === GAME_PHASE.CharacterSelect ? getLastCharacterMenuIndex() : 0,
+      creditsActive: false,
+    })
     if (phase !== GAME_PHASE.Playing) {
       set({
         bossId: null,
@@ -92,6 +128,7 @@ export const useBackScreenStore = create<BackScreenStore>()((set) => ({
     set({ selectedMode })
   },
   setSelectedCharacter: (selectedCharacter) => {
+    writeLastCharacter(selectedCharacter)
     set({ selectedCharacter })
   },
   setScore: (score) => {

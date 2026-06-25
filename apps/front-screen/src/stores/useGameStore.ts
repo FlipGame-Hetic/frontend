@@ -8,6 +8,7 @@ import usePortalTraversalStore from "./usePortalTraversalStore"
 import useTargetStore from "./useTargetStore"
 import useUltimateStore from "./useUltimateStore"
 import { resetPortalTraversalState } from "@/components/portal/portalTraversalState"
+import { resetInputState } from "@/input/inputState"
 
 interface SelectedPlayer {
   player: number
@@ -74,6 +75,7 @@ const INITIAL_STATE: Pick<
 
 // Wipes every gameplay-runtime store that lives outside useGameStore so a new or restarted game starts clean
 const resetGameplayRuntime = (): void => {
+  resetInputState()
   useTargetStore.getState().resetTargets()
   useBallStore.getState().resetBalls()
   useMultiballStore.getState().reset()
@@ -86,6 +88,7 @@ const useGameStore = create<GameStore>()((set, get) => ({
   ...INITIAL_STATE,
 
   setPhase: (phase) => {
+    if (phase === GAME_PHASE.GameOver) resetInputState()
     set({ phase })
   },
 
@@ -122,6 +125,7 @@ const useGameStore = create<GameStore>()((set, get) => ({
   },
 
   endGame: () => {
+    resetInputState()
     set({ phase: GAME_PHASE.GameOver })
   },
 
@@ -152,6 +156,7 @@ const useGameStore = create<GameStore>()((set, get) => ({
 
   nextBall: () => {
     if (get().isFinalBall()) {
+      resetInputState()
       set({ phase: GAME_PHASE.GameOver })
       return
     }

@@ -121,20 +121,14 @@ export function menuBack(): void {
   sendEventTo("front_screen", { event_type: "menu_back", payload: {} })
 }
 
+const menuButtonHandlers: Record<ButtonId, () => void> = {
+  [BUTTON_IDS.flipperLeft]: menuBack,
+  [BUTTON_IDS.flipperRight]: menuConfirm,
+  [BUTTON_IDS.start]: menuConfirm,
+  [BUTTON_IDS.extra1]: menuLeft,
+  [BUTTON_IDS.extra2]: menuRight,
+}
+
 export function handleMenuButton(id: ButtonId): void {
-  switch (id) {
-    case BUTTON_IDS.flipperLeft:
-      menuLeft()
-      break
-    case BUTTON_IDS.flipperRight:
-      menuRight()
-      break
-    case BUTTON_IDS.extra2:
-    case BUTTON_IDS.start:
-      menuConfirm()
-      break
-    case BUTTON_IDS.extra1:
-      menuBack()
-      break
-  }
+  menuButtonHandlers[id]()
 }

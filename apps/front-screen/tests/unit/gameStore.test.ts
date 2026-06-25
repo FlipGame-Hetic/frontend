@@ -1,5 +1,12 @@
 import { beforeEach, describe, expect, it } from "vitest"
+import { LEFT_KEYS } from "@/components/flippers/flipperConfig"
 import { PLUNGER_BALL_SPAWN } from "@/components/plunger/plungerConfig"
+import {
+  getPlungerInputSnapshot,
+  getPressedKeys,
+  pressKey,
+  triggerPlungerMaxLaunch,
+} from "@/input/inputState"
 import useBallStore from "@/stores/useBallStore"
 import useGameStore from "@/stores/useGameStore"
 
@@ -23,6 +30,40 @@ describe("useGameStore", () => {
     expect(balls).toHaveLength(1)
     expect(balls[0]?.position).toEqual(PLUNGER_BALL_SPAWN)
     expect(playingBallIds).toEqual([])
+  })
+
+  it("starts and restarts games with neutral input state", () => {
+    const leftKey = LEFT_KEYS[0]
+    if (!leftKey) throw new Error("Expected a left flipper key")
+
+    pressKey(leftKey)
+    triggerPlungerMaxLaunch()
+    const releaseTokenBeforeStart = getPlungerInputSnapshot().releaseToken
+
+    useGameStore.getState().startGame({
+      mode: "solo",
+      players: [{ player: 1, character: "enforcer" }],
+    })
+
+    expect(getPressedKeys().has(leftKey)).toBe(false)
+    expect(getPlungerInputSnapshot()).toMatchObject({
+      position: 0,
+      released: true,
+      releaseToken: releaseTokenBeforeStart + 1,
+    })
+
+    pressKey(leftKey)
+    triggerPlungerMaxLaunch()
+    const releaseTokenBeforeRestart = getPlungerInputSnapshot().releaseToken
+
+    useGameStore.getState().restartGame()
+
+    expect(getPressedKeys().has(leftKey)).toBe(false)
+    expect(getPlungerInputSnapshot()).toMatchObject({
+      position: 0,
+      released: true,
+      releaseToken: releaseTokenBeforeRestart + 1,
+    })
   })
 
   it("does not spend a player ball while another multiball ball remains active", () => {

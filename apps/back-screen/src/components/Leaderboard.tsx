@@ -1,4 +1,4 @@
-import type { ScoreEntry } from "@frontend/types"
+import { CHARACTER_OPTIONS, type ScoreEntry } from "@frontend/types"
 import { formatScore } from "@frontend/utils"
 
 interface LeaderboardProps {
@@ -32,6 +32,8 @@ export function Leaderboard({
         <ol className="flex flex-col gap-1">
           {rows.map((entry, i) => {
             const isHighlight = i === highlightIndex
+            const characterLabel = CHARACTER_OPTIONS[entry.character_id]?.label ?? null
+
             return (
               <li
                 key={entry.id}
@@ -53,6 +55,11 @@ export function Leaderboard({
                 {entry.boss_reached > 0 ? (
                   <span className="font-mono text-[clamp(0.34rem,0.7vw,0.46rem)] tracking-[0.18em] text-[rgba(197,0,60,0.7)] uppercase">
                     {`BOSS ${String(entry.boss_reached)}`}
+                  </span>
+                ) : null}
+                {characterLabel ? (
+                  <span className="font-mono text-[clamp(0.34rem,0.7vw,0.46rem)] tracking-[0.18em] text-[rgba(243,230,0,0.55)] uppercase">
+                    {characterLabel}
                   </span>
                 ) : null}
               </li>

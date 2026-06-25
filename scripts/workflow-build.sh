@@ -12,7 +12,7 @@ BROWSER_RETRY_DELAY=${BROWSER_RETRY_DELAY:-0.5}
 PREVIEW_PIDS=()
 
 cleanup() {
-  for pid in "${PREVIEW_PIDS[@]}"; do
+  for pid in "${PREVIEW_PIDS[@]+"${PREVIEW_PIDS[@]}"}"; do
     if kill -0 "${pid}" 2>/dev/null; then
       kill "${pid}" 2>/dev/null || true
       wait "${pid}" 2>/dev/null || true
