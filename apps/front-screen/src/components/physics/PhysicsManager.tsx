@@ -9,11 +9,11 @@ import { runtimeEnvironment } from "@frontend/utils"
 import TimeStepper from "./TimeStepper"
 
 interface PhysicsManagerProps {
-  isDebug: boolean
+  showStats: boolean
   children: ReactNode
 }
 
-const PhysicsManager = ({ children, isDebug }: PhysicsManagerProps) => {
+const PhysicsManager = ({ children, showStats }: PhysicsManagerProps) => {
   const [{ slowMotion, slowMotionSpeed }, setMotion] = useControls(
     "Motion",
     () => ({
@@ -50,13 +50,8 @@ const PhysicsManager = ({ children, isDebug }: PhysicsManagerProps) => {
   )
 
   return (
-    <Physics
-      debug={isDebug}
-      gravity={[0, GRAVITY_Y, GRAVITY_Z]}
-      timeStep={TIME_STEP}
-      paused={stepperActive}
-    >
-      {isDebug && <Stats showPanel={0} />}
+    <Physics gravity={[0, GRAVITY_Y, GRAVITY_Z]} timeStep={TIME_STEP} paused={stepperActive}>
+      {showStats && <Stats showPanel={0} />}
       {stepperActive && <TimeStepper speed={stepperSpeed} />}
       {children}
     </Physics>
