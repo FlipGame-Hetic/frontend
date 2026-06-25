@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react"
 import type { GameMessage } from "@frontend/types"
+import { GAME_PHASE } from "@frontend/types"
 import { useGameSocket } from "@frontend/ws"
 import { ConnectionOverlay } from "@frontend/ui"
 import { StatusBar } from "@/components/StatusBar"
@@ -52,8 +53,8 @@ function App() {
     )
   }
 
-  const accentColor = phase === "game_over" ? "#C5003C" : "#F3E600"
-  const withBlur = phase === "paused" || phase === "game_over"
+  const accentColor = phase === GAME_PHASE.GameOver ? "#C5003C" : "#F3E600"
+  const withBlur = phase === GAME_PHASE.Paused || phase === GAME_PHASE.GameOver
 
   return (
     <div className="bg-arcade-black relative flex h-screen w-screen overflow-hidden">

@@ -17,7 +17,7 @@ vi.mock("@/audio/soundEngine", () => ({
 
 const loadRailState = async () => {
   vi.resetModules()
-  return import("@/components/playfield/railState")
+  return import("@/components/rails/railState")
 }
 
 describe("railState", () => {

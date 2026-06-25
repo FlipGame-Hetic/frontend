@@ -43,7 +43,7 @@ vi.mock("@react-three/rapier", () => {
   }
 })
 
-import Bumper from "@/components/bumbers/Bumper"
+import Bumper from "@/components/bumpers/Bumper"
 
 const makePayload = (name = "ball", ballId = "ball-a") => ({
   other: {
@@ -71,7 +71,7 @@ describe("Bumper — bonus hit hook", () => {
   it("notifies bonus hits after a valid bumper collision", () => {
     const onBonusHit = vi.fn()
 
-    render(<Bumper position={[0, 0, 0]} bumperId={0} onBonusHit={onBonusHit} />)
+    render(<Bumper position={[0, 0, 0]} onBonusHit={onBonusHit} />)
     callCollision()
 
     expect(onBonusHit).toHaveBeenCalledWith("ball-a")
@@ -80,7 +80,7 @@ describe("Bumper — bonus hit hook", () => {
   it("does not notify bonus hits for non-ball collisions", () => {
     const onBonusHit = vi.fn()
 
-    render(<Bumper position={[0, 0, 0]} bumperId={0} onBonusHit={onBonusHit} />)
+    render(<Bumper position={[0, 0, 0]} onBonusHit={onBonusHit} />)
     callCollision(makePayload("wall"))
 
     expect(onBonusHit).not.toHaveBeenCalled()

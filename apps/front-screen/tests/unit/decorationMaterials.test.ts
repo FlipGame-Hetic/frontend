@@ -1,10 +1,10 @@
 import { Group, Mesh, MeshBasicMaterial, MeshStandardMaterial } from "three"
 import { describe, expect, it } from "vitest"
-import { SPINNING_GLOBE_MATERIAL_EMISSIVE_INTENSITY_BY_NAME } from "@/components/playfield/decorationConfig"
+import { SPINNING_GLOBE_MATERIAL_EMISSIVE_INTENSITY_BY_NAME } from "@/components/playfield/decorations/decorationConfig"
 import {
   applyGlobeBloomMaterialConfig,
   cloneMaterialWithGlobeBloomConfig,
-} from "@/components/playfield/decorationMaterials"
+} from "@/components/playfield/decorations/decorationMaterials"
 
 describe("decorationMaterials", () => {
   it("clones globe materials and applies configured emissive intensities", () => {

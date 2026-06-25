@@ -4,7 +4,7 @@ import {
   MULTIBALL_GATE_CLOSE_TRIGGER_Z,
   MULTIBALL_GATE_OPEN_DURATION_MS,
   MULTIBALL_GATE_REOPEN_DELAY_MS,
-} from "@/components/playfield/bonusZoneConfig"
+} from "@/components/bonusZone/bonusZoneConfig"
 import {
   advanceMultiballGateState,
   createOpenMultiballGateState,
@@ -13,7 +13,7 @@ import {
   shouldCloseMultiballGateFromSensorExit,
   shouldTrackMultiballGateSensorBall,
   triggerMultiballGateClose,
-} from "@/components/playfield/multiballGateRuntime"
+} from "@/components/bonusZone/multiballGate/multiballGateRuntime"
 
 const makeSensorPayload = (name: string, zVelocity: number | null) =>
   ({

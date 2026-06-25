@@ -9,6 +9,7 @@ export default [
     "coverage/**",
     "eslint.config.js",
     "*.config.*",
+    "public/config.js",
   ]),
   ...reactConfig,
   {

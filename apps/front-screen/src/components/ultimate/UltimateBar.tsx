@@ -1,18 +1,15 @@
 import { Html } from "@react-three/drei"
 import { useEffect, useState, type CSSProperties } from "react"
-import { runtimeEnvironment } from "@/config/runtimeEnvironment"
-import { CHARACTER_OPTIONS, DEFAULT_CHARACTER } from "@frontend/types"
-import type { CharacterConfig, CharacterType } from "@frontend/types"
+import { runtimeEnvironment } from "@frontend/utils"
+import { CHARACTER_OPTIONS, GAME_PHASE } from "@frontend/types"
 import useGameStore from "@/stores/useGameStore"
 import useUltimateStore from "@/stores/useUltimateStore"
+import { useCurrentCharacterConfig } from "@/config/characterConfig"
 import {
   CHARACTER_BY_ULTI_ID,
   ULTIMATE_ICON_BASE_PATH,
   ULTIMATE_OVERLAY_CONFIG,
 } from "./ultimateConfig"
-
-const configFor = (slug: CharacterType): CharacterConfig =>
-  CHARACTER_OPTIONS.find((option) => option.id === slug) ?? CHARACTER_OPTIONS[0]
 
 const ULTIMATE_ARC_PATHS = [
   { className: "ultimate-hud__arc--top-a", d: "M11 7 L20 3 L31 7 L42 2 L54 6" },
@@ -32,8 +29,7 @@ interface DrainState {
 
 const UltimateBar = () => {
   const phase = useGameStore((state) => state.phase)
-  const selectedPlayers = useGameStore((state) => state.selectedPlayers)
-  const currentPlayer = useGameStore((state) => state.currentPlayer)
+  const config = useCurrentCharacterConfig()
 
   const charge = useUltimateStore((state) => state.charge)
   const chargeMax = useUltimateStore((state) => state.chargeMax)
@@ -59,12 +55,9 @@ const UltimateBar = () => {
     }
   }, [active])
 
-  if (phase !== "playing") return null
+  if (phase !== GAME_PHASE.Playing) return null
 
-  const character =
-    selectedPlayers.find((player) => player.player === currentPlayer)?.character ??
-    DEFAULT_CHARACTER.id
-  const config = configFor(character)
+  const character = config.id
 
   // Reuses drainState.ratio only when it was computed for the current active ultimate
   const activeDrainRatio = active?.startedAt === drainState.startedAt ? drainState.ratio : 1

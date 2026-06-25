@@ -1,3 +1,4 @@
+// WebSocket connection state overlay, displayed on all 3 screens
 import type { CSSProperties, FC } from "react"
 import type { ConnectionStatus } from "@frontend/types"
 
@@ -9,19 +10,8 @@ const STATUS_COPY: Record<
   Exclude<ConnectionStatus, "connected">,
   { label: string; color: string }
 > = {
-  connecting: { label: "Reconnexion…", color: "#22d3ee" },
+  connecting: { label: "Connexion en cours...", color: "#22d3ee" },
   disconnected: { label: "Connexion perdue", color: "#f43f5e" },
-}
-
-const getStatusCopy = (status: ConnectionStatus): { label: string; color: string } | null => {
-  switch (status) {
-    case "connecting":
-      return STATUS_COPY.connecting
-    case "disconnected":
-      return STATUS_COPY.disconnected
-    case "connected":
-      return null
-  }
 }
 
 const containerStyle: CSSProperties = {
@@ -46,7 +36,7 @@ const containerStyle: CSSProperties = {
 }
 
 export const ConnectionOverlay: FC<ConnectionOverlayProps> = ({ status }) => {
-  const copy = getStatusCopy(status)
+  const copy = status === "connected" ? null : STATUS_COPY[status]
   if (!copy) return null
 
   const { label, color } = copy

@@ -1,8 +1,8 @@
 import { Text } from "@react-three/drei"
 import useScorePopupsStore from "@/stores/useScorePopupsStore"
-import MultiballPopup from "./MultiballPopup"
-import PopupTextStack from "./PopupTextStack"
-import ScorePopup from "./ScorePopup"
+import MultiballPopup from "./popups/MultiballPopup"
+import ScorePopup from "./popups/ScorePopup"
+import PopupTextStack from "./text/PopupTextStack"
 import {
   SCORE_POPUP_DURATION,
   SCORE_POPUP_FADE_OUT_START,

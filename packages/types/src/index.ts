@@ -1,5 +1,5 @@
+// Barrel file used only for monorepo purposes
 export * from "./game"
-export * from "./player"
 export * from "./websocket"
 export * from "./screen"
 export * from "./screenEvents"

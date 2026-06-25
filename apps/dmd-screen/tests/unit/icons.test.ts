@@ -13,13 +13,13 @@ describe("drawHeart", () => {
   it("sets pixels only on the known bitmap shape", () => {
     const buf = makeBuffer()
     drawHeart(buf, COLS, 0, 0, 1.0)
-    // Row 0: 0b01010 → cols 1 and 3 lit
+    // Row 0: 0b01010 -> cols 1 and 3 lit
     expect(buf[0]).toBe(0) // col 0
     expect(buf[1]).toBe(1) // col 1
     expect(buf[2]).toBe(0) // col 2
     expect(buf[3]).toBe(1) // col 3
     expect(buf[4]).toBe(0) // col 4
-    // Row 1: 0b11111 → all 5 lit
+    // Row 1: 0b11111 -> all 5 lit
     const row1 = COLS
     expect(buf[row1]).toBe(1)
     expect(buf[row1 + 1]).toBe(1)

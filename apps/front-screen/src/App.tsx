@@ -1,20 +1,19 @@
-import { runtimeEnvironment } from "@/config/runtimeEnvironment"
-import { ConnectionOverlay } from "@frontend/ui"
 import DebugProvider from "@/debug/DebugProvider"
+import { ConnectionOverlay } from "@frontend/ui"
+import { runtimeEnvironment } from "@frontend/utils"
 import type { CameraProps } from "@react-three/fiber"
 import { Leva } from "leva"
 import { Suspense, useEffect } from "react"
-import ReactiveAmbientLight from "./components/audioReactive/ReactiveAmbientLight"
 import BallsManager from "./components/balls/BallsManager"
 import CabinetCamera from "./components/CabinetCamera"
 import ControlHints from "./components/controlHints/ControlHints"
-import DebugCamera from "./components/DebugCamera"
+import DefaultCamera from "./components/DefaultCamera"
 import Drain from "./components/drain/Drain"
 import TronGridFloor from "./components/environment/TronGridFloor"
-import InvisibleWallsManager from "./components/physics/InvisibleWallsManager"
+import SceneAmbientLight from "./components/light/SceneAmbientLight"
 import PhysicsManager from "./components/physics/PhysicsManager"
+import InvisibleWallsManager from "./components/physics/walls/InvisibleWallsManager"
 import PlayfieldScene from "./components/playfield/PlayfieldScene"
-import TopTunnelAssistManager from "./components/playfield/TopTunnelAssistManager"
 import PlungerLaneGate from "./components/plunger/PlungerLaneGate"
 import PortalsManager from "./components/portal/PortalsManager"
 import ScorePopupsManager from "./components/scorePopups/ScorePopupsManager"
@@ -22,25 +21,25 @@ import ScreenShakeController from "./components/screenShake/ScreenShakeControlle
 import { GUTTER_DRAIN_ASSIST_SENSORS } from "./components/sensors/directionalAccelerationSensorsConfig"
 import DirectionalAccelerationSensorsManager from "./components/sensors/DirectionalAccelerationSensorsManager"
 import SoundManager from "./components/sound/SoundManager"
+import TopTunnelAssistManager from "./components/topTunnelAssist/TopTunnelAssistManager"
 import UltimateBar from "./components/ultimate/UltimateBar"
-import UltimateOverlay from "./components/ultimate/UltimateOverlay"
+import UltimateScreenTint from "./components/ultimate/UltimateScreenTint"
 import ParticleBurstManager from "./components/vfx/ParticleBurstManager"
 import World from "./components/World"
-import { useDebugKeys } from "./hooks/useDebugKeys"
 import { useFlipperButtonRelay } from "./hooks/useFlipperButtonRelay"
 import { useScreenHub } from "./hooks/useScreenHub"
 import { useUltimateInput } from "./hooks/useUltimateInput"
 import useCharactersStore from "./stores/useCharactersStore"
-import WebsocketTest from "./websocket-test/WebsocketTest"
-
-const isWsTest =
-  !runtimeEnvironment.isProduction && new URLSearchParams(window.location.search).has("wstest")
+import useDebugOverlayStore from "./stores/useDebugOverlayStore"
 
 const App = () => {
   const hubStatus = useScreenHub()
-  useDebugKeys()
   useFlipperButtonRelay()
   useUltimateInput()
+
+  const debugVisible = useDebugOverlayStore((state) => state.visible)
+  // Overlays show in dev, or on demand via window.debug() so the cabinet can toggle them without a reload
+  const overlayShown = !runtimeEnvironment.isProduction || debugVisible
 
   useEffect(() => {
     void useCharactersStore.getState().load()
@@ -48,19 +47,17 @@ const App = () => {
 
   const cameraSettings = { position: [0, 13, 15] as [number, number, number], fov: 35 }
 
-  if (isWsTest) return <WebsocketTest />
-
   return (
     <DebugProvider>
       <SoundManager />
       <Leva
-        hidden={runtimeEnvironment.isProduction}
+        hidden={!overlayShown}
         titleBar={{ title: "Tweaks GUI" }}
         theme={{ sizes: { rootWidth: "350px" } }}
         collapsed
       />
       <World cameraSettings={cameraSettings as CameraProps}>
-        <ReactiveAmbientLight />
+        <SceneAmbientLight />
         <directionalLight
           position={[0, 13, 12]}
           intensity={0.8}
@@ -78,11 +75,11 @@ const App = () => {
         {runtimeEnvironment.isProductionCabinet ? (
           <CabinetCamera />
         ) : (
-          <DebugCamera cameraPosition={cameraSettings.position} cameraFov={cameraSettings.fov} />
+          <DefaultCamera cameraPosition={cameraSettings.position} cameraFov={cameraSettings.fov} />
         )}
         <ScreenShakeController />
         <TronGridFloor />
-        <PhysicsManager isDebug={!runtimeEnvironment.isProduction}>
+        <PhysicsManager showStats={overlayShown}>
           <BallsManager />
           <Drain />
           <DirectionalAccelerationSensorsManager sensors={GUTTER_DRAIN_ASSIST_SENSORS} />
@@ -99,7 +96,7 @@ const App = () => {
         <ControlHints />
         <UltimateBar />
       </World>
-      <UltimateOverlay />
+      <UltimateScreenTint />
       <ConnectionOverlay status={hubStatus} />
     </DebugProvider>
   )

@@ -6,9 +6,9 @@ import type { CollisionPayload } from "@react-three/rapier"
 import { CuboidCollider, RigidBody } from "@react-three/rapier"
 import { useControls } from "leva"
 import { useCallback, useEffect, useRef } from "react"
-import { hasBallId } from "@/components/balls/ballUserData"
-import { triggerBallFade } from "@/components/balls/ballFadeRegistry"
-import { TRAIL_FADE_DURATION } from "@/components/balls/ballTrailConfig"
+import { hasBallId } from "@/components/balls/runtime/ballUserData"
+import { triggerBallFade } from "@/components/balls/runtime/ballFadeRegistry"
+import { TRAIL_FADE_DURATION } from "@/components/balls/trail/ballTrailConfig"
 import {
   DRAIN_RESPAWN_DELAY_MS,
   DRAIN_SENSOR_HALF_EXTENTS,
@@ -44,18 +44,22 @@ const Drain = () => {
 
       triggerBallFade(ballId)
 
+      // Wait for the trail fade to finish before committing the drain, so the ball visually disappears first
       drainFadeTimeoutRef.current = setTimeout(() => {
-        const { ballNumber, totalBalls, nextBall } = useGameStore.getState()
+        const { isFinalBall, nextBall } = useGameStore.getState()
         const drainResult = useBallStore.getState().drainBall(ballId)
+        // Duplicate sensor hit for an already-removed ball, nothing to drain
         if (!drainResult.wasTracked) return
 
         playRandomSfx("ball_lost")
 
+        // Mid-multiball drain : this ball is gone but there all balls left, so no life is lost and we stop here
         if (!drainResult.isLifeLost) return
 
         broadcastEvent({ event_type: "BallLost", payload: {} })
 
-        if (ballNumber >= totalBalls) {
+        // If it was the finalBall, nextBall will end the game immediately, otherwise wait respawnDelay before serving the next ball
+        if (isFinalBall()) {
           nextBall()
           return
         }

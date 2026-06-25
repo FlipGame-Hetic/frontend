@@ -3,8 +3,8 @@ import {
   BONUS_ZONE_SPAWN_INTERVAL_MS,
   MULTIBALL_SPAWN_POSITION1,
   MULTIBALL_SPAWN_POSITION2,
-} from "@/components/playfield/bonusZoneConfig"
-import { registerBonusZoneHit } from "@/components/playfield/bonusZoneHits"
+} from "@/components/bonusZone/bonusZoneConfig"
+import { registerBonusZoneHit } from "@/components/bonusZone/bonusZoneHits"
 import useMultiballStore from "@/stores/useMultiballStore"
 import useScorePopupsStore from "@/stores/useScorePopupsStore"
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { ParticleBurstPool } from "@/components/vfx/particleBurstPool"
+import { ParticleBurstPool } from "@/components/vfx/particles/particleBurstPool"
 
 const seed = (x: number, life = 1) => ({
   position: { x, y: 0, z: 0 },

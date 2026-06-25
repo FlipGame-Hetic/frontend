@@ -1,3 +1,4 @@
+// IoT contract - ids used by the physical buttons
 export const BUTTON_IDS = {
   flipperLeft: "flipper_left",
   flipperRight: "flipper_right",

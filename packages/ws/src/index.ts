@@ -1,10 +1,6 @@
+// Barrel file used only for monorepo purposes
 export { useGameSocket } from "./useGameSocket"
-export type { UseGameSocketOptions, UseGameSocketReturn } from "./useGameSocket"
-export { useScreenSocket } from "./useScreenSocket"
-export type { UseScreenSocketOptions, UseScreenSocketReturn } from "./useScreenSocket"
-export { useScreenHub } from "./screenHub"
-export type { UseScreenHubOptions, UseScreenHubReturn } from "./screenHub"
+export { useScreenHub } from "./useScreenHub"
 export { registerScreenSender, broadcastEvent, sendEventTo } from "./screenSender"
 export { resolveApiUrl } from "./wsConfig"
 export { fetchGameState } from "./fetchGameState"
-export { wsLog, wsWarn } from "./wsLog"

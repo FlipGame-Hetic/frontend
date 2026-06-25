@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { useScreenHub } from "@frontend/ws"
+import { useScreenHub, registerScreenSender, sendEventTo } from "@frontend/ws"
+import { readScreenToken } from "@frontend/utils"
 import { ConnectionOverlay } from "@frontend/ui"
-import { isScreenEvent } from "@frontend/types"
+import { isScreenEvent, GAME_PHASE } from "@frontend/types"
 import type { ScreenEnvelope, GamePhase } from "@frontend/types"
 import { DEFAULT_DMD_CONFIG } from "@/dmd/config"
 import type { DmdConfig } from "@/dmd/config"
@@ -18,17 +19,13 @@ import { parseComboSequence } from "@/dmd/scenes/comboPayload"
 import { DevOverlay } from "@/components/DevOverlay"
 
 const SCREEN_ID = "dmd_screen" as const
-const TOKEN =
-  (globalThis as unknown as Record<string, Record<string, string> | undefined>).__ENV__
-    ?.VITE_SCREEN_TOKEN ??
-  (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_SCREEN_TOKEN ??
-  ""
+const TOKEN = readScreenToken()
 
 const COMBO_FLASH_MS = 1800
 
 function App() {
   const [config, setConfig] = useState<DmdConfig>(DEFAULT_DMD_CONFIG)
-  const [phase, setPhase] = useState<GamePhase>("idle")
+  const [phase, setPhase] = useState<GamePhase>(GAME_PHASE.Idle)
   const [devPhase, setDevPhase] = useState<GamePhase | null>(null)
   const [comboActive, setComboActive] = useState(false)
   const comboTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -56,7 +53,7 @@ function App() {
   const onEvent = useCallback(
     (envelope: ScreenEnvelope) => {
       if (isScreenEvent(envelope, "phase_change")) {
-        if (envelope.payload.phase === "playing") {
+        if (envelope.payload.phase === GAME_PHASE.Playing) {
           totalBallsRef.current = 0
         }
         scenes.playing.update({
@@ -81,7 +78,7 @@ function App() {
 
       if (isScreenEvent(envelope, "GameOver")) {
         scenes.game_over.update(envelope.payload.final_score)
-        setPhase("game_over")
+        setPhase(GAME_PHASE.GameOver)
         return
       }
 
@@ -126,16 +123,20 @@ function App() {
     [scenes],
   )
 
-  const { status, sendTo } = useScreenHub({ screenId: SCREEN_ID, token: TOKEN, onEvent })
+  const { status, send } = useScreenHub({ screenId: SCREEN_ID, token: TOKEN, onEvent })
+
+  useEffect(() => {
+    registerScreenSender(SCREEN_ID, send)
+  }, [send])
 
   useEffect(() => {
     if (status !== "connected") return
-    sendTo("front_screen", { event_type: "RequestResync", payload: {} })
-  }, [status, sendTo])
+    sendEventTo("front_screen", { event_type: "request_resync", payload: {} })
+  }, [status])
 
   const effectivePhase = devPhase ?? phase
   const activeScene =
-    comboActive && effectivePhase === "playing" ? scenes.combo : scenes[effectivePhase]
+    comboActive && effectivePhase === GAME_PHASE.Playing ? scenes.combo : scenes[effectivePhase]
 
   return (
     <>

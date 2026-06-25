@@ -4,7 +4,7 @@ import {
   BALL_COLLISION_GROUPS_WITH_RAILS,
   RAIL_COLLISION_GROUPS,
   RAIL_COLLISION_MEMBERSHIP,
-} from "@/components/playfield/railCollisionGroups"
+} from "@/components/rails/railCollisionGroups"
 
 const collides = (groupsA: number, groupsB: number): boolean => {
   const membershipA = groupsA & 0xffff

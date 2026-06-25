@@ -7,7 +7,7 @@ Playwright tests for the player-facing view (port 3000).
 - **UI overlays**: score display, player turn indicator, game phase screens
   (waiting / playing / game over) — these are DOM elements, fully testable
 - **WebSocket lifecycle**: JOIN_ROOM sent on load, reconnection/error states
-- **Game state → DOM**: mock a GAME_STATE message and assert the HUD updates
+- **Game state -> DOM**: mock a GAME_STATE message and assert the HUD updates
 - **Controls**: key presses dispatch FLIP_LEFT / FLIP_RIGHT WS messages
 - **App bootstrap**: page responds 200 and mounts correctly
 

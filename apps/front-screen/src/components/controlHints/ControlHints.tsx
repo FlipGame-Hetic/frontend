@@ -1,17 +1,18 @@
 import { Html } from "@react-three/drei"
 import { useFrame } from "@react-three/fiber"
 import { useRef, useState, type CSSProperties, type ReactNode } from "react"
-import { CHARACTER_OPTIONS, DEFAULT_CHARACTER } from "@frontend/types"
-import { runtimeEnvironment } from "@/config/runtimeEnvironment"
+import { GAME_PHASE } from "@frontend/types"
+import { runtimeEnvironment } from "@frontend/utils"
 import {
   CONTROL_HINTS_CONFIG,
   CONTROL_HINT_LABELS,
   type ControlHintPlacement,
 } from "@/config/controlHintsConfig"
-import { LEFT_KEYS, RIGHT_KEYS } from "@/components/flipperJoints/jointsConfig"
+import { LEFT_KEYS, RIGHT_KEYS } from "@/components/flippers/flipperConfig"
 import { PLUNGER_KEY } from "@/components/plunger/plungerConfig"
-import { getPressedKeys } from "@/stores/inputStore"
+import { getPressedKeys } from "@/input/inputState"
 import useGameStore from "@/stores/useGameStore"
+import { useCurrentCharacterConfig } from "@/config/characterConfig"
 
 const FLIPPER_KEYS = [...LEFT_KEYS, ...RIGHT_KEYS]
 const isCabinet = runtimeEnvironment.isProductionCabinet
@@ -35,14 +36,13 @@ const flipperNode = (side: "left" | "right"): ReactNode => {
 
 const ControlHints = () => {
   const phase = useGameStore((state) => state.phase)
-  const selectedPlayers = useGameStore((state) => state.selectedPlayers)
-  const currentPlayer = useGameStore((state) => state.currentPlayer)
+  const characterConfig = useCurrentCharacterConfig()
   const [plungerHidden, setPlungerHidden] = useState(false)
   const [flippersHidden, setFlippersHidden] = useState(false)
   const wasPlayingRef = useRef(false)
 
   useFrame(() => {
-    if (phase !== "playing") {
+    if (phase !== GAME_PHASE.Playing) {
       wasPlayingRef.current = false
       return
     }
@@ -57,15 +57,9 @@ const ControlHints = () => {
     if (!flippersHidden && FLIPPER_KEYS.some((key) => keys.has(key))) setFlippersHidden(true)
   })
 
-  if (phase !== "playing") return null
+  if (phase !== GAME_PHASE.Playing) return null
 
-  const character =
-    selectedPlayers.find((player) => player.player === currentPlayer)?.character ??
-    DEFAULT_CHARACTER.id
-  const color = (
-    CHARACTER_OPTIONS.find((option) => option.id === character) ?? CHARACTER_OPTIONS[0]
-  ).color
-  const wrapStyle = { "--control-hint-color": color } as CSSProperties
+  const wrapStyle = { "--control-hint-color": characterConfig.color } as CSSProperties
 
   const hints: { key: string; placement: ControlHintPlacement; node: ReactNode }[] = []
 

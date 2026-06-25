@@ -1,3 +1,4 @@
+import { getBallId } from "@/components/balls/runtime/ballUserData"
 import useBallStore from "@/stores/useBallStore"
 import type { CollisionPayload } from "@react-three/rapier"
 import { CuboidCollider, RigidBody } from "@react-three/rapier"
@@ -10,13 +11,6 @@ import {
   PLUNGER_LANE_GATE_ROTATION,
 } from "./plungerConfig"
 
-const getBallId = (payload: CollisionPayload): string | null => {
-  const obj = payload.other.rigidBodyObject
-  if (!obj) return null
-  const { ballId } = obj.userData as { ballId?: unknown }
-  return typeof ballId === "string" ? ballId : null
-}
-
 const PlungerLaneGate = () => {
   const setBallPlaying = useBallStore((state) => state.setBallPlaying)
   const playingCount = useBallStore((state) => state.playingBallIds.length)
@@ -24,16 +18,17 @@ const PlungerLaneGate = () => {
 
   const handleSensorExit = useCallback(
     (payload: CollisionPayload) => {
-      const ballId = getBallId(payload)
+      const ballId = getBallId(payload.other.rigidBodyObject?.userData)
       if (!ballId) return
 
       const ballPosition = payload.other.rigidBody?.translation()
       if (!ballPosition) return
 
+      // Ball left the sensor on the far side of the gate plane (onto the table), so mark it as playing
       if (
         isPastPlungerLaneGate(ballPosition, PLUNGER_LANE_GATE_POSITION, PLUNGER_LANE_GATE_NORMAL)
       ) {
-        setBallPlaying(ballId, true)
+        setBallPlaying(ballId)
       }
     },
     [setBallPlaying],
@@ -49,6 +44,8 @@ const PlungerLaneGate = () => {
         rotation={PLUNGER_LANE_GATE_ROTATION}
         onIntersectionExit={handleSensorExit}
       />
+
+      {/* Solid gate only exists while a ball is in play, so it blocks re-entry into the lane, otherwise the lane stays open */}
       {isGateActive && (
         <CuboidCollider
           name="plunger-lane-gate"

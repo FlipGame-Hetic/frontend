@@ -3,7 +3,7 @@ import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { BoxGeometry, Mesh, MeshBasicMaterial, PlaneGeometry } from "three"
 import { describe, expect, it } from "vitest"
-import { createBonusZoneHitTester } from "@/components/playfield/bonusZoneHitTest"
+import { createBonusZoneHitTester } from "@/components/bonusZone/bonusZoneHitTest"
 import { cloneAtWorldTransform } from "@/components/playfield/usePlayfieldModel"
 
 const PLAYFIELD_MODEL_PATH = join(

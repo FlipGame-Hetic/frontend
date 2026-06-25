@@ -6,6 +6,7 @@ export interface VectorLike {
   z: number
 }
 
+// Playfield is tilted forward (z = 0.21, approx. 12deg), so its up-normal leans toward the camera, this vector is the game's real "up", not world Y
 const PLAYFIELD_NORMAL: Vector3Tuple = [0, 1, 0.21]
 
 const normalLength = Math.hypot(PLAYFIELD_NORMAL[0], PLAYFIELD_NORMAL[1], PLAYFIELD_NORMAL[2])
@@ -16,12 +17,14 @@ export const PLAYFIELD_UNIT_NORMAL: VectorLike = {
   z: PLAYFIELD_NORMAL[2] / normalLength,
 }
 
+// True down direction taking the playfield's tilt into account
 export const PLAYFIELD_DOWN: VectorLike = {
   x: -PLAYFIELD_UNIT_NORMAL.x,
   y: -PLAYFIELD_UNIT_NORMAL.y,
   z: -PLAYFIELD_UNIT_NORMAL.z,
 }
 
+// Signed speed of a vector along the playfield normal : how fast it leaves (+) or enters (-) the plane
 export const dotPlayfieldNormal = (vector: VectorLike) => {
   return (
     vector.x * PLAYFIELD_UNIT_NORMAL.x +
@@ -30,6 +33,7 @@ export const dotPlayfieldNormal = (vector: VectorLike) => {
   )
 }
 
+// Drops the normal speed, keeping only the part of the velocity that slides along the tilted surface
 export const projectOnPlayfield = (vector: VectorLike): VectorLike => {
   const normalSpeed = dotPlayfieldNormal(vector)
 
@@ -40,6 +44,7 @@ export const projectOnPlayfield = (vector: VectorLike): VectorLike => {
   }
 }
 
+// In-plane unit direction of a vector, null when nothing meaningful is left after projection (too short)
 export const normalizedPlayfieldDirection = (vector: VectorLike): VectorLike | null => {
   const projected = projectOnPlayfield(vector)
   const length = Math.hypot(projected.x, projected.y, projected.z)
@@ -85,6 +90,7 @@ export const clampBallVelocityToPlayfield = (
     velocity,
     maxTangentSpeed,
     minNormalSpeed,
+    // Forces maxNormalSpeed <= 0 so a bumper or slingshot kick can never push the ball up off the tilted playfield
     Math.min(0, maxNormalSpeed),
   )
 }

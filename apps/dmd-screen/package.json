@@ -17,6 +17,7 @@
     "react-dom": "^19.2.0",
     "@frontend/types": "workspace:*",
     "@frontend/ui": "workspace:*",
+    "@frontend/utils": "workspace:*",
     "@frontend/ws": "workspace:*"
   },
   "devDependencies": {

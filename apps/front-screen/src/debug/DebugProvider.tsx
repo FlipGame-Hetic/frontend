@@ -1,6 +1,6 @@
 import { button, useControls } from "leva"
 import { useEffect, useRef, type ReactNode } from "react"
-import { runtimeEnvironment } from "@/config/runtimeEnvironment"
+import { runtimeEnvironment } from "@frontend/utils"
 import { requestFrontScreenStartGame } from "@/hooks/useScreenHub"
 import useMultiballStore from "@/stores/useMultiballStore"
 import useBallStore from "@/stores/useBallStore"
@@ -14,11 +14,12 @@ import {
   MULTIBALL_BALL_COUNT,
   MULTIBALL_SPAWN_POSITION1,
   MULTIBALL_SPAWN_POSITION2,
-} from "@/components/playfield/bonusZoneConfig"
+} from "@/components/bonusZone/bonusZoneConfig"
 import { DebugContext, type DebugControls } from "@/debug/debugContext"
 import { getDebugBallId } from "@/debug/getDebugBallId"
 
 const DebugProvider = ({ children }: { children: ReactNode }) => {
+  // Uses the live tweak slider with a Ref so the 'Trigger Mutiball' button reads the current count after changing it via Leva
   const ballCountRef = useRef(MULTIBALL_BALL_COUNT)
 
   const mainControls = useControls(

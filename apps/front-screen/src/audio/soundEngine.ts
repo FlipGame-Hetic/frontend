@@ -1,5 +1,4 @@
 import { Howl } from "howler"
-import { connectMusicNode } from "./musicAnalyser"
 import {
   LOOPING_SFX_FADE_OUT_MS,
   MUSIC_DEFAULT_VOLUME,
@@ -13,6 +12,7 @@ import {
 let sfxEnabled = true
 let sfxVolume = SFX_DEFAULT_VOLUME
 let musicEnabled = true
+let musicSuspended = false
 let musicVolume = MUSIC_DEFAULT_VOLUME
 
 const sfxHowls = new Map<string, Howl>()
@@ -183,9 +183,6 @@ const playTrackByIndex = (index: number): void => {
   const h = new Howl({
     src: [path],
     volume: musicEnabled ? musicVolume : 0,
-    onplay: () => {
-      connectMusicNode(h)
-    },
     onend: () => {
       if (currentMusic !== h) return
       currentMusic = null
@@ -248,11 +245,22 @@ export const setSfxVolume = (volume: number): void => {
 export const setMusicEnabled = (enabled: boolean): void => {
   musicEnabled = enabled
   if (!currentMusic) return
-  if (enabled) {
+  if (enabled && !musicSuspended) {
     currentMusic.volume(musicVolume)
     currentMusic.play()
   } else {
     currentMusic.pause()
+  }
+}
+
+export const setMusicSuspended = (suspended: boolean): void => {
+  if (musicSuspended === suspended) return
+  musicSuspended = suspended
+  if (!currentMusic) return
+  if (suspended) {
+    currentMusic.pause()
+  } else if (musicEnabled) {
+    currentMusic.play()
   }
 }
 

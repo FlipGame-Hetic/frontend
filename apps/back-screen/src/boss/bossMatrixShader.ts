@@ -107,7 +107,8 @@ void main() {
         }
     }
 
-    result = result * length(texture2D(iChannel0,uv).rgb) + 0.22 * vec4(tint * texture2D(iChannel0,uv).g, 1.0);
+    vec4 videoSample = texture2D(iChannel0, uv);
+    result = result * length(videoSample.rgb) + 0.22 * vec4(tint * videoSample.g, 1.0);
     if(result.b < 0.5)
     result.b = result.g * 0.5 * (1.0 - clamp(uDamage, 0.0, 1.0));
     gl_FragColor = result;

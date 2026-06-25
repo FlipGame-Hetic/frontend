@@ -1,5 +1,6 @@
 import { create } from "zustand"
 import type { GamePhase, GameMode, CharacterType, ScoreEntry } from "@frontend/types"
+import { GAME_PHASE } from "@frontend/types"
 import { isBigDamage } from "@/boss/bossDamageConfig"
 
 interface BossState {
@@ -50,7 +51,7 @@ interface BackScreenStore {
 }
 
 export const useBackScreenStore = create<BackScreenStore>()((set) => ({
-  phase: "idle",
+  phase: GAME_PHASE.Idle,
   menuIndex: 0,
   creditsActive: false,
   selectedMode: null,
@@ -69,7 +70,7 @@ export const useBackScreenStore = create<BackScreenStore>()((set) => ({
 
   setPhase: (phase) => {
     set({ phase, menuIndex: 0, creditsActive: false })
-    if (phase !== "playing") {
+    if (phase !== GAME_PHASE.Playing) {
       set({
         bossId: null,
         bossHp: 0,
@@ -114,7 +115,7 @@ export const useBackScreenStore = create<BackScreenStore>()((set) => ({
         bossActive: true,
         bossReady: state.bossActive ? state.bossReady : false,
         lastDamage,
-        phase: "playing",
+        phase: GAME_PHASE.Playing,
       }
     })
   },

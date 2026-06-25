@@ -1,5 +1,6 @@
 import { create } from "zustand"
 import type { CharacterType, GameMode, GamePhase } from "@frontend/types"
+import { GAME_PHASE } from "@frontend/types"
 import { PLUNGER_BALL_SPAWN } from "@/components/plunger/plungerConfig"
 import useBallStore from "./useBallStore"
 import useMultiballStore from "./useMultiballStore"
@@ -36,7 +37,8 @@ interface GameStore {
   pause: () => void
   resume: () => void
   setScore: (score: number) => void
-  resumeGame: (score: number) => void
+  resumeGame: (score: number, character?: CharacterType) => void
+  isFinalBall: () => boolean
   nextBall: () => void
   menuBack: () => void
   reset: () => void
@@ -49,10 +51,20 @@ const TOTAL_BALLS_BY_MODE: Record<GameMode, number> = {
   boss: 5,
 }
 
-const INITIAL_STATE = {
-  phase: "idle" as GamePhase,
-  mode: null as GameMode | null,
-  selectedPlayers: [] as SelectedPlayer[],
+const INITIAL_STATE: Pick<
+  GameStore,
+  | "phase"
+  | "mode"
+  | "selectedPlayers"
+  | "score"
+  | "ballNumber"
+  | "totalBalls"
+  | "totalPlayers"
+  | "currentPlayer"
+> = {
+  phase: GAME_PHASE.Idle,
+  mode: null,
+  selectedPlayers: [],
   score: 0,
   ballNumber: 1,
   totalBalls: 3,
@@ -60,6 +72,7 @@ const INITIAL_STATE = {
   currentPlayer: 1,
 }
 
+// Wipes every gameplay-runtime store that lives outside useGameStore so a new or restarted game starts clean
 const resetGameplayRuntime = (): void => {
   useTargetStore.getState().resetTargets()
   useBallStore.getState().resetBalls()
@@ -69,7 +82,7 @@ const resetGameplayRuntime = (): void => {
   useUltimateStore.getState().reset()
 }
 
-const useGameStore = create<GameStore>()((set) => ({
+const useGameStore = create<GameStore>()((set, get) => ({
   ...INITIAL_STATE,
 
   setPhase: (phase) => {
@@ -77,7 +90,7 @@ const useGameStore = create<GameStore>()((set) => ({
   },
 
   selectMode: (mode) => {
-    set({ mode, phase: "character_select" })
+    set({ mode, phase: GAME_PHASE.CharacterSelect })
   },
 
   selectCharacter: (player, character) => {
@@ -96,7 +109,7 @@ const useGameStore = create<GameStore>()((set) => ({
       const selectedPlayers = options?.players ?? state.selectedPlayers
 
       return {
-        phase: "playing",
+        phase: GAME_PHASE.Playing,
         mode,
         selectedPlayers,
         score: 0,
@@ -109,43 +122,51 @@ const useGameStore = create<GameStore>()((set) => ({
   },
 
   endGame: () => {
-    set({ phase: "game_over" })
+    set({ phase: GAME_PHASE.GameOver })
   },
 
   pause: () => {
-    set({ phase: "paused" })
+    set({ phase: GAME_PHASE.Paused })
   },
 
   resume: () => {
-    set({ phase: "playing" })
+    set({ phase: GAME_PHASE.Playing })
   },
 
   setScore: (score) => {
     set({ score })
   },
 
-  resumeGame: (score) => {
-    set({ phase: "playing", score })
+  resumeGame: (score, character) => {
+    set((state) => ({
+      phase: GAME_PHASE.Playing,
+      score,
+      selectedPlayers: character ? [{ player: 1, character }] : state.selectedPlayers,
+    }))
+  },
+
+  isFinalBall: () => {
+    const { ballNumber, totalBalls } = get()
+    return ballNumber >= totalBalls
   },
 
   nextBall: () => {
-    set((state) => {
-      if (state.ballNumber >= state.totalBalls) {
-        return { phase: "game_over" as GamePhase }
-      }
-      return { ballNumber: state.ballNumber + 1 }
-    })
+    if (get().isFinalBall()) {
+      set({ phase: GAME_PHASE.GameOver })
+      return
+    }
+    set((state) => ({ ballNumber: state.ballNumber + 1 }))
   },
 
   menuBack: () => {
     set((state) => {
       switch (state.phase) {
-        case "character_select":
-          return { phase: "mode_select" as GamePhase, selectedPlayers: [] }
-        case "mode_select":
-          return { phase: "idle" as GamePhase, mode: null }
-        case "game_over":
-          return { phase: "idle" as GamePhase }
+        case GAME_PHASE.CharacterSelect:
+          return { phase: GAME_PHASE.ModeSelect, selectedPlayers: [] }
+        case GAME_PHASE.ModeSelect:
+          return { phase: GAME_PHASE.Idle, mode: null }
+        case GAME_PHASE.GameOver:
+          return { phase: GAME_PHASE.Idle }
         default:
           return {}
       }
@@ -159,7 +180,7 @@ const useGameStore = create<GameStore>()((set) => ({
 
   restartGame: () => {
     resetGameplayRuntime()
-    set({ ...INITIAL_STATE, phase: "mode_select" as GamePhase })
+    set({ ...INITIAL_STATE, phase: GAME_PHASE.ModeSelect })
   },
 }))
 

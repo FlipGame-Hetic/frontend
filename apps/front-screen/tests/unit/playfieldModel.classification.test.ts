@@ -82,6 +82,28 @@ describe("usePlayfieldModel — ball saver classification", () => {
     expect(classifyMesh("globe")).toBe("animatedGroups")
   })
 
+  it("keeps decorative flipper arms out of the playable flippers bucket", () => {
+    expect(classifyMesh("l_flipper_arm")).toBe("cabinet")
+    expect(classifyMesh("r_flipper_arm")).toBe("cabinet")
+    expect(classifyMesh("l_flipper")).toBe("flippers")
+    expect(classifyMesh("r_flipper_02")).toBe("flippers")
+  })
+
+  it("collects only playable flipper meshes as flippers", () => {
+    const scene = new Group()
+    const leftArm = createNamedMesh("l_flipper_arm")
+    const rightArm = createNamedMesh("r_flipper_arm")
+    const leftFlipper = createNamedMesh("l_flipper")
+    const rightFlipper = createNamedMesh("r_flipper_02")
+
+    scene.add(leftArm, rightArm, leftFlipper, rightFlipper)
+
+    const nodes = collectPlayfieldNodes(scene)
+
+    expect(nodes.flippers.map((node) => node.name)).toEqual(["l_flipper", "r_flipper_02"])
+    expect(nodes.cabinet.map((node) => node.name)).toEqual(["l_flipper_arm", "r_flipper_arm"])
+  })
+
   it("uses multiball gate names in the playfield model asset", () => {
     const model = readFileSync(PLAYFIELD_MODEL_PATH)
     const modelText = model.toString("utf8")
