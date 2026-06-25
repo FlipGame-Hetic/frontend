@@ -1,3 +1,5 @@
+export const WARNING_FINISH_MS = 4500
+
 type BossRendererKind = "video-shader" | "model"
 
 export interface BossClips {
