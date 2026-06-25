@@ -28,7 +28,7 @@ export const CHARACTER_BY_ULTI_ID: Record<UltiId, CharacterType> = {
 }
 
 export const ULTIMATE_OVERLAY_CONFIG = {
-  position: [2.25, 1.05, 6.6],
+  position: [2, 1.05, 6.5],
   distanceFactor: 2,
   renderOrder: 920,
   iconSize: 52,
