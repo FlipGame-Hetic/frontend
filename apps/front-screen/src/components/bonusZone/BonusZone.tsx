@@ -4,7 +4,7 @@ import type { Mesh } from "three"
 import { getBallId } from "../balls/runtime/ballUserData"
 import { BONUS_ZONE_RESTITUTION } from "./bonusZoneConfig"
 import { useBonusZoneHitRegistry } from "./bonusZoneHits"
-import { createBonusZoneHitTester } from "./bonusZoneHitTest"
+import { createBonusZoneHitTester } from "./bonusZoneHitTester"
 
 interface BonusZoneProps {
   nodes: Mesh[]
@@ -13,6 +13,7 @@ interface BonusZoneProps {
 const BonusZone = ({ nodes }: BonusZoneProps) => {
   const registerBonusHit = useBonusZoneHitRegistry()
 
+  // Build the point-in-zone tester once using the nodes and reuse it for every collision
   const bonusZoneHitTester = useMemo(() => createBonusZoneHitTester(nodes), [nodes])
 
   const handleBonusZoneCollision = useCallback(
@@ -21,7 +22,7 @@ const BonusZone = ({ nodes }: BonusZoneProps) => {
       const ballId = getBallId(other.rigidBodyObject.userData)
       if (!ballId) return
       const ballPosition = other.rigidBody?.translation()
-      // Check whether the collision was inside of the bonus zone before registering
+      // The trimesh collider also fires on the outer shell, so it only counts hits inside the zone
       if (!ballPosition || !bonusZoneHitTester.containsPoint(ballPosition)) return
 
       registerBonusHit(ballId, { x: ballPosition.x, y: ballPosition.y, z: ballPosition.z })

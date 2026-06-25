@@ -22,6 +22,7 @@ interface BonusZoneHitPosition {
 
 const IGNORED_BONUS_HIT: MultiballBounceResult = { status: "ignored" }
 
+// Report a bounce to the multiball store and display the matching popup
 export const registerBonusZoneHit = (
   ballId: string,
   { bounceThreshold, ballCount }: BonusZoneHitOptions,
@@ -42,9 +43,11 @@ export const registerBonusZoneHit = (
 
   if (!position) return result
 
+  // While the ball still has bounces to go, show how many are left before multiball
   if (result.status === "progress") {
     useScorePopupsStore.getState().spawnMultiballCountdownPopup(result.remaining, position)
   }
+  // On the bounce that reaches the threshold, show the multiball triggered popup
   if (result.status === "triggered") {
     useScorePopupsStore.getState().spawnMultiballTriggeredPopup(position)
   }
@@ -52,6 +55,7 @@ export const registerBonusZoneHit = (
   return result
 }
 
+// Hook that uses the threshold and ball cound from the Leva panel and updates the calllback accordingly
 export const useBonusZoneHitRegistry = () => {
   const { bounceThreshold, ballCount } = useDebugControls()
 

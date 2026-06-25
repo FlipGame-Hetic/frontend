@@ -5,8 +5,6 @@ import { buildModuleWithRubber, type PlayfieldNodes } from "../playfield/usePlay
 import Bumper from "./Bumper"
 import { BUMPER_RUBBER_BLOOM_COLOR, BUMPER_RUBBER_BLOOM_INTENSITY } from "./bumperConfig"
 
-const BONUS_ZONE_BUMPER_BASE_NAME_SET = new Set<string>(BONUS_ZONE_BUMPER_BASE_NAMES)
-
 const BumpersManager = ({ nodes }: { nodes: PlayfieldNodes }) => {
   const bumpers = useMemo(
     () =>
@@ -23,7 +21,7 @@ const BumpersManager = ({ nodes }: { nodes: PlayfieldNodes }) => {
         }
 
         return {
-          isCenterMultiballBumper: BONUS_ZONE_BUMPER_BASE_NAME_SET.has(base.name),
+          isCenterMultiballBumper: new Set<string>(BONUS_ZONE_BUMPER_BASE_NAMES).has(base.name),
           ...module,
         }
       }),
