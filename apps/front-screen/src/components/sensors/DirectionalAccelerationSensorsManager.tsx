@@ -6,6 +6,7 @@ import { CuboidCollider, RigidBody } from "@react-three/rapier"
 import { useCallback, useEffect, useMemo, useRef } from "react"
 import { Vector3 } from "three"
 import type { DirectionalAccelerationSensorConfig } from "./directionalAccelerationSensorsConfig"
+import { toVector3 } from "../physics/physicsConfig"
 
 interface DirectionalAccelerationSensorsManagerProps {
   sensors: DirectionalAccelerationSensorConfig[]
@@ -24,7 +25,7 @@ interface RuntimeDirectionalSensor {
 const buildRuntimeSensor = (
   config: DirectionalAccelerationSensorConfig,
 ): RuntimeDirectionalSensor | null => {
-  const direction = new Vector3(...config.direction)
+  const direction = toVector3(config.direction)
   if (direction.lengthSq() <= 1e-6) return null
   direction.normalize()
   return { config, direction }

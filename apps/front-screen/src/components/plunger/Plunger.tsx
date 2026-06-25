@@ -18,15 +18,12 @@ import PlungerNeonTip from "./effects/PlungerNeonTip"
 import PlungerParticles from "./effects/PlungerParticles"
 import PlungerShockwave from "./effects/PlungerShockwave"
 import { type PlungerMeshPart, usePlungerSimulation } from "./simulation/usePlungerSimulation"
+import { toVector3 } from "../physics/physicsConfig"
 
 interface PlungerProps {
   position?: [number, number, number]
   tipMesh?: PlungerMeshPart
   ringMeshes?: PlungerMeshPart[]
-}
-
-const toVector3 = (position: [number, number, number]): Vector3 => {
-  return new Vector3(position[0], position[1], position[2])
 }
 
 const Plunger = ({ position = PLUNGER_POSITION, tipMesh, ringMeshes = [] }: PlungerProps) => {
