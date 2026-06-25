@@ -1,20 +1,19 @@
-import { wsLog, wsWarn } from "./wsLog"
+import { readRuntimeEnv } from "@frontend/utils"
 
-export const RECONNECT_DELAY_MS = 3000
+const RECONNECT_BASE_MS = 1000
+const RECONNECT_MAX_MS = 15000
 
-const GAME_WS_PATH = "/ws/bridge"
-const LOOPBACK_HOSTNAMES = new Set(["localhost", "127.0.0.1", "::1"])
+export const nextBackoffDelay = (attempt: number): number => {
+  const exponential = Math.min(RECONNECT_MAX_MS, RECONNECT_BASE_MS * 2 ** attempt)
+  // Approx. 20% jitter so every screen doesn't reconnect on the same beat and stampede the server after an outage
+  const jitter = exponential * 0.2 * (Math.random() * 2 - 1)
+
+  return Math.round(exponential + jitter)
+}
 
 type WsEnvKey = "VITE_WS_URL" | "VITE_SCREEN_HUB_URL" | "VITE_API_URL"
-type WsEnv = Partial<Record<WsEnvKey, string>>
 
 type RuntimeLocation = Pick<Location, "hostname" | "protocol">
-
-const readEnv = (): WsEnv => {
-  const buildEnv = (import.meta as unknown as { env?: WsEnv }).env ?? {}
-  const runtimeEnv = ((globalThis as Record<string, unknown>).__ENV__ as WsEnv | undefined) ?? {}
-  return { ...buildEnv, ...runtimeEnv }
-}
 
 const readLocation = (): RuntimeLocation | undefined => {
   return (globalThis as typeof globalThis & { location?: RuntimeLocation }).location
@@ -44,6 +43,8 @@ const defaultScreenHubUrl = (): string => {
   return `${protocol}//${hostname}`
 }
 
+const GAME_WS_PATH = "/ws/bridge"
+
 const defaultGameWsUrl = (): string => {
   return `${defaultScreenHubUrl()}${GAME_WS_PATH}`
 }
@@ -64,12 +65,15 @@ const readUrlHostname = (value: string): string | undefined => {
   }
 }
 
+const LOOPBACK_HOSTNAMES = new Set(["localhost", "127.0.0.1", "::1"])
+
 const isLoopbackHostname = (hostname: string | undefined): boolean => {
   if (!hostname) return false
 
   return LOOPBACK_HOSTNAMES.has(hostname.toLowerCase())
 }
 
+// A loopback env URL (e.g. a build baked with localhost) is only trusted when the app itself runs on loopback, otherwise other devices would be pointed at their own machine instead of the host
 const shouldUseConfiguredUrl = (url: string): boolean => {
   const configuredHostname = readUrlHostname(url)
 
@@ -82,28 +86,22 @@ const resolveUrl = (key: WsEnvKey, fallback: () => string, override?: string): s
   const overrideUrl = cleanUrl(override)
 
   if (overrideUrl) {
-    wsLog("config", `resolved ${key} from OVERRIDE`, overrideUrl)
     return overrideUrl
   }
 
-  const env = readEnv()
-  const envUrl = cleanUrl(env[key])
+  const envUrl = cleanUrl(readRuntimeEnv(key))
 
   if (envUrl && shouldUseConfiguredUrl(envUrl)) {
-    wsLog("config", `resolved ${key} from ENV`, envUrl)
     return envUrl
   }
 
   const fallbackUrl = fallback()
 
   if (envUrl) {
-    wsWarn(
-      "config",
-      `${key} env value "${envUrl}" ignored (loopback host on non-loopback runtime "${readRuntimeHostname()}") — falling back to default`,
+    console.warn(
+      `[ws] ${key} env value "${envUrl}" ignored (loopback host on non-loopback runtime "${readRuntimeHostname()}") — falling back to default`,
       fallbackUrl,
     )
-  } else {
-    wsLog("config", `resolved ${key} from DEFAULT (no env set)`, fallbackUrl)
   }
 
   return fallbackUrl

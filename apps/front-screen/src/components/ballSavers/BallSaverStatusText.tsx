@@ -1,8 +1,8 @@
+import useTargetStore from "@/stores/useTargetStore"
 import { Html } from "@react-three/drei"
 import { useFrame } from "@react-three/fiber"
-import { useEffect, useRef } from "react"
 import type { CSSProperties } from "react"
-import useTargetStore from "@/stores/useTargetStore"
+import { useEffect, useRef } from "react"
 import BallSaverCooldownRing from "./BallSaverCooldownRing"
 import {
   BALL_SAVER_READY_TEXT,
@@ -80,6 +80,7 @@ const BallSaverStatusText = ({ phase, side }: BallSaverStatusTextProps) => {
     if (elementRef.current) elementRef.current.style.opacity = "1"
   }, [config.flickerMaxDelayMs, config.flickerMinDelayMs, text])
 
+  // Neon flicker : a long pause, then a burst of a few quick opacity blinks, repeated forever
   useFrame(() => {
     const element = elementRef.current
     if (!element) return
@@ -87,11 +88,13 @@ const BallSaverStatusText = ({ phase, side }: BallSaverStatusTextProps) => {
     const now = performance.now()
     const flicker = flickerRef.current
 
+    // First frame after (re)mount : nextAt isn't set yet, schedule the first burst
     if (flicker.nextAt === 0) {
       scheduleNextBurst(flicker, now, config.flickerMinDelayMs, config.flickerMaxDelayMs)
     }
 
     if (!flicker.active && now >= flicker.nextAt) {
+      // A burst is a short run of 1-3 quick blinks before the next long pause
       if (!flicker.inBurst) {
         flicker.inBurst = true
         flicker.remainingBlinks = randomIntInclusive(1, 3)

@@ -1,9 +1,9 @@
 import { cleanup, render, act } from "@testing-library/react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import type { ScreenEnvelope } from "@frontend/types"
-import { LEFT_KEYS, RIGHT_KEYS } from "@/components/flipperJoints/jointsConfig"
+import { LEFT_KEYS, RIGHT_KEYS } from "@/components/flippers/flipperConfig"
 import { PLUNGER_KEY } from "@/components/plunger/plungerConfig"
-import { getPlungerInputSnapshot, getPressedKeys, releaseKey } from "@/stores/inputStore"
+import { getPlungerInputSnapshot, getPressedKeys, releaseKey } from "@/input/inputState"
 import useGameStore from "@/stores/useGameStore"
 import { useScreenHub } from "@/hooks/useScreenHub"
 
@@ -50,8 +50,6 @@ describe("front-screen useScreenHub", () => {
     useScreenHubBaseMock.mockReturnValue({
       status: "connected",
       send: sendMock,
-      broadcast: vi.fn(),
-      sendTo: vi.fn(),
     })
   })
 
@@ -102,6 +100,45 @@ describe("front-screen useScreenHub", () => {
         score: 250,
         player: 1,
         ball: 1,
+      },
+    })
+  })
+
+  it("uses incoming GameOver final score and ends the local game", () => {
+    render(<ScreenHubHarness />)
+
+    act(() => {
+      useGameStore.getState().startGame({
+        mode: "solo",
+        players: [{ player: 1, character: "enforcer" }],
+      })
+    })
+    sendMock.mockClear()
+
+    const options = lastScreenHubOptions()
+
+    act(() => {
+      options.onEvent?.({
+        from: "game_engine",
+        to: { kind: "broadcast" },
+        event_type: "GameOver",
+        payload: { final_score: 9876 },
+      })
+    })
+
+    expect(useGameStore.getState()).toMatchObject({
+      phase: "game_over",
+      score: 9876,
+    })
+    expect(sendMock).toHaveBeenCalledWith({
+      from: "front_screen",
+      to: { kind: "broadcast" },
+      event_type: "phase_change",
+      payload: {
+        phase: "game_over",
+        ball: 1,
+        player: 1,
+        score: 9876,
       },
     })
   })
@@ -185,7 +222,7 @@ describe("front-screen useScreenHub", () => {
     })
   })
 
-  it("turns capacity cabinet events into backend UltimateActivated events", () => {
+  it("no longer reacts to capacity cabinet events (back is the ultimate state machine)", () => {
     render(<ScreenHubHarness />)
 
     const options = lastScreenHubOptions()
@@ -195,13 +232,30 @@ describe("front-screen useScreenHub", () => {
         from: "backend",
         to: { kind: "screen", id: "front_screen" },
         event_type: "CapacityL2",
-        payload: null,
+        payload: {},
+      })
+    })
+
+    expect(broadcastEventMock).not.toHaveBeenCalled()
+  })
+
+  it("broadcasts StartGame with the character slug", () => {
+    render(<ScreenHubHarness />)
+
+    const options = lastScreenHubOptions()
+
+    act(() => {
+      options.onEvent?.({
+        from: "backend",
+        to: { kind: "screen", id: "front_screen" },
+        event_type: "start_game",
+        payload: { mode: "solo", players: [{ player: 1, character: "viper" }] },
       })
     })
 
     expect(broadcastEventMock).toHaveBeenCalledWith({
-      event_type: "UltimateActivated",
-      payload: { player_id: "1" },
+      event_type: "StartGame",
+      payload: { player_id: "1", character: "viper" },
     })
   })
 })

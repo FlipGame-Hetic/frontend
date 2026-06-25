@@ -1,8 +1,7 @@
 import useBallStore from "@/stores/useBallStore"
-import useGameStore from "@/stores/useGameStore"
 import usePortalTraversalStore from "@/stores/usePortalTraversalStore"
 import useScorePopupsStore from "@/stores/useScorePopupsStore"
-import { getBallColorForCharacter } from "@/config/characterColors"
+import { useCurrentBallColor } from "@/config/characterConfig"
 import { playRandomSfx } from "@/audio/soundEngine"
 import { broadcastEvent } from "@frontend/ws"
 import { useFrame } from "@react-three/fiber"
@@ -10,7 +9,7 @@ import type { CollisionPayload } from "@react-three/rapier"
 import { CuboidCollider, RigidBody } from "@react-three/rapier"
 import { useCallback } from "react"
 import { Vector3 } from "three"
-import { getBallId } from "@/components/balls/ballUserData"
+import { getBallId } from "@/components/balls/runtime/ballUserData"
 import {
   PORTAL_A_POSITION,
   PORTAL_A_ROTATION,
@@ -80,10 +79,7 @@ const handlePortalExit = (portalId: PortalId, payload: CollisionPayload): void =
 
 const PortalsManager = () => {
   const ghostBallIds = usePortalTraversalStore((s) => s.ghostBallIds)
-  const character = useGameStore(
-    (s) => s.selectedPlayers.find((p) => p.player === s.currentPlayer)?.character,
-  )
-  const ballColor = getBallColorForCharacter(character)
+  const ballColor = useCurrentBallColor()
 
   useFrame(() => {
     const traversals = getAllTraversals()

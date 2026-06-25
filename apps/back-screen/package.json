@@ -14,14 +14,20 @@
   },
   "dependencies": {
     "@frontend/assets": "workspace:*",
+    "@react-three/fiber": "^9.5.0",
+    "howler": "^2.2.4",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "three": "^0.183.1",
     "zustand": "^5.0.11",
     "@frontend/types": "workspace:*",
     "@frontend/utils": "workspace:*",
+    "@frontend/ui": "workspace:*",
     "@frontend/ws": "workspace:*"
   },
   "devDependencies": {
+    "@types/three": "^0.183.1",
+    "@types/howler": "^2.2.13",
     "@frontend/eslint-config": "workspace:*",
     "@frontend/tailwind-config": "workspace:*",
     "@frontend/tsconfig": "workspace:*",

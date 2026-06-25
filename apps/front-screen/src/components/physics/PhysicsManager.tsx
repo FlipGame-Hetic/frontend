@@ -2,15 +2,18 @@ import { Stats } from "@react-three/drei"
 import { Physics } from "@react-three/rapier"
 import { useControls } from "leva"
 import { useEffect, useRef, type ReactNode } from "react"
+import useKeyBinding from "@/hooks/useKeyBinding"
+import useUltimateStore from "@/stores/useUltimateStore"
 import { GRAVITY_Y, GRAVITY_Z, SLOW_MOTION_SPEED, TIME_STEP } from "./physicsConfig"
-import SlowMotionStepper from "./SlowMotionStepper"
+import { runtimeEnvironment } from "@frontend/utils"
+import TimeStepper from "./TimeStepper"
 
 interface PhysicsManagerProps {
-  isDebug: boolean
+  showStats: boolean
   children: ReactNode
 }
 
-const PhysicsManager = ({ children, isDebug }: PhysicsManagerProps) => {
+const PhysicsManager = ({ children, showStats }: PhysicsManagerProps) => {
   const [{ slowMotion, slowMotionSpeed }, setMotion] = useControls(
     "Motion",
     () => ({
@@ -26,38 +29,30 @@ const PhysicsManager = ({ children, isDebug }: PhysicsManagerProps) => {
     { order: 3 },
   )
 
+  const ultiTimeScale = useUltimateStore((state) => state.timeScale)
+  const isUltiTimeActive = ultiTimeScale !== 1
+  // When slow-mo or an ulti time-scale is active, Rapier's own loop is paused and TimeStepper handles the stepping instead
+  const stepperActive = slowMotion || isUltiTimeActive
+  const stepperSpeed = isUltiTimeActive ? ultiTimeScale : slowMotionSpeed
+
+  // Mirror in a ref so the debug keyhandler toggles from the current value without re-subscribing the binding
   const slowMotionRef = useRef(slowMotion)
   useEffect(() => {
     slowMotionRef.current = slowMotion
   }, [slowMotion])
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement | null
-      if (
-        e.repeat ||
-        e.code !== "ControlLeft" ||
-        target?.isContentEditable ||
-        target?.closest("input, textarea, select")
-      )
-        return
+  useKeyBinding(
+    "ControlLeft",
+    () => {
       setMotion({ slowMotion: !slowMotionRef.current })
-    }
-    window.addEventListener("keydown", handleKeyDown)
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown)
-    }
-  }, [setMotion])
+    },
+    { enabled: runtimeEnvironment.isLocal },
+  )
 
   return (
-    <Physics
-      debug={isDebug}
-      gravity={[0, GRAVITY_Y, GRAVITY_Z]}
-      timeStep={TIME_STEP}
-      paused={slowMotion}
-    >
-      {isDebug && <Stats showPanel={0} />}
-      {slowMotion && <SlowMotionStepper speed={slowMotionSpeed} />}
+    <Physics gravity={[0, GRAVITY_Y, GRAVITY_Z]} timeStep={TIME_STEP} paused={stepperActive}>
+      {showStats && <Stats showPanel={0} />}
+      {stepperActive && <TimeStepper speed={stepperSpeed} />}
       {children}
     </Physics>
   )

@@ -5,6 +5,7 @@ interface ImportMetaEnv {
   readonly VITE_SCREEN_HUB_URL?: string
   readonly VITE_SCREEN_TOKEN?: string
   readonly VITE_ENVIRONMENT?: string
+  readonly VITE_API_URL?: string
 }
 
 interface ImportMeta {

@@ -1,244 +1,27 @@
 import type { ButtonId } from "./buttons"
-import type { CharacterType } from "./character"
+import type { CharacterType, UltiId, UltiPayload, UltiShape } from "./character"
 import type { ScreenEnvelope, ScreenId, ScreenTarget } from "./screen"
 
-export const SCREEN_EVENT_TYPES = {
-  PhaseChange: "phase_change",
-  ScoreUpdate: "score_update",
-  LifeUpdate: "life_update",
-  ModeSelected: "mode_selected",
-  CharacterSelected: "character_selected",
-  StartGame: "start_game",
-  MenuConfirm: "menu_confirm",
-  MenuNext: "menu_next",
-  MenuPrev: "menu_prev",
-  MenuBack: "menu_back",
-  UltimateActivated: "UltimateActivated",
-  BumperHit: "bumper_hit",
-  SlingshotHit: "slingshot_hit",
-  BallLost: "ball_lost",
-  TargetHit: "target_hit",
-  MultiballTriggered: "MultiballTriggered",
-  ComboActivated: "ComboActivated",
-  MultiplierUpdate: "MultiplierUpdate",
-  BossUpdate: "BossUpdate",
-  BackBumper: "Bumper",
-  BackBumperTriangle: "BumperTriangle",
-  BackPortalUsed: "PortalUsed",
-  BackFlipperLeft: "FlipperLeft",
-  BackFlipperRight: "FlipperRight",
-  PlungerCharge: "PlungerCharge",
-  CapacityL2: "CapacityL2",
-  CapacityR2: "CapacityR2",
-  BackBallSaverReady: "BallSaverReady",
-  RailStart: "RailStart",
-  RailEnd: "RailEnd",
-  BackBallLost: "BallLost",
-  BackEndGame: "EndGame",
-  BackStartGame: "StartGame",
-  BackScoreUpdate: "ScoreUpdate",
-  BackScoreDelta: "ScoreDelta",
-  BackLifeUpdate: "LifeUpdate",
-  LeaderboardUpdate: "LeaderboardUpdate",
-  MenuButton: "MenuButton",
+export const GAME_PHASE = {
+  Idle: "idle",
+  ModeSelect: "mode_select",
+  CharacterSelect: "character_select",
+  Playing: "playing",
+  Paused: "paused",
+  GameOver: "game_over",
 } as const
 
-export type ScreenEventType = (typeof SCREEN_EVENT_TYPES)[keyof typeof SCREEN_EVENT_TYPES]
+export type GamePhase = (typeof GAME_PHASE)[keyof typeof GAME_PHASE]
 
-export type GamePhase =
-  | "idle"
-  | "mode_select"
-  | "character_select"
-  | "playing"
-  | "paused"
-  | "game_over"
+// Phases where the player can confirm (all of them except playing and paused game)
+type MenuContext = Exclude<GamePhase, typeof GAME_PHASE.Playing | typeof GAME_PHASE.Paused>
 
 export type GameMode = "solo" | "duo" | "boss"
 
-export interface PhaseChangeEvent {
-  event_type: "phase_change"
-  payload: { phase: GamePhase; ball?: number; player?: number; score?: number }
-}
-
-export interface ScoreUpdateEvent {
-  event_type: "score_update"
-  payload: { score: number; player: number; ball: number }
-}
-
-export interface LifeUpdateEvent {
-  event_type: "life_update"
-  payload: { player: number; lives: number }
-}
-
-export interface ModeSelectedEvent {
-  event_type: "mode_selected"
-  payload: { mode: GameMode }
-}
-
-export interface CharacterSelectedEvent {
-  event_type: "character_selected"
-  payload: { player: number; character: CharacterType }
-}
-
-export interface StartGameEvent {
-  event_type: "start_game"
-  payload: { mode: GameMode; players: { player: number; character: CharacterType }[] }
-}
-
-export interface MenuConfirmEvent {
-  event_type: "menu_confirm"
-  payload: { context: "idle" | "mode_select" | "character_select" | "game_over" }
-}
-
-export interface MenuNextEvent {
-  event_type: "menu_next"
-  payload: Record<string, never>
-}
-
-export interface MenuPrevEvent {
-  event_type: "menu_prev"
-  payload: Record<string, never>
-}
-
-export interface MenuBackEvent {
-  event_type: "menu_back"
-  payload: Record<string, never>
-}
-
-export interface UltimateActivatedEvent {
-  event_type: "UltimateActivated"
-  payload: { player_id: string }
-}
-
-export interface BumperHitEvent {
-  event_type: "bumper_hit"
-  payload: { bumper_id: number }
-}
-
-export interface SlingshotHitEvent {
-  event_type: "slingshot_hit"
-  payload: { slingshot_id: number }
-}
-
-export interface BallLostEvent {
-  event_type: "ball_lost"
-  payload: { ball: number; player: number }
-}
-
-export interface TargetHitEvent {
-  event_type: "target_hit"
-  payload: { target_id: string }
-}
-
-export interface MultiballTriggeredEvent {
-  event_type: "MultiballTriggered"
-  payload: { ball_id: string }
-}
-
 export type ComboDirection = "L" | "R"
 
-export interface ComboActivatedEvent {
-  event_type: "ComboActivated"
-  payload: {
-    bonus_pts: number
-    sequence: string[]
-  }
-}
-
-export interface MultiplierUpdateEvent {
-  event_type: "MultiplierUpdate"
-  payload: { multiplier: number; duration_ms?: number }
-}
-
-export interface BossUpdateEvent {
-  event_type: "BossUpdate"
-  payload: { boss_id: number; boss_hp: number; boss_max_hp: number }
-}
-
-export interface BackBumperEvent {
-  event_type: "Bumper"
-  payload: { ball_id: string }
-}
-
-export interface BackBumperTriangleEvent {
-  event_type: "BumperTriangle"
-  payload: { ball_id: string }
-}
-
-export interface BackPortalUsedEvent {
-  event_type: "PortalUsed"
-  payload: { ball_id: string }
-}
-
-export interface BackFlipperLeftEvent {
-  event_type: "FlipperLeft"
-  payload: { state: number }
-}
-
-export interface BackFlipperRightEvent {
-  event_type: "FlipperRight"
-  payload: { state: number }
-}
-
-export interface PlungerChargeEvent {
-  event_type: "PlungerCharge"
-  payload: { state: number }
-}
-
-export interface CapacityL2Event {
-  event_type: "CapacityL2"
-  payload: null
-}
-
-export interface CapacityR2Event {
-  event_type: "CapacityR2"
-  payload: null
-}
-
-export interface BackBallSaverReadyEvent {
-  event_type: "BallSaverReady"
-  payload: { ball_id?: string }
-}
-
-export interface RailStartEvent {
-  event_type: "RailStart"
-  payload: { ball_id: string }
-}
-
-export interface RailEndEvent {
-  event_type: "RailEnd"
-  payload: { ball_id: string }
-}
-
-export interface BackBallLostEvent {
-  event_type: "BallLost"
-  payload: Record<string, never>
-}
-
-export interface BackEndGameEvent {
-  event_type: "EndGame"
-  payload: Record<string, never>
-}
-
-export interface BackStartGameEvent {
-  event_type: "StartGame"
-  payload: { player_id: string; character_id: number }
-}
-
-export interface BackScoreUpdateEvent {
-  event_type: "ScoreUpdate"
-  payload: { score: number; multiplier?: number; player?: string | number; ball?: number }
-}
-
-export interface BackScoreDeltaEvent {
-  event_type: "ScoreDelta"
-  payload: { delta: number; reason: string; total: number; ball_id?: string }
-}
-
-export interface BackLifeUpdateEvent {
-  event_type: "LifeUpdate"
-  payload: { lives_remaining: number }
-}
+// Payload for events that intentionally carry no data
+type EmptyPayload = Record<string, never>
 
 export interface ScoreEntry {
   id: number
@@ -248,60 +31,96 @@ export interface ScoreEntry {
   created_at: string | null
 }
 
-export interface LeaderboardUpdateEvent {
-  event_type: "LeaderboardUpdate"
-  payload: ScoreEntry[]
+// Source of truth: maps each `event_type` to its payload type.
+interface ScreenEventPayloads {
+  // snake_case - screen-to-screen communication (menu/phase coordination)
+  phase_change: { phase: GamePhase; ball?: number; player?: number; score?: number }
+  mode_selected: { mode: GameMode }
+  character_selected: { player: number; character: CharacterType }
+  start_game: { mode: GameMode; players: { player: number; character: CharacterType }[] }
+  menu_confirm: { context: MenuContext }
+  menu_back: EmptyPayload
+  playfield_music: { playing: boolean }
+  request_resync: EmptyPayload
+
+  // PascalCase - backend / game-engine wire protocol. Can also be emitted by front-screen when running the game
+  // --- Base-game workflow ---
+  MenuButton: { id: ButtonId; state: number }
+  StartGame: { player_id: string; character: string }
+  PlungerCharge: { state: number }
+  FlipperLeft: { state: number }
+  FlipperRight: { state: number }
+  Bumper: { ball_id: string }
+  BumperTriangle: { ball_id: string }
+  RailStart: { ball_id: string }
+  RailEnd: { ball_id: string }
+  // Used to increment score, ultimate charge, multiplier...
+  ScoreUpdate: {
+    score: number
+    multiplier?: number
+    player?: string | number
+    ball?: number
+    ultimate_charge?: number
+    ultimate_max?: number
+    ulti_ready?: boolean
+    next_ulti_id?: UltiId
+  }
+  // Used only to display score popup
+  ScoreDelta: { delta: number; reason: string; total: number; ball_id?: string }
+
+  // --- Bonus / S.P.A.M.E.R.-specific features ---
+
+  MultiplierUpdate: { multiplier: number; duration_ms?: number }
+  ComboActivated: { bonus_pts: number; sequence: string[] }
+  MultiballTriggered: { ball_id: string }
+  BallSaverReady: { ball_id?: string }
+  PortalUsed: { ball_id: string }
+  CapacityL2: EmptyPayload
+  CapacityR2: EmptyPayload
+  UltimateTriggered: {
+    character: CharacterType
+    ulti_id: UltiId
+    shape: UltiShape
+    cancellable: boolean
+    duration_ms?: number
+    payload?: UltiPayload
+  }
+  // Some drainable ultimates can be stopped
+  UltimateStopped: { ulti_id: UltiId; ultimate_charge: number }
+  BossUpdate: { boss_id: number; boss_hp: number; boss_max_hp: number }
+  // Boss's hp dropped to 0
+  BossDefeated: { boss_id: number }
+  // After short delay, start counter before spawning new boss
+  BossCleared: { boss_id: number }
+
+  // --- Game end ---
+
+  BallLost: EmptyPayload
+  LifeUpdate: { lives_remaining: number }
+  // Classic all balls lost scenario : Game over
+  GameOver: { final_score: number }
+  // End Game is different from Game Over : direct game shutdown trigger, not supposed to happen during normal game
+  EndGame: EmptyPayload
+  LeaderboardUpdate: ScoreEntry[]
 }
 
-export interface MenuButtonEvent {
-  event_type: "MenuButton"
-  payload: { id: ButtonId; state: number }
-}
+type ScreenEventType = keyof ScreenEventPayloads
 
-export type ScreenEvent =
-  | PhaseChangeEvent
-  | ScoreUpdateEvent
-  | LifeUpdateEvent
-  | ModeSelectedEvent
-  | CharacterSelectedEvent
-  | StartGameEvent
-  | MenuConfirmEvent
-  | MenuNextEvent
-  | MenuPrevEvent
-  | MenuBackEvent
-  | UltimateActivatedEvent
-  | BumperHitEvent
-  | SlingshotHitEvent
-  | BallLostEvent
-  | TargetHitEvent
-  | MultiballTriggeredEvent
-  | ComboActivatedEvent
-  | MultiplierUpdateEvent
-  | BossUpdateEvent
-  | BackBumperEvent
-  | BackBumperTriangleEvent
-  | BackPortalUsedEvent
-  | BackFlipperLeftEvent
-  | BackFlipperRightEvent
-  | PlungerChargeEvent
-  | CapacityL2Event
-  | CapacityR2Event
-  | BackBallSaverReadyEvent
-  | RailStartEvent
-  | RailEndEvent
-  | BackBallLostEvent
-  | BackEndGameEvent
-  | BackStartGameEvent
-  | BackScoreUpdateEvent
-  | BackScoreDeltaEvent
-  | BackLifeUpdateEvent
-  | LeaderboardUpdateEvent
-  | MenuButtonEvent
+// Maps the ScreenEventType to create singulars ScreenEvent for each event type with corresponding payload
+export type ScreenEvent = {
+  [K in ScreenEventType]: { event_type: K; payload: ScreenEventPayloads[K] }
+}[ScreenEventType]
+
+// Extract is used to only keep the ScreenEvent with corresponding event_type
+export type StartGameEvent = Extract<ScreenEvent, { event_type: "start_game" }>
+export type UltimateTriggeredEvent = Extract<ScreenEvent, { event_type: "UltimateTriggered" }>
+export type UltimateStoppedEvent = Extract<ScreenEvent, { event_type: "UltimateStopped" }>
 
 export function makeEnvelope(from: ScreenId, to: ScreenTarget, event: ScreenEvent): ScreenEnvelope {
   return { from, to, event_type: event.event_type, payload: event.payload }
 }
 
+// Compares the type of the event in the envelope with an eventual corresponding type in the ScreenEvent map
 export function isScreenEvent<T extends ScreenEvent["event_type"]>(
   envelope: ScreenEnvelope,
   type: T,

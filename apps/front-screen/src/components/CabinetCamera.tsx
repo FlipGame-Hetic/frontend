@@ -3,6 +3,7 @@ import { useControls } from "leva"
 import { useLayoutEffect } from "react"
 import { PerspectiveCamera } from "three"
 
+// Production cabinet camera : immobile overhead framing tuned using Leva
 const CabinetCamera = () => {
   const get = useThree((s) => s.get)
   const size = useThree((s) => s.size)

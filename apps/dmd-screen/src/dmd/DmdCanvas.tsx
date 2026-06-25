@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef } from "react"
 import type { DmdConfig } from "./config"
 import type { Scene } from "./types"
-import { clearBuffer, createBuffer, drawDotsToCanvas } from "./buffer"
+import { clearBuffer, createBuffer, drawActiveDotsToCanvas, drawDotGridToCanvas } from "./buffer"
 import { useAnimationFrame } from "./useAnimationFrame"
+
+const DMD_TARGET_FPS = 30
 
 interface DmdCanvasProps {
   config: DmdConfig
@@ -11,9 +13,12 @@ interface DmdCanvasProps {
 
 export function DmdCanvas({ config, scene }: DmdCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const sizeRef = useRef({ width: 0, height: 0 })
+  const ctxRef = useRef<CanvasRenderingContext2D | null>(null)
+  const sizeRef = useRef({ width: 0, height: 0, dpr: 1 })
   const bufferRef = useRef(createBuffer(config.cols, config.rows))
   const sceneRef = useRef(scene)
+  const gridCanvasRef = useRef<HTMLCanvasElement | null>(null)
+  const gridCacheKeyRef = useRef("")
 
   // Keep scene ref in sync
   useEffect(() => {
@@ -40,12 +45,14 @@ export function DmdCanvas({ config, scene }: DmdCanvasProps) {
       canvas.width = width * dpr
       canvas.height = height * dpr
 
-      sizeRef.current = { width, height }
+      sizeRef.current = { width, height, dpr }
+      gridCacheKeyRef.current = ""
 
       const ctx = canvas.getContext("2d")
       if (ctx) {
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
       }
+      ctxRef.current = ctx
     })
 
     observer.observe(canvas)
@@ -54,13 +61,43 @@ export function DmdCanvas({ config, scene }: DmdCanvasProps) {
     }
   }, [])
 
+  const getGridCanvas = useCallback(() => {
+    const { width, height, dpr } = sizeRef.current
+    const cacheKey = [
+      width,
+      height,
+      dpr,
+      config.cols,
+      config.rows,
+      config.dotColor,
+      config.bgColor,
+      config.offOpacity,
+      config.gapRatio,
+    ].join(":")
+
+    if (gridCanvasRef.current && gridCacheKeyRef.current === cacheKey) {
+      return gridCanvasRef.current
+    }
+
+    const gridCanvas = gridCanvasRef.current ?? document.createElement("canvas")
+    gridCanvas.width = Math.max(1, Math.round(width * dpr))
+    gridCanvas.height = Math.max(1, Math.round(height * dpr))
+
+    const gridCtx = gridCanvas.getContext("2d")
+    if (!gridCtx) return null
+
+    gridCtx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    drawDotGridToCanvas(gridCtx, config, width, height)
+    gridCanvasRef.current = gridCanvas
+    gridCacheKeyRef.current = cacheKey
+
+    return gridCanvas
+  }, [config])
+
   // Render loop
   const render = useCallback(
     (deltaMs: number, elapsedMs: number) => {
-      const canvas = canvasRef.current
-      if (!canvas) return
-
-      const ctx = canvas.getContext("2d")
+      const ctx = ctxRef.current
       if (!ctx) return
 
       const { width, height } = sizeRef.current
@@ -77,12 +114,18 @@ export function DmdCanvas({ config, scene }: DmdCanvasProps) {
         elapsedMs,
       })
 
-      drawDotsToCanvas(ctx, buffer, config, width, height)
+      const gridCanvas = getGridCanvas()
+      if (gridCanvas) {
+        ctx.drawImage(gridCanvas, 0, 0, width, height)
+      } else {
+        drawDotGridToCanvas(ctx, config, width, height)
+      }
+      drawActiveDotsToCanvas(ctx, buffer, config, width, height)
     },
-    [config],
+    [config, getGridCanvas],
   )
 
-  useAnimationFrame(render)
+  useAnimationFrame(render, DMD_TARGET_FPS)
 
   return (
     <canvas

@@ -1,4 +1,5 @@
 import useGameStore from "@/stores/useGameStore"
+import { GAME_PHASE } from "@frontend/types"
 import { useControls } from "leva"
 import { useEffect, useRef } from "react"
 import { MUSIC_DEFAULT_VOLUME, MUSIC_TRACKS, SFX_DEFAULT_VOLUME } from "@/audio/soundConfig"
@@ -13,6 +14,7 @@ import {
   setSfxVolume,
   startMusic,
 } from "@/audio/soundEngine"
+import useKeyBinding from "@/hooks/useKeyBinding"
 
 const MUSIC_TRACK_OPTIONS = Object.fromEntries(
   MUSIC_TRACKS.map((_, index) => [`Track ${String(index + 1)}`, index]),
@@ -57,6 +59,22 @@ const SoundManager = () => {
   const sfxMutedRef = useRef(sound.sfxMuted)
   const musicMutedRef = useRef(sound.musicMuted)
 
+  useKeyBinding(
+    "l",
+    () => {
+      setSound({ sfxMuted: !sfxMutedRef.current })
+    },
+    { match: "key" },
+  )
+
+  useKeyBinding(
+    "m",
+    () => {
+      setSound({ musicMuted: !musicMutedRef.current })
+    },
+    { match: "key" },
+  )
+
   useEffect(() => {
     sfxMutedRef.current = sound.sfxMuted
   }, [sound.sfxMuted])
@@ -96,7 +114,7 @@ const SoundManager = () => {
 
   useEffect(() => {
     const startWhenPlaying = (phase: ReturnType<typeof useGameStore.getState>["phase"]) => {
-      if (hasStartedMusicRef.current || phase !== "playing") return
+      if (hasStartedMusicRef.current || phase !== GAME_PHASE.Playing) return
       hasStartedMusicRef.current = true
       startMusic()
     }
@@ -109,30 +127,11 @@ const SoundManager = () => {
 
   useEffect(() => {
     return useGameStore.subscribe((state, prev) => {
-      if (state.phase === "game_over" && prev.phase !== "game_over") {
+      if (state.phase === GAME_PHASE.GameOver && prev.phase !== GAME_PHASE.GameOver) {
         playSfx("game_over")
       }
     })
   }, [])
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.repeat) return
-      const target = e.target as HTMLElement | null
-      if (target?.isContentEditable || target?.closest("input, textarea, select")) return
-
-      if (e.key.toLowerCase() === "l") {
-        setSound({ sfxMuted: !sfxMutedRef.current })
-      } else if (e.key.toLowerCase() === "m") {
-        setSound({ musicMuted: !musicMutedRef.current })
-      }
-    }
-
-    window.addEventListener("keydown", handler)
-    return () => {
-      window.removeEventListener("keydown", handler)
-    }
-  }, [setSound])
 
   return null
 }

@@ -1,4 +1,3 @@
-import { RetroBackground } from "@/components/RetroBackground"
 import { Leaderboard } from "@/components/Leaderboard"
 import { useBackScreenStore } from "@/stores/useBackScreenStore"
 
@@ -6,9 +5,7 @@ export default function IdleScene() {
   const leaderboard = useBackScreenStore((s) => s.leaderboard)
 
   return (
-    <div className="bg-arcade-black relative flex h-full w-full overflow-hidden">
-      <RetroBackground />
-
+    <div className="relative flex h-full w-full overflow-hidden">
       <div className="relative z-10 flex h-full w-full flex-col justify-between p-12">
         <div className="flex flex-col gap-4">
           <div className="font-mono text-[clamp(0.32rem,0.68vw,0.48rem)] tracking-[0.28em] text-[rgba(243,230,0,0.3)] uppercase">
@@ -20,6 +17,7 @@ export default function IdleScene() {
           </div>
 
           <div className="font-mono text-[clamp(0.4rem,0.78vw,0.54rem)] tracking-[0.2em] text-[rgba(85,234,212,0.4)] uppercase">
+            {/* SYSTEMATIC PAUPER ANNIHILATION FOR MASS ELITE RECREATION */}
             SUPER PINBALL ARCADE MULTIPLAYER EXPERIENCE RIVALRY
           </div>
         </div>

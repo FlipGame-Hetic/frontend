@@ -1,11 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 import {
-  BONUS_ZONE_COOLDOWN_MS,
   BONUS_ZONE_SPAWN_INTERVAL_MS,
   MULTIBALL_SPAWN_POSITION1,
   MULTIBALL_SPAWN_POSITION2,
-} from "@/components/playfield/bonusZoneConfig"
-import { registerBonusZoneHit } from "@/components/playfield/bonusZoneHits"
+} from "@/components/bonusZone/bonusZoneConfig"
+import { registerBonusZoneHit } from "@/components/bonusZone/bonusZoneHits"
 import useMultiballStore from "@/stores/useMultiballStore"
 import useScorePopupsStore from "@/stores/useScorePopupsStore"
 
@@ -23,15 +22,13 @@ describe("bonusZoneHits", () => {
 
     registerBonusZoneHit("ball-a", { bounceThreshold: 7, ballCount: 4 })
 
-    expect(registerBounce).toHaveBeenCalledWith(
-      "ball-a",
-      7,
-      [...MULTIBALL_SPAWN_POSITION1],
-      [...MULTIBALL_SPAWN_POSITION2],
-      BONUS_ZONE_SPAWN_INTERVAL_MS,
-      BONUS_ZONE_COOLDOWN_MS,
-      4,
-    )
+    expect(registerBounce).toHaveBeenCalledWith({
+      ballId: "ball-a",
+      threshold: 7,
+      spawnPositions: [[...MULTIBALL_SPAWN_POSITION1], [...MULTIBALL_SPAWN_POSITION2]],
+      spawnIntervalMs: BONUS_ZONE_SPAWN_INTERVAL_MS,
+      ballCount: 4,
+    })
   })
 
   it("ignores hits without a ball id", () => {

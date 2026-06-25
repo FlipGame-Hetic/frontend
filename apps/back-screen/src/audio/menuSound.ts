@@ -1,12 +1,24 @@
-function playOnce(path: string): void {
-  const audio = new Audio(path)
-  audio.play().catch(() => undefined)
-}
+import { sfxSources, playSfx, playSfxSequence } from "./sfx"
+
+const base = import.meta.env.BASE_URL
+
+const navForward = sfxSources(base, "interface", "navigation_forward")
+const navBackward = sfxSources(base, "interface", "navigation_backward")
+const bossAppear = sfxSources(base, "boss", "appear")
+const bossDefeated = sfxSources(base, "boss", "defeated")
 
 export function playNavigationForward(): void {
-  playOnce("/sounds/navigation_forward.wav")
+  playSfx(navForward)
 }
 
 export function playNavigationBackward(): void {
-  playOnce("/sounds/navigation_backward.wav")
+  playSfx(navBackward)
+}
+
+export function playBossAppearSequence(onComplete: () => void): () => void {
+  return playSfxSequence(bossAppear, { times: 2, trailingDelayMs: 200 }, onComplete)
+}
+
+export function playBossDefeated(): void {
+  playSfx(bossDefeated)
 }

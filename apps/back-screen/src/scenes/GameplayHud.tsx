@@ -1,15 +1,12 @@
 import { useBackScreenStore } from "@/stores/useBackScreenStore"
-import { RetroBackground } from "@/components/RetroBackground"
-import { formatScore } from "@/utils/formatScore"
+import { formatScore } from "@frontend/utils"
 
 export default function GameplayHud() {
   const ballNumber = useBackScreenStore((s) => s.ballNumber)
   const score = useBackScreenStore((s) => s.score)
 
   return (
-    <div className="bg-arcade-black relative flex h-full w-full overflow-hidden">
-      <RetroBackground />
-
+    <div className="relative flex h-full w-full overflow-hidden">
       <div className="relative z-10 flex h-full w-full flex-col justify-between p-10">
         <div className="flex items-center justify-between">
           <div className="font-mono text-[clamp(0.38rem,0.75vw,0.52rem)] tracking-[0.28em] text-[rgba(85,234,212,0.5)] uppercase">

@@ -14,7 +14,7 @@ describe("useGameStore", () => {
 
     useGameStore.getState().startGame({
       mode: "solo",
-      players: [{ player: 1, character: "keenu" }],
+      players: [{ player: 1, character: "enforcer" }],
     })
 
     const { balls, playingBallIds } = useBallStore.getState()
@@ -62,10 +62,25 @@ describe("useGameStore", () => {
     })
   })
 
+  it("reports final ball only once ballNumber reaches totalBalls", () => {
+    useGameStore.getState().startGame({
+      mode: "solo",
+      players: [{ player: 1, character: "enforcer" }],
+    })
+
+    expect(useGameStore.getState().isFinalBall()).toBe(false)
+
+    useGameStore.getState().nextBall()
+    expect(useGameStore.getState().isFinalBall()).toBe(false)
+
+    useGameStore.getState().nextBall()
+    expect(useGameStore.getState().isFinalBall()).toBe(true)
+  })
+
   it("goes game over on the last ball without incrementing past totalBalls", () => {
     useGameStore.getState().startGame({
       mode: "solo",
-      players: [{ player: 1, character: "keenu" }],
+      players: [{ player: 1, character: "enforcer" }],
     })
 
     useGameStore.getState().nextBall()

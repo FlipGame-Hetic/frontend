@@ -10,7 +10,7 @@ vi.mock("@/components/physics/playfieldPlane", () => ({
   },
 }))
 
-import { createStuckBallTracker } from "@/components/physics/stuckBallTracker"
+import { createStuckBallTracker } from "@/components/physics/collision/stuckBallTracker"
 
 function makeMockBody(speed: number) {
   return {

@@ -18,14 +18,20 @@
       transparent 1px,
       transparent 3px
     ),
-    linear-gradient(180deg, #ffffff 0%, var(--ball-saver-status-color) 50%, #d2eeff 100%);
+    linear-gradient(
+      180deg,
+      #ffffff 0%,
+      var(--ball-saver-status-color) 50%,
+      color-mix(in srgb, var(--ball-saver-status-color) 65%, white) 100%
+    );
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-stroke: 1px rgba(214, 242, 255, 0.85);
   paint-order: stroke fill;
   color: transparent;
-  filter: drop-shadow(0 0 4px rgba(200, 240, 255, 0.95))
-    drop-shadow(0 0 12px rgba(150, 220, 255, 0.75)) drop-shadow(0 0 26px rgba(120, 200, 255, 0.55));
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--ball-saver-status-color) 95%, transparent))
+    drop-shadow(0 0 12px color-mix(in srgb, var(--ball-saver-status-color) 75%, transparent))
+    drop-shadow(0 0 26px color-mix(in srgb, var(--ball-saver-status-color) 55%, transparent));
   font-family: "Rajdhani", sans-serif;
   font-size: var(--ball-saver-status-font-size);
   font-variant-numeric: tabular-nums;
@@ -82,11 +88,16 @@
       transparent 1px,
       transparent 3px
     ),
-    linear-gradient(180deg, #ffffff 0%, var(--ball-saver-status-color) 50%, #d2eeff 100%);
+    linear-gradient(
+      180deg,
+      #ffffff 0%,
+      var(--ball-saver-status-color) 50%,
+      color-mix(in srgb, var(--ball-saver-status-color) 65%, white) 100%
+    );
   box-shadow:
     inset 0 0 0 1px rgba(214, 242, 255, 0.85),
-    0 0 8px rgba(150, 220, 255, 0.55);
-  filter: drop-shadow(0 0 6px rgba(150, 220, 255, 0.6));
+    0 0 8px color-mix(in srgb, var(--ball-saver-status-color) 55%, transparent);
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--ball-saver-status-color) 60%, transparent));
 }
 
 .ball-saver-cooldown__ring {
@@ -107,5 +118,401 @@
   fill: none;
   stroke: var(--ball-saver-status-color, #dff6ff);
   stroke-linecap: round;
-  filter: drop-shadow(0 0 4px rgba(200, 240, 255, 0.95));
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--ball-saver-status-color) 95%, transparent));
+}
+
+.ultimate-hud {
+  --ultimate-hud-bar-height: 18px;
+  --ultimate-hud-bar-width: 300px;
+  --ultimate-hud-color: #ff8c00;
+  --ultimate-hud-fill-width: 0%;
+  --ultimate-hud-glow: 0 0 0 transparent;
+  --ultimate-hud-icon-size: 52px;
+  --ultimate-hud-icon-url: none;
+
+  align-items: center;
+  display: flex;
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--ultimate-hud-color) 70%, white 30%));
+  font-family: "Rajdhani", sans-serif;
+  gap: 14px;
+  height: 58px;
+  justify-content: center;
+  pointer-events: none;
+  position: relative;
+  user-select: none;
+  width: calc(var(--ultimate-hud-icon-size) + var(--ultimate-hud-bar-width) + 86px);
+}
+
+.ultimate-hud__icon,
+.ultimate-hud__bar-shell {
+  position: relative;
+  z-index: 1;
+}
+
+.ultimate-hud__icon {
+  background-image: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    var(--ultimate-hud-color) 52%,
+    #ffffff 100%
+  );
+  display: block;
+  filter: drop-shadow(0 0 4px var(--ultimate-hud-color))
+    drop-shadow(0 0 14px var(--ultimate-hud-color));
+  height: var(--ultimate-hud-icon-size);
+  mask: var(--ultimate-hud-icon-url) center / contain no-repeat;
+  opacity: 0.54;
+  transition:
+    filter 180ms ease,
+    opacity 180ms ease;
+  width: var(--ultimate-hud-icon-size);
+  -webkit-mask: var(--ultimate-hud-icon-url) center / contain no-repeat;
+}
+
+.ultimate-hud__bar-shell {
+  flex: 0 0 var(--ultimate-hud-bar-width);
+  height: var(--ultimate-hud-bar-height);
+  width: var(--ultimate-hud-bar-width);
+}
+
+.ultimate-hud__bar {
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(8, 18, 30, 0.72) 0,
+      rgba(8, 18, 30, 0.72) 1px,
+      rgba(255, 255, 255, 0.02) 1px,
+      rgba(255, 255, 255, 0.02) 3px
+    ),
+    rgba(0, 0, 0, 0.56);
+  border: 1px solid color-mix(in srgb, var(--ultimate-hud-color) 72%, white 28%);
+  border-radius: 999px;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.13),
+    inset 0 0 18px rgba(0, 0, 0, 0.7),
+    var(--ultimate-hud-glow);
+  height: var(--ultimate-hud-bar-height);
+  overflow: hidden;
+  position: relative;
+  width: var(--ultimate-hud-bar-width);
+}
+
+.ultimate-hud__bar::before {
+  background-image: repeating-linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0.18) 0,
+    rgba(255, 255, 255, 0.18) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+  content: "";
+  inset: 0;
+  opacity: 0.44;
+  position: absolute;
+}
+
+.ultimate-hud__bar::after {
+  animation: ultimate-hud-scan 2.4s linear infinite;
+  background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  bottom: 0;
+  content: "";
+  left: 0;
+  opacity: 0.5;
+  position: absolute;
+  top: 0;
+  width: 40%;
+  will-change: transform;
+}
+
+.ultimate-hud__arcs {
+  color: var(--ultimate-hud-color);
+  filter: drop-shadow(0 0 2px currentColor) drop-shadow(0 0 5px currentColor);
+  height: calc(var(--ultimate-hud-bar-height) + 8px);
+  inset: -4px;
+  opacity: 0;
+  overflow: visible;
+  pointer-events: none;
+  position: absolute;
+  transition: opacity 120ms ease;
+  width: calc(var(--ultimate-hud-bar-width) + 8px);
+}
+
+.ultimate-hud__arc {
+  animation: ultimate-hud-arc-spark 520ms steps(2, end) infinite;
+  animation-play-state: paused;
+  fill: none;
+  opacity: 0;
+  stroke: currentColor;
+  stroke-dasharray: 18 12;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.6;
+}
+
+.ultimate-hud__arc--top-a {
+  animation-delay: -40ms;
+}
+
+.ultimate-hud__arc--top-b {
+  animation-delay: -210ms;
+  stroke-dasharray: 15 14;
+}
+
+.ultimate-hud__arc--top-c {
+  animation-delay: -340ms;
+}
+
+.ultimate-hud__arc--bottom-a {
+  animation-delay: -160ms;
+  stroke-dasharray: 14 13;
+}
+
+.ultimate-hud__arc--bottom-b {
+  animation-delay: -280ms;
+}
+
+.ultimate-hud__arc--bottom-c {
+  animation-delay: -430ms;
+  stroke-dasharray: 13 15;
+}
+
+.ultimate-hud__arc--left,
+.ultimate-hud__arc--right {
+  animation-duration: 680ms;
+  stroke-width: 2.3;
+}
+
+.ultimate-hud__bar-fill {
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      rgba(10, 26, 44, 0.3) 0,
+      rgba(10, 26, 44, 0.3) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    linear-gradient(
+      180deg,
+      #ffffff 0%,
+      color-mix(in srgb, var(--ultimate-hud-color) 74%, white 26%) 42%,
+      var(--ultimate-hud-color) 100%
+    );
+  box-shadow:
+    0 0 8px var(--ultimate-hud-color),
+    0 0 22px var(--ultimate-hud-color);
+  display: block;
+  height: 100%;
+  opacity: 0.78;
+  transition: width 200ms ease;
+  width: var(--ultimate-hud-fill-width);
+}
+
+.ultimate-hud[data-state="ready"] .ultimate-hud__icon,
+.ultimate-hud[data-state="active"] .ultimate-hud__icon,
+.ultimate-hud[data-state="locked"] .ultimate-hud__icon {
+  opacity: 1;
+}
+
+.ultimate-hud[data-state="ready"] .ultimate-hud__arcs {
+  opacity: 1;
+}
+
+.ultimate-hud[data-state="ready"] .ultimate-hud__arc {
+  animation-play-state: running;
+}
+
+.ultimate-hud[data-state="active"] .ultimate-hud__bar-fill,
+.ultimate-hud[data-state="locked"] .ultimate-hud__bar-fill {
+  transition: none;
+}
+
+.ultimate-hud[data-state="locked"] .ultimate-hud__bar-fill {
+  opacity: 0.62;
+}
+
+@keyframes ultimate-hud-scan {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(250%);
+  }
+}
+
+@keyframes ultimate-hud-arc-spark {
+  0%,
+  24% {
+    opacity: 0;
+    stroke-dashoffset: 0;
+  }
+
+  25%,
+  48% {
+    opacity: 0.96;
+    stroke-dashoffset: -7px;
+  }
+
+  49%,
+  66% {
+    opacity: 0.28;
+    stroke-dashoffset: -13px;
+  }
+
+  67%,
+  100% {
+    opacity: 0;
+    stroke-dashoffset: -21px;
+  }
+}
+
+@keyframes ultimate-hud-text-scan {
+  from {
+    background-position:
+      0 0,
+      0 0;
+  }
+
+  to {
+    background-position:
+      0 -6px,
+      0 0;
+  }
+}
+
+.ultimate-hud__button {
+  align-items: center;
+  border: 2px solid var(--ultimate-hud-color);
+  border-radius: 999px;
+  color: var(--ultimate-hud-color);
+  display: flex;
+  filter: drop-shadow(0 0 6px var(--ultimate-hud-color));
+  font-family: "Rajdhani", sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  height: 34px;
+  justify-content: center;
+  left: calc(100% + 14px);
+  letter-spacing: 0.04em;
+  margin-top: -17px;
+  opacity: 0.5;
+  position: absolute;
+  top: 50%;
+  transition:
+    filter 180ms ease,
+    opacity 180ms ease;
+  width: 34px;
+}
+
+.ultimate-hud__button svg {
+  height: 20px;
+  width: 20px;
+}
+
+.ultimate-hud[data-state="ready"] .ultimate-hud__button,
+.ultimate-hud[data-state="active"] .ultimate-hud__button,
+.ultimate-hud[data-state="locked"] .ultimate-hud__button {
+  opacity: 1;
+}
+
+.ultimate-hud[data-state="ready"] .ultimate-hud__button {
+  animation: control-hint-pulse 900ms ease-in-out infinite;
+}
+
+.control-hint-wrap {
+  --control-hint-color: #dff6ff;
+
+  animation: control-hint-pulse 900ms ease-in-out infinite;
+  pointer-events: none;
+  user-select: none;
+}
+
+.control-hint {
+  -webkit-text-fill-color: transparent;
+  animation: ball-saver-scan 1.6s linear infinite;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      rgba(10, 26, 44, 0.3) 0,
+      rgba(10, 26, 44, 0.3) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    linear-gradient(
+      180deg,
+      #ffffff 0%,
+      var(--control-hint-color) 50%,
+      color-mix(in srgb, var(--control-hint-color) 65%, white) 100%
+    );
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-stroke: 1px rgba(214, 242, 255, 0.85);
+  paint-order: stroke fill;
+  color: transparent;
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--control-hint-color) 95%, transparent))
+    drop-shadow(0 0 12px color-mix(in srgb, var(--control-hint-color) 75%, transparent))
+    drop-shadow(0 0 26px color-mix(in srgb, var(--control-hint-color) 55%, transparent));
+  font-family: "Rajdhani", sans-serif;
+  font-size: 50px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 0.92;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.control-hint__word {
+  display: block;
+}
+
+.control-hint-arrow {
+  --arrow-left: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpath%20fill='%23fff'%20d='M3,12L12,4V9H21V15H12V20Z'/%3E%3C/svg%3E");
+  --arrow-right: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpath%20fill='%23fff'%20d='M21,12L12,4V9H3V15H12V20Z'/%3E%3C/svg%3E");
+
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      rgba(10, 26, 44, 0.3) 0,
+      rgba(10, 26, 44, 0.3) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    linear-gradient(
+      180deg,
+      #ffffff 0%,
+      var(--control-hint-color) 50%,
+      color-mix(in srgb, var(--control-hint-color) 65%, white) 100%
+    );
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--control-hint-color) 95%, transparent))
+    drop-shadow(0 0 12px color-mix(in srgb, var(--control-hint-color) 75%, transparent))
+    drop-shadow(0 0 26px color-mix(in srgb, var(--control-hint-color) 55%, transparent));
+  height: 58px;
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: contain;
+  -webkit-mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  width: 58px;
+}
+
+.control-hint-arrow--left {
+  mask-image: var(--arrow-left);
+  -webkit-mask-image: var(--arrow-left);
+}
+
+.control-hint-arrow--right {
+  mask-image: var(--arrow-right);
+  -webkit-mask-image: var(--arrow-right);
+}
+
+@keyframes control-hint-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.12);
+  }
 }

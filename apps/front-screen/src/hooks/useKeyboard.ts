@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react"
-import { getPressedKeys, pressKey, releaseKey } from "@/stores/inputStore"
+import { getPressedKeys, pressKey, releaseKey } from "@/input/inputState"
 
 const useKeyboard = () => {
   const pressedKeys = useRef(getPressedKeys())

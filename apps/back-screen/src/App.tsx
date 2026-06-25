@@ -1,13 +1,17 @@
 import { useCallback, useState } from "react"
 import type { GameMessage } from "@frontend/types"
+import { GAME_PHASE } from "@frontend/types"
 import { useGameSocket } from "@frontend/ws"
+import { ConnectionOverlay } from "@frontend/ui"
 import { StatusBar } from "@/components/StatusBar"
 import { TerminalLog } from "@/components/TerminalLog"
 import type { LogEntry } from "@/components/TerminalLog"
 import { PhaseSwitcher } from "@/components/PhaseSwitcher"
+import { RetroBackground } from "@/components/RetroBackground"
 import SceneRouter from "@/scenes/SceneRouter"
 import { useScreenHubClient } from "@/hooks/useScreenHubClient"
 import { useKeyboardInput } from "@/hooks/useKeyboardInput"
+import { useBackScreenStore } from "@/stores/useBackScreenStore"
 
 const MAX_LOGS = 500
 const isDebug = new URLSearchParams(window.location.search).has("debug")
@@ -15,9 +19,10 @@ const isDebug = new URLSearchParams(window.location.search).has("debug")
 let nextId = 0
 
 function App() {
-  useScreenHubClient()
+  const hubStatus = useScreenHubClient()
   useKeyboardInput()
 
+  const phase = useBackScreenStore((s) => s.phase)
   const [logs, setLogs] = useState<LogEntry[]>([])
 
   const onMessage = useCallback((message: GameMessage) => {
@@ -48,10 +53,19 @@ function App() {
     )
   }
 
+  const accentColor = phase === GAME_PHASE.GameOver ? "#C5003C" : "#F3E600"
+  const withBlur = phase === GAME_PHASE.Paused || phase === GAME_PHASE.GameOver
+
   return (
-    <div className="relative h-screen w-screen overflow-hidden">
-      <SceneRouter />
-      <PhaseSwitcher />
+    <div className="bg-arcade-black relative flex h-screen w-screen overflow-hidden">
+      <RetroBackground accentColor={accentColor} withBlur={withBlur} />
+      <div className="relative z-10 flex h-full w-full">
+        <div className="relative min-w-0 flex-1">
+          <SceneRouter />
+        </div>
+        <PhaseSwitcher />
+      </div>
+      <ConnectionOverlay status={hubStatus} />
     </div>
   )
 }
