@@ -20,6 +20,7 @@ interface ActiveUltimate {
   character: CharacterType
   shape: UltiShape
   cancellable: boolean
+  activationCharge: number
   durationMs: number
   startedAt: number
 }
@@ -126,12 +127,13 @@ const useUltimateStore = create<UltimateStore>()((set, get) => {
           character: payload.character,
           shape: payload.shape,
           cancellable: payload.cancellable,
+          activationCharge: payload.activation_charge ?? state.charge,
           durationMs,
           startedAt: performance.now(),
         },
         timeScale: timeScaleFor(payload.ulti_id, payload.payload),
         ready: false,
-        charge: state.chargeMax,
+        charge: payload.activation_charge ?? state.charge,
       }))
 
       if (durationMs > 0) {
@@ -141,12 +143,12 @@ const useUltimateStore = create<UltimateStore>()((set, get) => {
 
     onStopped: ({ ultimate_charge }) => {
       clearEndTimer()
-      set((state) => ({
+      set({
         active: null,
         timeScale: 1,
         charge: ultimate_charge,
-        ready: ultimate_charge >= state.chargeMax && state.chargeMax > 0,
-      }))
+        ready: false,
+      })
     },
 
     reset: () => {
