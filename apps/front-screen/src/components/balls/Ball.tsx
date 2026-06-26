@@ -7,7 +7,8 @@ import { useFrame } from "@react-three/fiber"
 import type { RapierRigidBody } from "@react-three/rapier"
 import { BallCollider, RigidBody, useAfterPhysicsStep, useRapier } from "@react-three/rapier"
 import { useEffect, useRef } from "react"
-import { DRAIN_SAFETY_FALLBACK_Y } from "../drain/drainConfig"
+import { DRAIN_RESPAWN_DELAY_MS, DRAIN_SAFETY_FALLBACK_Y } from "../drain/drainConfig"
+import { commitBallDrain } from "../drain/drainCommit"
 import { registerBallFade, unregisterBallFade } from "./runtime/ballFadeRegistry"
 import { registerBallBody, unregisterBallBody } from "./runtime/ballBodyRegistry"
 import { removeBallPosition, setBallPosition } from "./runtime/ballPositionRegistry"
@@ -66,7 +67,6 @@ const Ball = ({
   maxNormalSpeed,
   color = "#FF8C00",
 }: BallProps) => {
-  const deleteBall = useBallStore((state) => state.deleteBall)
   const isMultiball = useBallStore((state) => state.playingBallIds.length > 1)
   const ballRef = useRef<RapierRigidBody>(null)
   const timeOnRailRef = useRef(0)
@@ -220,8 +220,8 @@ const Ball = ({
         fadingRef={fadingRef}
         pointCount={isMultiball ? TRAIL_MULTIBALL_POINTS : TRAIL_POINTS}
         onFadeComplete={() => {
-          // Only delete here if the fade wasn't a drain (ball fell through the playfield), as a drained ball is already removed by the drain handler
-          if (!drainedRef.current) deleteBall(id)
+          // A sensor-drained ball is already handled by the drain handler, but a ball that fell through the playfield tunneled the sensor, so commit its drain here instead of silently deleting it
+          if (!drainedRef.current) commitBallDrain(id, DRAIN_RESPAWN_DELAY_MS)
         }}
       />
     </>

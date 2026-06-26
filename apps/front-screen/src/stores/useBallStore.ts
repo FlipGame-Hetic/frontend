@@ -9,6 +9,7 @@ interface BallStore {
   spawnBall: (position: PositionType, options?: { isPlaying?: boolean }) => void
   deleteBall: (id: string) => void
   drainBall: (id: string) => BallDrainResult
+  splitPlayingBalls: (positions: PositionType[]) => boolean
   resetBalls: () => void
   setBallPlaying: (id: string) => void
 }
@@ -69,6 +70,21 @@ const useBallStore = create<BallStore>()((set, get) => ({
     }
 
     return getDrainResult(nextBalls, nextPlayingBallIds, wasTracked)
+  },
+  // Used for Keenu's ultimate
+  splitPlayingBalls: (positions) => {
+    // Snapshot before mutating, so we only consume balls that are actually playing right now
+    const snapshot = [...get().playingBallIds]
+    // No playing ball to consume : the ball already committed its drain, so the split fizzles and spawns nothing
+    if (snapshot.length === 0) return false
+
+    for (const position of positions) {
+      get().spawnBall(position, { isPlaying: true })
+    }
+    for (const id of snapshot) {
+      get().deleteBall(id)
+    }
+    return true
   },
   resetBalls: () => {
     set({ balls: [], playingBallIds: [] })

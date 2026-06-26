@@ -1,7 +1,4 @@
-import useGameStore from "@/stores/useGameStore"
-import useBallStore from "@/stores/useBallStore"
-import { playRandomSfx } from "@/audio/soundEngine"
-import { broadcastEvent } from "@frontend/ws"
+import { commitBallDrain } from "./drainCommit"
 import type { CollisionPayload } from "@react-three/rapier"
 import { CuboidCollider, RigidBody } from "@react-three/rapier"
 import { useControls } from "leva"
@@ -16,12 +13,10 @@ import {
 } from "./drainConfig"
 
 const Drain = () => {
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const drainFadeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     return () => {
-      if (timeoutRef.current !== null) clearTimeout(timeoutRef.current)
       if (drainFadeTimeoutRef.current !== null) clearTimeout(drainFadeTimeoutRef.current)
     }
   }, [])
@@ -46,27 +41,7 @@ const Drain = () => {
 
       // Wait for the trail fade to finish before committing the drain, so the ball visually disappears first
       drainFadeTimeoutRef.current = setTimeout(() => {
-        const { isFinalBall, nextBall } = useGameStore.getState()
-        const drainResult = useBallStore.getState().drainBall(ballId)
-        // Duplicate sensor hit for an already-removed ball, nothing to drain
-        if (!drainResult.wasTracked) return
-
-        playRandomSfx("ball_lost")
-
-        // Mid-multiball drain : this ball is gone but there all balls left, so no life is lost and we stop here
-        if (!drainResult.isLifeLost) return
-
-        broadcastEvent({ event_type: "BallLost", payload: {} })
-
-        // If it was the finalBall, nextBall will end the game immediately, otherwise wait respawnDelay before serving the next ball
-        if (isFinalBall()) {
-          nextBall()
-          return
-        }
-
-        timeoutRef.current = setTimeout(() => {
-          useGameStore.getState().nextBall()
-        }, respawnDelay)
+        commitBallDrain(ballId, respawnDelay)
       }, TRAIL_FADE_DURATION * 1000)
     },
     [respawnDelay],

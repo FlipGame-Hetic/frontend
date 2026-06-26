@@ -59,17 +59,10 @@ const timeScaleFor = (ultiId: UltiId, payload?: UltiPayload): number => {
   return 1
 }
 
-const runMultiballSplit = (): void => {
-  const ballStore = useBallStore.getState()
-  const currentBallIds = [...ballStore.playingBallIds]
-
-  for (const position of MULTIBALL_SPLIT_SPAWN_POSITIONS) {
-    ballStore.spawnBall([...position], { isPlaying: true })
-  }
-
-  for (const ballId of currentBallIds) {
-    ballStore.deleteBall(ballId)
-  }
+const runMultiballSplit = (): boolean => {
+  return useBallStore
+    .getState()
+    .splitPlayingBalls(MULTIBALL_SPLIT_SPAWN_POSITIONS.map((position) => [...position]))
 }
 
 const useUltimateStore = create<UltimateStore>()((set, get) => {
@@ -111,11 +104,13 @@ const useUltimateStore = create<UltimateStore>()((set, get) => {
     },
 
     onTriggered: (payload) => {
-      playSfx("ultimate_trigger")
       clearEndTimer()
 
+      // Plays the trigger sound only when the ulti actually does something : a fizzled multiball split stays silent
       if (payload.ulti_id === "multiball_split") {
-        runMultiballSplit()
+        if (runMultiballSplit()) playSfx("ultimate_trigger")
+      } else {
+        playSfx("ultimate_trigger")
       }
 
       if (payload.shape !== "sustained") {
