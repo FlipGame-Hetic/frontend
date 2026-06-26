@@ -1,11 +1,6 @@
+import type { Position3Type } from "@/types/worldTypes"
 import type { Mesh } from "three"
 import { Ray, Vector3 } from "three"
-
-interface Point3 {
-  x: number
-  y: number
-  z: number
-}
 
 interface Triangle {
   a: Vector3
@@ -70,7 +65,7 @@ export const createBonusZoneHitTester = (meshes: Mesh[]) => {
 
   return {
     // Shoots a ray from the point and counts how many times it crosses the mesh
-    containsPoint(point: Point3): boolean {
+    containsPoint(point: Position3Type): boolean {
       if (triangles.length === 0) return false
 
       origin.set(point.x, point.y, point.z)

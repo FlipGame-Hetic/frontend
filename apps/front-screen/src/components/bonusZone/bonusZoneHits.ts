@@ -8,16 +8,11 @@ import {
   MULTIBALL_SPAWN_POSITION1,
   MULTIBALL_SPAWN_POSITION2,
 } from "./bonusZoneConfig"
+import type { Position3Type } from "@/types/worldTypes"
 
 interface BonusZoneHitOptions {
   bounceThreshold: number
   ballCount: number
-}
-
-interface BonusZoneHitPosition {
-  x: number
-  y: number
-  z: number
 }
 
 const IGNORED_BONUS_HIT: MultiballBounceResult = { status: "ignored" }
@@ -26,7 +21,7 @@ const IGNORED_BONUS_HIT: MultiballBounceResult = { status: "ignored" }
 export const registerBonusZoneHit = (
   ballId: string,
   { bounceThreshold, ballCount }: BonusZoneHitOptions,
-  position?: BonusZoneHitPosition,
+  position?: Position3Type,
 ): MultiballBounceResult => {
   if (!ballId) return IGNORED_BONUS_HIT
 
@@ -60,7 +55,7 @@ export const useBonusZoneHitRegistry = () => {
   const { bounceThreshold, ballCount } = useDebugControls()
 
   return useCallback(
-    (ballId: string, position?: BonusZoneHitPosition) => {
+    (ballId: string, position?: Position3Type) => {
       registerBonusZoneHit(ballId, { bounceThreshold, ballCount }, position)
     },
     [bounceThreshold, ballCount],

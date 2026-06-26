@@ -1,21 +1,16 @@
 import type { CollisionEnterPayload, RapierRigidBody } from "@react-three/rapier"
 import { getBallId } from "../../balls/runtime/ballUserData"
 import { normalizedPlayfieldDirection } from "../playfieldPlane"
-
-export interface BouncerCollisionVector {
-  x: number
-  y: number
-  z: number
-}
+import type { Position3Type } from "@/types/worldTypes"
 
 export interface BouncerBallCollision {
   ballBody: RapierRigidBody
   ballId: string
-  ballPosition: BouncerCollisionVector
-  exitDirection: BouncerCollisionVector | null
+  ballPosition: Position3Type
+  exitDirection: Position3Type | null
 }
 
-const copyVector = (value: BouncerCollisionVector): BouncerCollisionVector => ({
+const copyVector = (value: Position3Type): Position3Type => ({
   x: value.x,
   y: value.y,
   z: value.z,
@@ -48,7 +43,7 @@ export const readBouncerBallCollision = (
 // Scale the impulse by the ball mass so the resulting velocity kick is identical whatever the ball's mass
 export const applyMassScaledImpulse = (
   body: RapierRigidBody,
-  direction: BouncerCollisionVector,
+  direction: Position3Type,
   impulseStrength: number,
 ): void => {
   const mass = body.mass()

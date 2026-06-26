@@ -19,12 +19,7 @@ import {
 import { easeOutCubic } from "@/utils/easing"
 import PopupTextLayer from "./PopupTextLayer"
 import { setTextMaterialOpacity, signedNoise } from "./popupTextMaterial"
-
-interface Position {
-  x: number
-  y: number
-  z: number
-}
+import type { Position3Type } from "@/types/worldTypes"
 
 interface PopupTextStackProps {
   id: number
@@ -32,7 +27,7 @@ interface PopupTextStackProps {
   duration: number
   fadeOutStart: number
   fillOpacity: number
-  position: Position
+  position: Position3Type
   riseHeight: number
   shouldGlitch: boolean
   text: string

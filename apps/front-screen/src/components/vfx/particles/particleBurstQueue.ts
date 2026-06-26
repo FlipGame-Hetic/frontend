@@ -1,30 +1,25 @@
+import type { Position3Type } from "@/types/worldTypes"
 import { MAX_QUEUED_BURSTS, type ParticleBurstKind } from "../particleBurstConfig"
-
-export interface ParticleBurstVector {
-  x: number
-  y: number
-  z: number
-}
 
 export interface ParticleBurstRequest {
   kind: ParticleBurstKind
-  position: ParticleBurstVector
-  direction?: ParticleBurstVector
+  position: Position3Type
+  direction?: Position3Type
   intensity?: number
   color?: string
 }
 
 export interface QueuedParticleBurst {
   kind: ParticleBurstKind
-  position: ParticleBurstVector
-  direction?: ParticleBurstVector
+  position: Position3Type
+  direction?: Position3Type
   intensity: number
   color?: string
 }
 
 const burstQueue: QueuedParticleBurst[] = []
 
-const copyVector = (value: ParticleBurstVector): ParticleBurstVector => ({
+const copyVector = (value: Position3Type): Position3Type => ({
   x: value.x,
   y: value.y,
   z: value.z,
