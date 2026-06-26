@@ -10,8 +10,8 @@ export interface PlungerLanePoint {
   z: number
 }
 
-export const PLUNGER_LANE_GATE_POSITION: PositionType = [3.85, 1, -1.971]
-export const PLUNGER_LANE_GATE_HALF_EXTENTS: PositionType = [0.7, 0.6, 0.7]
+export const PLUNGER_LANE_GATE_POSITION: PositionType = [3.8, 1.7, -1.75]
+export const PLUNGER_LANE_GATE_HALF_EXTENTS: PositionType = [0.8, 1, 0.7]
 export const PLUNGER_LANE_GATE_ROTATION: PositionType = [0.2, 1.075, 0]
 
 export const PLUNGER_LANE_SENSOR_POSITION: PositionType = [3.55, 0.5, 3.3]

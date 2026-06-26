@@ -11,6 +11,25 @@ export interface InvisibleWallConfig {
 
 // Invisible fixed colliders that prevent unwanted behaviours from the balls (getting stuck, leaving the playfield...)
 export const INVISIBLE_WALLS: InvisibleWallConfig[] = [
+  // --- DECORATION WALLS ---
+  {
+    id: "left-buildings-floor-top",
+    halfExtents: [0.1, 0.6, 2],
+    position: [-2.71, 2, -1.8],
+    rotation: [0.2, 0.17, 0],
+    restitution: 0.1,
+    friction: 0,
+  },
+  {
+    id: "left-buildings-floor-bottom",
+    halfExtents: [0.65, 0.6, 0.05],
+    position: [-2.78, 1, 0.6],
+    rotation: [0.2, 1, 0],
+    restitution: 0.1,
+    friction: 0,
+  },
+
+  //  --- CEILING ---
   {
     id: "ceiling",
     halfExtents: [3.7, 0.05, 8],
@@ -20,18 +39,20 @@ export const INVISIBLE_WALLS: InvisibleWallConfig[] = [
     friction: 0,
   },
   {
-    id: "top-tunnel",
-    halfExtents: [0.08, 0.5, 0.4],
-    position: [2.79, 2, -4.4],
-    rotation: [0.2, -0.2, 0],
-    restitution: 0.1,
-    friction: 0,
-  },
-  {
     id: "plunger-lane-ceiling",
     halfExtents: [0.2, 0.05, 3],
     position: [3.25, 0.45, 4],
     rotation: [0.15, 0, 0],
+    restitution: 0.1,
+    friction: 0,
+  },
+
+  // --- RAILS ---
+  {
+    id: "top-tunnel",
+    halfExtents: [0.08, 0.5, 0.4],
+    position: [2.79, 2, -4.4],
+    rotation: [0.2, -0.2, 0],
     restitution: 0.1,
     friction: 0,
   },
@@ -93,12 +114,6 @@ export const INVISIBLE_WALLS: InvisibleWallConfig[] = [
     id: "top-tunnel-exit",
     halfExtents: [0.3, 0.2, 0.1],
     position: [-3.4, 1, 1.72],
-    rotation: [0, 0, 0],
-  },
-  {
-    id: "top-left-flipper-hole",
-    halfExtents: [0.2, 0.2, 0.2],
-    position: [-2.7, 0.8, 0.15],
     rotation: [0, 0, 0],
   },
   {
