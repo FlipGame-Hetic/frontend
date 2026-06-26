@@ -9,7 +9,7 @@ import {
   type ControlHintPlacement,
 } from "@/config/controlHintsConfig"
 import { LEFT_KEYS, RIGHT_KEYS } from "@/components/flippers/flipperConfig"
-import { PLUNGER_KEY } from "@/components/plunger/plungerConfig"
+import { PLUNGER_KEYBOARD_KEY } from "@/components/plunger/plungerConfig"
 import { getPressedKeys } from "@/input/inputState"
 import useGameStore from "@/stores/useGameStore"
 import { useCurrentCharacterConfig } from "@/config/characterConfig"
@@ -53,7 +53,7 @@ const ControlHints = () => {
       return
     }
     const keys = getPressedKeys()
-    if (!plungerHidden && keys.has(PLUNGER_KEY)) setPlungerHidden(true)
+    if (!plungerHidden && keys.has(PLUNGER_KEYBOARD_KEY)) setPlungerHidden(true)
     if (!flippersHidden && FLIPPER_KEYS.some((key) => keys.has(key))) setFlippersHidden(true)
   })
 

@@ -125,7 +125,7 @@ export const advancePlungerState = (
     // Mirror the reported external position instead of charging on a timer
     state.position = clampPlungerPosition(externalPosition)
   } else if (!state.releasing && !state.pendingRelease) {
-    // On keyboard, charge while the PLUNGER_KEY is held, release when it comes back up
+    // On keyboard, charge while the PLUNGER_KEYBOARD_KEY is held, release when it comes back up
     if (isHeld) {
       // First frame of a hold, wake the ball so it can be launched
       if (!state.wasHeld) {

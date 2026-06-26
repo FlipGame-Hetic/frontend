@@ -4,7 +4,7 @@ import {
   dotPlayfieldNormal,
   normalizedPlayfieldDirection,
   projectOnPlayfield,
-} from "@/components/physics/playfieldPlane"
+} from "@/components/playfield/playfieldConfig"
 
 function tangentSpeed(velocity: { x: number; y: number; z: number }) {
   const tangent = projectOnPlayfield(velocity)

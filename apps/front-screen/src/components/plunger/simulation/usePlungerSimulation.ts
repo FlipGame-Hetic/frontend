@@ -6,9 +6,9 @@ import { useFrame } from "@react-three/fiber"
 import type { CollisionPayload, RapierRigidBody } from "@react-three/rapier"
 import { useCallback, useRef, type RefObject } from "react"
 import type { Group, Mesh, Vector3 } from "three"
-import { normalizedPlayfieldDirection } from "../../physics/playfieldPlane"
+import { normalizedPlayfieldDirection } from "../../playfield/playfieldConfig"
 import { SHAKE_INTENSITY } from "../../screenShake/screenShakeConfig"
-import { getPlungerImpulse, PLUNGER_KEY, PLUNGER_MAX_COMPRESSION } from "../plungerConfig"
+import { getPlungerImpulse, PLUNGER_KEYBOARD_KEY, PLUNGER_MAX_COMPRESSION } from "../plungerConfig"
 import {
   advancePlungerState,
   createPlungerSimState,
@@ -122,7 +122,7 @@ export const usePlungerSimulation = ({
   // Every frame we feed input into the pure reducer, apply its commands, then move the visual tip and the kinematic rod collider
   useFrame((_, delta) => {
     const plungerInput = getPlungerInputSnapshot()
-    const isHeld = pressedKeys.current.has(PLUNGER_KEY)
+    const isHeld = pressedKeys.current.has(PLUNGER_KEYBOARD_KEY)
 
     // Feed the input and current state to the runtime function to get new state and commands to trigger
     const { state, commands } = advancePlungerState(plungerStateRef.current, {
