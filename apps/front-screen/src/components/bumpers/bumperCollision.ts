@@ -1,5 +1,5 @@
 import type { RapierRigidBody } from "@react-three/rapier"
-import { clampBallVelocityToPlayfield } from "../physics/playfieldPlane"
+import { clampBallVelocityToPlayfield } from "../playfield/playfieldConfig"
 import { BUMPER_HIT_DEBOUNCE_MS, BUMPER_MAX_EXIT_TANGENT_SPEED } from "./bumperConfig"
 
 const lastHitByBall = new WeakMap<RapierRigidBody, number>()

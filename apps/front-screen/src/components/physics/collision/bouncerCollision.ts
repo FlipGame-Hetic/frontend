@@ -1,6 +1,6 @@
 import type { CollisionEnterPayload, RapierRigidBody } from "@react-three/rapier"
 import { getBallId } from "../../balls/runtime/ballUserData"
-import { normalizedPlayfieldDirection } from "../playfieldPlane"
+import { normalizedPlayfieldDirection } from "../../playfield/playfieldConfig"
 import type { Position3Type } from "@/types/worldTypes"
 
 export interface BouncerBallCollision {
