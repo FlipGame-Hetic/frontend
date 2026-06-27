@@ -2,7 +2,7 @@ import { sfxSources, playSfx, playSfxSequence } from "./sfx"
 
 const base = import.meta.env.BASE_URL
 
-export const BOSS_APPEAR_VOLUME = 0.5
+export const BOSS_APPEAR_VOLUME = 0.7
 
 const navForward = sfxSources(base, "interface", "navigation_forward")
 const navBackward = sfxSources(base, "interface", "navigation_backward")

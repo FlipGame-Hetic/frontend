@@ -9,6 +9,7 @@ export const PLUNGER_BALL_SPAWN: PositionType = [3.3, 0, 5]
 // One-way gate at the top of the lane, the ball can leave the lane but the gate stops it from rolling back in
 export const PLUNGER_LANE_GATE_POSITION: PositionType = [3.8, 1.7, -1.75]
 export const PLUNGER_LANE_GATE_HALF_EXTENTS: PositionType = [0.8, 1, 0.7]
+export const PLUNGER_LANE_GATE_ROTATION: PositionType = [0.2, 1.075, 0]
 
 // The long thin box that covers the whole lane, used to tell when the ball is still travelling up the plunger lane
 export const PLUNGER_LANE_SENSOR_POSITION: PositionType = [3.55, 0.5, 3.3]
