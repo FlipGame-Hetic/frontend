@@ -3,6 +3,7 @@ import { Physics } from "@react-three/rapier"
 import { useControls } from "leva"
 import { useEffect, useRef, type ReactNode } from "react"
 import useKeyBinding from "@/hooks/useKeyBinding"
+import useDebugOverlayStore from "@/stores/useDebugOverlayStore"
 import useUltimateStore from "@/stores/useUltimateStore"
 import { GRAVITY_Y, GRAVITY_Z, SLOW_MOTION_SPEED, TIME_STEP } from "./physicsConfig"
 import { runtimeEnvironment } from "@frontend/utils"
@@ -29,6 +30,8 @@ const PhysicsManager = ({ children, showStats }: PhysicsManagerProps) => {
     { order: 3 },
   )
 
+  const overlayVisible = useDebugOverlayStore((state) => state.visible)
+  const wireframe = useDebugOverlayStore((state) => state.wireframe)
   const ultiTimeScale = useUltimateStore((state) => state.timeScale)
   const isUltiTimeActive = ultiTimeScale !== 1
   // When slow-mo or an ulti time-scale is active, Rapier's own loop is paused and TimeStepper handles the stepping instead
@@ -50,7 +53,12 @@ const PhysicsManager = ({ children, showStats }: PhysicsManagerProps) => {
   )
 
   return (
-    <Physics gravity={[0, GRAVITY_Y, GRAVITY_Z]} timeStep={TIME_STEP} paused={stepperActive}>
+    <Physics
+      gravity={[0, GRAVITY_Y, GRAVITY_Z]}
+      timeStep={TIME_STEP}
+      paused={stepperActive}
+      debug={overlayVisible && wireframe}
+    >
       {showStats && <Stats showPanel={0} />}
       {stepperActive && <TimeStepper speed={stepperSpeed} />}
       {children}
