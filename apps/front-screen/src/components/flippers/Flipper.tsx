@@ -10,8 +10,7 @@ import type { CollisionPayload, RapierRigidBody } from "@react-three/rapier"
 import { MeshCollider, RigidBody, useRevoluteJoint } from "@react-three/rapier"
 import { useMemo, useRef, type RefObject } from "react"
 import { Vector3, type Mesh } from "three"
-import { projectOnPlayfield } from "../physics/playfieldPlane"
-import { clearFlipperContact, markFlipperContact } from "./flipperContact"
+import { projectOnPlayfield } from "../playfield/playfieldConfig"
 import {
   FLIPPER_BOOST_COOLDOWN_MS,
   FLIPPER_BOOST_MIN_ANGULAR_SPEED,
