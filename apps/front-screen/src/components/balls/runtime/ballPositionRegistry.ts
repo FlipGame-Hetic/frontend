@@ -22,7 +22,7 @@ export const getAnyBallPosition = (): Position3Type | undefined => {
   return firstElement.done ? undefined : firstElement.value
 }
 
-export interface BallPositionEntry extends Position3Type {
+export interface BallPositionEntry extends Position {
   id: string
 }
 

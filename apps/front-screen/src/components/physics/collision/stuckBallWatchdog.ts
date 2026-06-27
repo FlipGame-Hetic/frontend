@@ -1,6 +1,5 @@
-import { normalizedPlayfieldDirection } from "@/components/playfield/playfieldConfig"
 import type { RapierRigidBody } from "@react-three/rapier"
-import type { Vector3Like } from "three"
+import { normalizedPlayfieldDirection, type VectorLike } from "../playfieldPlane"
 
 export interface StuckBallWatchdog {
   tick(body: RapierRigidBody): void
@@ -14,7 +13,7 @@ export const createStuckBallWatchdog = (opts: {
   restuckFrames: number
   observeFrames: number
   maxImpulseAttempts: number
-  applyImpulse: (body: RapierRigidBody, direction: Vector3Like) => void
+  applyImpulse: (body: RapierRigidBody, direction: VectorLike) => void
   teleport: (body: RapierRigidBody) => void
   // Checked right before each nudge or teleport : true leaves a legitimately resting ball (cradle, stack) alone
   isSuppressed?: () => boolean
