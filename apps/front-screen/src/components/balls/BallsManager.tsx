@@ -1,5 +1,6 @@
 import useBallStore from "@/stores/useBallStore"
 import useGameStore from "@/stores/useGameStore"
+import useDebugOverlayStore from "@/stores/useDebugOverlayStore"
 import { GAME_PHASE } from "@frontend/types"
 import type { PositionType } from "@/types/worldTypes"
 import { isPointInPlungerLaneSensor, PLUNGER_BALL_SPAWN } from "@/components/plunger/plungerConfig"
@@ -37,6 +38,15 @@ const BallsManager = () => {
     DEFAULT_BALL_SPAWN[1],
     DEFAULT_BALL_SPAWN[2],
   ])
+  // Mirror of spawnPos kept in a ref so the Leva button (whose callback is captured once) always reads the latest slider values
+  const spawnPosRef = useRef(spawnPos)
+  useEffect(() => {
+    spawnPosRef.current = spawnPos
+  }, [spawnPos])
+
+  // Debug overlays (Leva + Stats) show in dev or on demand via window.debug() ; gate the spawn shortcuts the same way
+  const debugVisible = useDebugOverlayStore((state) => state.visible)
+  const overlayShown = !runtimeEnvironment.isProduction || debugVisible
 
   // Spawn preview used when spawning a ball manually using Leva sliders
   const [isSpawnPreviewVisible, setIsSpawnPreviewVisible] = useState(false)
@@ -115,21 +125,21 @@ const BallsManager = () => {
   }, [phase, ballNumber, spawnBall])
 
   const handleSpawn = useCallback(() => {
-    const [x, y, z] = spawnPos
+    const [x, y, z] = spawnPosRef.current
     const position: PositionType = [x, y, z]
     // A hand-spawned ball counts as in-play unless it lands in the plunger lane, where it waits to be launched
     const isPlaying = !isPointInPlungerLaneSensor({ x, y, z })
     setIsSpawnPreviewVisible(false)
     spawnBall(position, { isPlaying })
-  }, [spawnPos, spawnBall])
+  }, [spawnBall])
 
   const handleSpawnInPlunger = useCallback(() => {
     setIsSpawnPreviewVisible(false)
     spawnBall(PLUNGER_BALL_SPAWN, { isPlaying: false })
   }, [spawnBall])
 
-  useKeyBinding("KeyS", handleSpawn, { enabled: runtimeEnvironment.isLocal })
-  useKeyBinding("KeyP", handleSpawnInPlunger, { enabled: runtimeEnvironment.isLocal })
+  useKeyBinding("KeyS", handleSpawn, { enabled: overlayShown })
+  useKeyBinding("KeyP", handleSpawnInPlunger, { enabled: overlayShown })
 
   useControls(
     "Ball Spawner",
