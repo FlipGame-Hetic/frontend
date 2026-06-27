@@ -1,5 +1,5 @@
 import { useFrame } from "@react-three/fiber"
-import { useMemo } from "react"
+import { useMemo, type RefObject } from "react"
 import { Mesh, MeshStandardMaterial } from "three"
 import { PLUNGER_ROD_LENGTH, PLUNGER_ROD_RADIUS } from "../plungerConfig"
 import { createEnergyRingMaterial, updateEnergyRingMaterial } from "./energyRingMaterial"
@@ -12,11 +12,13 @@ import {
 
 interface PlungerNeonTipProps {
   mesh?: Mesh
-  chargeRef: React.RefObject<number>
+  chargeRef: RefObject<number>
   color: string
 }
 
+// The physical-looking plunger head, a dark metal rod wrapped in glowing neon rim rings whose glow tracks the charge
 const PlungerNeonTip = ({ mesh, chargeRef, color }: PlungerNeonTipProps) => {
+  // Dark, fairly metallic body so the neon rings read as the only light source on the tip
   const bodyMaterial = useMemo(
     () =>
       new MeshStandardMaterial({
@@ -27,6 +29,7 @@ const PlungerNeonTip = ({ mesh, chargeRef, color }: PlungerNeonTipProps) => {
     [],
   )
 
+  // Force the dark metal material onto every mesh of the imported model, the model ships with its own materials we do not want here
   const styledMesh = useMemo(() => {
     if (!mesh) return null
     mesh.traverse((child) => {
@@ -37,6 +40,7 @@ const PlungerNeonTip = ({ mesh, chargeRef, color }: PlungerNeonTipProps) => {
     return mesh
   }, [mesh, bodyMaterial])
 
+  // One animated shader material per rim ring, the i * 0.5 staggers their phase so they do not all pulse in sync
   const rimMaterials = useMemo(
     () =>
       PLUNGER_TIP_RIM_OFFSETS.map((_, i) =>
@@ -45,6 +49,7 @@ const PlungerNeonTip = ({ mesh, chargeRef, color }: PlungerNeonTipProps) => {
     [color],
   )
 
+  // Feed the clock and current charge into each rim shader every frame, the last 0 means no launch flash here
   useFrame((state) => {
     const charge = chargeRef.current
     for (const material of rimMaterials) {
@@ -57,12 +62,14 @@ const PlungerNeonTip = ({ mesh, chargeRef, color }: PlungerNeonTipProps) => {
       {styledMesh ? (
         <primitive object={styledMesh} />
       ) : (
+        // No model tip was provided, draw a plain cylinder the size of the rod collider as a fallback
         <mesh rotation={[Math.PI / 2, 0, 0]} material={bodyMaterial}>
           <cylinderGeometry
             args={[PLUNGER_ROD_RADIUS, PLUNGER_ROD_RADIUS, PLUNGER_ROD_LENGTH, 16]}
           />
         </mesh>
       )}
+      {/* The neon rim rings spaced along the tip, each gets its own staggered shader material */}
       {PLUNGER_TIP_RIM_OFFSETS.map((offset, i) => (
         <mesh key={offset} position={[0, 0, offset]} material={rimMaterials[i]}>
           <torusGeometry args={[PLUNGER_TIP_RIM_RADIUS, PLUNGER_TIP_RIM_TUBE_RADIUS, 8, 32]} />

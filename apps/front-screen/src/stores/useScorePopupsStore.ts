@@ -3,13 +3,8 @@ import {
   getBallPosition,
 } from "@/components/balls/runtime/ballPositionRegistry"
 import { getCurrentBallColorSnapshot } from "@/config/characterConfig"
+import type { Position3Type } from "@/types/worldTypes"
 import { create } from "zustand"
-
-interface Position {
-  x: number
-  y: number
-  z: number
-}
 
 type ScorePopupKind = "score" | "multiball-countdown" | "multiball-trigger"
 
@@ -18,7 +13,7 @@ interface ScorePopup {
   kind: ScorePopupKind
   amount?: number
   text?: string
-  position: Position
+  position: Position3Type
   color: string
 }
 
@@ -26,19 +21,19 @@ interface HitRecord {
   ballId?: string
   color: string
   reason?: string
-  position: Position
+  position: Position3Type
   ts: number
 }
 
 interface ScorePopupsState {
   popups: ScorePopup[]
   recentHits: HitRecord[]
-  addPopup: (amount: number, position: Position) => void
+  addPopup: (amount: number, position: Position3Type) => void
   removePopup: (id: number) => void
-  recordHit: (position: Position, ballId?: string, reason?: string) => void
+  recordHit: (position: Position3Type, ballId?: string, reason?: string) => void
   spawnPopupFromDelta: (amount: number, reason?: string, ballId?: string) => void
-  spawnMultiballCountdownPopup: (remaining: number, position: Position) => void
-  spawnMultiballTriggeredPopup: (position: Position) => void
+  spawnMultiballCountdownPopup: (remaining: number, position: Position3Type) => void
+  spawnMultiballTriggeredPopup: (position: Position3Type) => void
 }
 
 // Monotonic id source kept outside the store so incrementing it doesn't trigger a render on its own
@@ -118,7 +113,7 @@ const useScorePopupsStore = create<ScorePopupsState>((set, get) => ({
     const hits = pruneHits(get().recentHits, now)
     const { index, hit: matchedHit } = findMatchingHit(hits, now, reason, ballId)
 
-    let position: Position
+    let position: Position3Type
     if (matchedHit) {
       position = matchedHit.position
     } else {

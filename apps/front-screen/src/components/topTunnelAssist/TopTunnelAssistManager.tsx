@@ -26,6 +26,7 @@ import {
   type RuntimeCornerBlend,
   type TopTunnelAssistZoneId,
 } from "./topTunnelAssistRuntime"
+import { toVector3 } from "../physics/physicsConfig"
 
 interface BallPayload {
   body: RapierRigidBody
@@ -188,7 +189,7 @@ const TopTunnelAssistManager = () => {
       }
 
       const position = state.body.translation()
-      const point = new Vector3(position.x, position.y, position.z)
+      const point = toVector3(position)
       const mass = state.body.mass()
       const impulse = new Vector3()
       const firstSegment = runtimeSegments[0]

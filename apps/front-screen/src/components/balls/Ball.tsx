@@ -8,6 +8,7 @@ import { useFrame } from "@react-three/fiber"
 import type { RapierRigidBody } from "@react-three/rapier"
 import { BallCollider, RigidBody, useAfterPhysicsStep, useRapier } from "@react-three/rapier"
 import { useEffect, useRef } from "react"
+import type { Vector3Like } from "three"
 import { MULTIBALL_SPAWN_POSITION1, MULTIBALL_SPAWN_POSITION2 } from "../bonusZone/bonusZoneConfig"
 import { commitBallDrain } from "../drain/drainCommit"
 import { DRAIN_RESPAWN_DELAY_MS, DRAIN_SAFETY_FALLBACK_Y } from "../drain/drainConfig"
@@ -16,15 +17,14 @@ import {
   createStuckBallWatchdog,
   type StuckBallWatchdog,
 } from "../physics/collision/stuckBallWatchdog"
-import type { VectorLike } from "../physics/playfieldPlane"
+import { isPointInSnapExemptZone } from "../physics/snap/snapExemptZones"
 import {
   clampNormalToPlayfield,
   clampVelocityToPlayfield,
   PLAYFIELD_DOWN,
   PLAYFIELD_UNIT_NORMAL,
   projectOnPlayfield,
-} from "../physics/playfieldPlane"
-import { isPointInSnapExemptZone } from "../physics/snap/snapExemptZones"
+} from "../playfield/playfieldConfig"
 import { cleanupPortalBall } from "../portal/portalTraversalState"
 import {
   BALL_COLLISION_GROUPS_IGNORE_RAILS,
@@ -82,7 +82,7 @@ interface BallProps {
 }
 
 // Nudge a wedged ball with a fixed 2D impulse so it can never be pushed up off the ground
-const applyUnstickImpulse = (body: RapierRigidBody, dir: VectorLike) => {
+const applyUnstickImpulse = (body: RapierRigidBody, dir: Vector3Like) => {
   body.applyImpulse(
     {
       x: dir.x * BALL_UNSTICK_IMPULSE,

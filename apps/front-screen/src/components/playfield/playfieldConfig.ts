@@ -1,31 +1,26 @@
+import type { Position3Type } from "@/types/worldTypes"
 import type { Vector3Tuple } from "three"
-
-export interface VectorLike {
-  x: number
-  y: number
-  z: number
-}
 
 // Playfield is tilted forward (z = 0.21, approx. 12deg), so its up-normal leans toward the camera, this vector is the game's real "up", not world Y
 const PLAYFIELD_NORMAL: Vector3Tuple = [0, 1, 0.21]
 
 const normalLength = Math.hypot(PLAYFIELD_NORMAL[0], PLAYFIELD_NORMAL[1], PLAYFIELD_NORMAL[2])
 
-export const PLAYFIELD_UNIT_NORMAL: VectorLike = {
+export const PLAYFIELD_UNIT_NORMAL: Position3Type = {
   x: PLAYFIELD_NORMAL[0] / normalLength,
   y: PLAYFIELD_NORMAL[1] / normalLength,
   z: PLAYFIELD_NORMAL[2] / normalLength,
 }
 
 // True down direction taking the playfield's tilt into account
-export const PLAYFIELD_DOWN: VectorLike = {
+export const PLAYFIELD_DOWN: Position3Type = {
   x: -PLAYFIELD_UNIT_NORMAL.x,
   y: -PLAYFIELD_UNIT_NORMAL.y,
   z: -PLAYFIELD_UNIT_NORMAL.z,
 }
 
 // Signed speed of a vector along the playfield normal : how fast it leaves (+) or enters (-) the plane
-export const dotPlayfieldNormal = (vector: VectorLike) => {
+export const dotPlayfieldNormal = (vector: Position3Type) => {
   return (
     vector.x * PLAYFIELD_UNIT_NORMAL.x +
     vector.y * PLAYFIELD_UNIT_NORMAL.y +
@@ -34,7 +29,7 @@ export const dotPlayfieldNormal = (vector: VectorLike) => {
 }
 
 // Drops the normal speed, keeping only the part of the velocity that slides along the tilted surface
-export const projectOnPlayfield = (vector: VectorLike): VectorLike => {
+export const projectOnPlayfield = (vector: Position3Type): Position3Type => {
   const normalSpeed = dotPlayfieldNormal(vector)
 
   return {
@@ -44,11 +39,12 @@ export const projectOnPlayfield = (vector: VectorLike): VectorLike => {
   }
 }
 
-// In-plane unit direction of a vector, null when nothing meaningful is left after projection (too short)
-export const normalizedPlayfieldDirection = (vector: VectorLike): VectorLike | null => {
+// Direction in-plane of a vector, taking into account the tilt of the playfield
+export const normalizedPlayfieldDirection = (vector: Position3Type): Position3Type | null => {
   const projected = projectOnPlayfield(vector)
   const length = Math.hypot(projected.x, projected.y, projected.z)
 
+  // Null when the length is too short (prevents division by 0)
   if (length < 0.001) return null
 
   return {
@@ -59,11 +55,11 @@ export const normalizedPlayfieldDirection = (vector: VectorLike): VectorLike | n
 }
 
 export const clampVelocityToPlayfield = (
-  velocity: VectorLike,
+  velocity: Position3Type,
   maxTangentSpeed: number,
   minNormalSpeed: number,
   maxNormalSpeed: number,
-): VectorLike => {
+): Position3Type => {
   const normalSpeed = Math.min(
     maxNormalSpeed,
     Math.max(minNormalSpeed, dotPlayfieldNormal(velocity)),
@@ -81,11 +77,11 @@ export const clampVelocityToPlayfield = (
 }
 
 export const clampBallVelocityToPlayfield = (
-  velocity: VectorLike,
+  velocity: Position3Type,
   maxTangentSpeed: number,
   minNormalSpeed: number,
   maxNormalSpeed: number,
-): VectorLike => {
+): Position3Type => {
   return clampVelocityToPlayfield(
     velocity,
     maxTangentSpeed,
@@ -96,10 +92,10 @@ export const clampBallVelocityToPlayfield = (
 }
 
 export const clampNormalToPlayfield = (
-  velocity: VectorLike,
+  velocity: Position3Type,
   minNormalSpeed: number,
   maxNormalSpeed: number,
-): VectorLike => {
+): Position3Type => {
   const normalSpeed = Math.min(
     maxNormalSpeed,
     Math.max(minNormalSpeed, dotPlayfieldNormal(velocity)),

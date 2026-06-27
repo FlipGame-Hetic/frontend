@@ -1,5 +1,5 @@
 import type { RapierRigidBody } from "@react-three/rapier"
-import { Vector3 } from "three"
+import type { Vector3 } from "three"
 import {
   TOP_TUNNEL_ASSIST_CENTER_DEAD_ZONE,
   TOP_TUNNEL_ASSIST_MAX_FORWARD_SPEED,
@@ -8,6 +8,7 @@ import {
   type TopTunnelAssistSegmentConfig,
   type TopTunnelAssistSegmentId,
 } from "./topTunnelAssistConfig"
+import { toVector3 } from "../physics/physicsConfig"
 
 export const ENTRY_ZONE_ID = "entry" as const
 export type TopTunnelAssistZoneId = typeof ENTRY_ZONE_ID | TopTunnelAssistSegmentId
@@ -48,8 +49,8 @@ export const createRuntimeSegment = (
   config: TopTunnelAssistSegmentConfig,
   index: number,
 ): RuntimeSegment => {
-  const start = new Vector3(...config.start)
-  const end = new Vector3(...config.end)
+  const start = toVector3(config.start)
+  const end = toVector3(config.end)
   const direction = end.clone().sub(start)
   const length = direction.length()
 

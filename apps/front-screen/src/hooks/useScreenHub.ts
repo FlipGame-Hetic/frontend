@@ -1,5 +1,5 @@
 import { LEFT_KEYS, RIGHT_KEYS } from "@/components/flippers/flipperConfig"
-import { PLUNGER_KEY } from "@/components/plunger/plungerConfig"
+import { PLUNGER_KEYBOARD_KEY } from "@/components/plunger/plungerConfig"
 import { setMusicSuspended } from "@/audio/soundEngine"
 import { pressKey, releaseKey, triggerPlungerMaxLaunch } from "@/input/inputState"
 import useGameStore from "@/stores/useGameStore"
@@ -72,13 +72,13 @@ const handlers: ScreenEventHandlers = {
 
     if (payload.state > 0) {
       cabinetPlungerHeld = true
-      pressKey(PLUNGER_KEY)
+      pressKey(PLUNGER_KEYBOARD_KEY)
       return
     }
 
     if (cabinetPlungerHeld) {
       cabinetPlungerHeld = false
-      releaseKey(PLUNGER_KEY)
+      releaseKey(PLUNGER_KEYBOARD_KEY)
       return
     }
 

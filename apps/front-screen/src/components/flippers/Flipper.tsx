@@ -2,16 +2,15 @@ import { playSfx } from "@/audio/soundEngine"
 import { getBallId } from "@/components/balls/runtime/ballUserData"
 import { useDebugControls } from "@/debug/debugContext"
 import useKeyboard from "@/hooks/useKeyboard"
-import useBallStore from "@/stores/useBallStore"
 import { pressKey, releaseKey } from "@/input/inputState"
+import useBallStore from "@/stores/useBallStore"
 import type { PositionType } from "@/types/worldTypes"
 import { useFrame } from "@react-three/fiber"
 import type { CollisionPayload, RapierRigidBody } from "@react-three/rapier"
 import { MeshCollider, RigidBody, useRevoluteJoint } from "@react-three/rapier"
 import { useMemo, useRef, type RefObject } from "react"
 import { Vector3, type Mesh } from "three"
-import { projectOnPlayfield } from "../physics/playfieldPlane"
-import { clearFlipperContact, markFlipperContact } from "./flipperContact"
+import { projectOnPlayfield } from "../playfield/playfieldConfig"
 import {
   FLIPPER_BOOST_COOLDOWN_MS,
   FLIPPER_BOOST_MIN_ANGULAR_SPEED,
@@ -27,6 +26,7 @@ import {
   REST_ANGLE,
   RIGHT_KEYS,
 } from "./flipperConfig"
+import { clearFlipperContact, markFlipperContact } from "./flipperContact"
 
 const BOOST_COOLDOWN_PURGE_INTERVAL_MS = 1000
 

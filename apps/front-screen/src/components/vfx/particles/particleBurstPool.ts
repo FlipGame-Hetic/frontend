@@ -1,14 +1,15 @@
+import type { Vector3Like } from "three"
 import {
   MAX_GLOBAL_PARTICLES,
   PARTICLE_BURST_CONFIG,
   PARTICLE_BURST_HDR_FACTOR,
 } from "../particleBurstConfig"
-import type { QueuedParticleBurst, ParticleBurstVector } from "./particleBurstQueue"
+import type { QueuedParticleBurst } from "./particleBurstQueue"
 import { setRgbFromColor, type MutableRgb } from "./particleColor"
 
 interface ParticleSeed {
-  position: ParticleBurstVector
-  velocity: ParticleBurstVector
+  position: Vector3Like
+  velocity: Vector3Like
   color: MutableRgb
   life: number
   size: number

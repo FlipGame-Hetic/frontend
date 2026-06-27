@@ -1,5 +1,5 @@
 import type { RapierRigidBody } from "@react-three/rapier"
-import { normalizedPlayfieldDirection } from "../playfieldPlane"
+import { normalizedPlayfieldDirection } from "../../playfield/playfieldConfig"
 
 export interface StuckBallTracker {
   arm(body: RapierRigidBody): void
