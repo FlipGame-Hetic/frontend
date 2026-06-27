@@ -11,6 +11,7 @@ import { MeshCollider, RigidBody, useRevoluteJoint } from "@react-three/rapier"
 import { useMemo, useRef, type RefObject } from "react"
 import { Vector3, type Mesh } from "three"
 import { projectOnPlayfield } from "../physics/playfieldPlane"
+import { clearFlipperContact, markFlipperContact } from "./flipperContact"
 import {
   FLIPPER_BOOST_COOLDOWN_MS,
   FLIPPER_BOOST_MIN_ANGULAR_SPEED,
@@ -101,6 +102,25 @@ const Flipper = ({ position, side, mesh }: FlipperProps) => {
     boostCooldownsRef.current.set(ballId, now)
   }
 
+  const handleCollisionEnter = (payload: CollisionPayload) => {
+    applyBallBoost(payload)
+    // Remember the ball rests here so the stuck-ball watchdog leaves a deliberate cradle alone
+    const ballId = getBallId(payload.other.rigidBodyObject?.userData)
+    if (ballId) markFlipperContact(ballId)
+    if (!autoMode || isAutoPressingRef.current) return
+    isAutoPressingRef.current = true
+    activationKeys.forEach(pressKey)
+    setTimeout(() => {
+      activationKeys.forEach(releaseKey)
+      isAutoPressingRef.current = false
+    }, 200)
+  }
+
+  const handleCollisionExit = (payload: CollisionPayload) => {
+    const ballId = getBallId(payload.other.rigidBodyObject?.userData)
+    if (ballId) clearFlipperContact(ballId)
+  }
+
   const jointRef = useRevoluteJoint(
     anchorRef as unknown as RefObject<RapierRigidBody>,
     flipperRef as unknown as RefObject<RapierRigidBody>,
@@ -162,16 +182,8 @@ const Flipper = ({ position, side, mesh }: FlipperProps) => {
         mass={FLIPPER_JOINT_MASS}
         restitution={FLIPPER_RESTITUTION}
         friction={FLIPPER_FRICTION}
-        onCollisionEnter={(payload) => {
-          applyBallBoost(payload)
-          if (!autoMode || isAutoPressingRef.current) return
-          isAutoPressingRef.current = true
-          activationKeys.forEach(pressKey)
-          setTimeout(() => {
-            activationKeys.forEach(releaseKey)
-            isAutoPressingRef.current = false
-          }, 200)
-        }}
+        onCollisionEnter={handleCollisionEnter}
+        onCollisionExit={handleCollisionExit}
       >
         <MeshCollider type="hull">
           <mesh

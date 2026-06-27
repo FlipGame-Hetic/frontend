@@ -25,3 +25,12 @@ export const getAnyBallPosition = (): Position | undefined => {
   // '.done' is true if this element is after the last of the map, so if it is true then the map was empty
   return firstElement.done ? undefined : firstElement.value
 }
+
+export interface BallPositionEntry extends Position {
+  id: string
+}
+
+// Immutable snapshot of every live ball's position, so callers don't read the internal mutable map directly
+export const getBallPositionEntries = (): BallPositionEntry[] => {
+  return Array.from(positions, ([id, p]) => ({ id, x: p.x, y: p.y, z: p.z }))
+}
