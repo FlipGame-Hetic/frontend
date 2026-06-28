@@ -11,9 +11,9 @@ export default function ModeSelectScene() {
     <div className="relative flex h-full w-full overflow-hidden">
       <MenuControlsLegend />
 
-      <div className="relative z-10 flex h-full w-full pb-[clamp(80px,11vh,130px)]">
-        <div className="flex w-[44%] flex-col justify-center border-r border-r-[rgba(243,230,0,0.08)] p-12">
-          <div className="mb-8 font-mono text-[clamp(0.32rem,0.65vw,0.46rem)] tracking-[0.25em] text-[rgba(85,234,212,0.4)] uppercase">
+      <div className="relative z-10 flex h-full w-full flex-col pb-[clamp(80px,11vh,130px)] landscape:flex-row">
+        <div className="flex min-h-0 w-full flex-col justify-center border-b border-[rgba(243,230,0,0.08)] p-[clamp(1.5rem,4vw,3rem)] landscape:w-[44%] landscape:border-r landscape:border-b-0">
+          <div className="mb-[clamp(1rem,3vh,2rem)] font-mono text-[clamp(0.32rem,0.8vw,0.62rem)] tracking-[0.25em] text-[rgba(85,234,212,0.4)] uppercase">
             SÉLECTION.PROTOCOLE // MODE
           </div>
 
@@ -25,7 +25,7 @@ export default function ModeSelectScene() {
                 <div
                   key={option.id}
                   className={cn(
-                    "flex items-center gap-5 border-b border-b-[rgba(243,230,0,0.05)] py-5 transition-all duration-300",
+                    "flex items-center gap-5 border-b border-b-[rgba(243,230,0,0.05)] py-[clamp(0.6rem,2.2vh,1.25rem)] transition-all duration-300",
                     isLocked ? "opacity-[0.22]" : isActive ? "opacity-100" : "opacity-[0.35]",
                   )}
                 >
@@ -37,7 +37,7 @@ export default function ModeSelectScene() {
                   />
                   <div
                     className={cn(
-                      "font-display text-[clamp(1.4rem,3.2vw,2.6rem)] font-bold tracking-widest uppercase",
+                      "font-display text-[clamp(1.4rem,3.6vw,3.2rem)] font-bold tracking-widest uppercase",
                       isActive
                         ? "text-[#F3E600] [text-shadow:2px_0_rgba(197,0,60,0.4),-2px_0_rgba(85,234,212,0.35)]"
                         : "text-[rgba(243,230,0,0.4)]",
@@ -56,14 +56,14 @@ export default function ModeSelectScene() {
           </div>
         </div>
 
-        <div className="flex flex-1 flex-col justify-center gap-6 p-14">
-          <div className="font-display text-[clamp(2.5rem,6vw,5rem)] leading-none font-bold tracking-[0.12em] text-[#F3E600] uppercase [text-shadow:2px_0_rgba(197,0,60,0.45),-2px_0_rgba(85,234,212,0.4),0_3px_0_rgba(0,0,0,0.95)]">
+        <div className="flex min-h-0 flex-1 flex-col justify-center gap-[clamp(1rem,2.5vh,1.5rem)] p-[clamp(1.5rem,4vw,3.5rem)]">
+          <div className="font-display text-[clamp(2.5rem,6.4vw,5.8rem)] leading-none font-bold tracking-[0.12em] text-[#F3E600] uppercase [text-shadow:2px_0_rgba(197,0,60,0.45),-2px_0_rgba(85,234,212,0.4),0_3px_0_rgba(0,0,0,0.95)]">
             {active.label}
           </div>
 
           <div className="h-px w-24 bg-[linear-gradient(90deg,rgba(243,230,0,0.3),transparent)]" />
 
-          <div className="max-w-[26ch] font-mono text-[clamp(0.65rem,1.3vw,0.9rem)] leading-relaxed text-[rgba(85,234,212,0.5)]">
+          <div className="max-w-[26ch] font-mono text-[clamp(0.65rem,1.6vw,1.25rem)] leading-relaxed text-[rgba(85,234,212,0.5)]">
             {active.locked ? "DONNÉES NON DISPONIBLES." : active.description}
           </div>
         </div>

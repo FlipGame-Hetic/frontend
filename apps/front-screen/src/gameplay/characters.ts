@@ -8,8 +8,8 @@ export const fetchCharacters = async (): Promise<CharactersBySlug> => {
   const bySlug: CharactersBySlug = { ...GAMEPLAY_FALLBACK }
 
   try {
-    const response = await fetch(`${resolveApiUrl()}/characters`)
-    if (!response.ok) throw new Error(`GET /characters -> ${String(response.status)}`)
+    const response = await fetch(`${resolveApiUrl()}/api/v1/characters`)
+    if (!response.ok) throw new Error(`GET /api/v1/characters -> ${String(response.status)}`)
 
     const roster = (await response.json()) as CharacterGameplay[]
     for (const entry of roster) {
