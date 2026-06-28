@@ -1,5 +1,5 @@
 import { useFrame } from "@react-three/fiber"
-import { useMemo, useRef } from "react"
+import { useMemo, useRef, type RefObject } from "react"
 import type { Group, MeshBasicMaterial } from "three"
 import { AdditiveBlending, Color, Quaternion, Vector3 } from "three"
 import {
@@ -14,21 +14,26 @@ import {
 import type { PlungerLaunchState } from "../simulation/usePlungerSimulation"
 
 interface PlungerBeamProps {
-  launchRef: React.RefObject<PlungerLaunchState>
+  launchRef: RefObject<PlungerLaunchState>
   movementAxis: Vector3
   color: string
 }
 
+// White core multiplied past 1 so the bloom pass picks it up and makes it glow
 const CORE_COLOR = new Color("#FFFFFF").multiplyScalar(PLUNGER_VFX_HDR_FACTOR)
 
 const PlungerBeam = ({ launchRef, movementAxis, color }: PlungerBeamProps) => {
   const groupRef = useRef<Group | null>(null)
   const coreMaterialRef = useRef<MeshBasicMaterial | null>(null)
   const outerMaterialRef = useRef<MeshBasicMaterial | null>(null)
+  // Last launch token we reacted to, so the beam fires once per launch
   const lastTokenRef = useRef(0)
+  // Seconds of beam left to play, 0 means hidden
   const lifeRef = useRef(0)
+  // Charge of the launch that spawned the current beam, drives its thickness
   const launchChargeRef = useRef(0)
 
+  // Rotation that points the beam, built for +Z, up the travel axis
   const orientation = useMemo(
     () => new Quaternion().setFromUnitVectors(new Vector3(0, 0, 1), movementAxis),
     [movementAxis],
@@ -42,6 +47,7 @@ const PlungerBeam = ({ launchRef, movementAxis, color }: PlungerBeamProps) => {
     const launch = launchRef.current
     if (!group || !coreMaterial || !outerMaterial) return
 
+    // New launch, restart the beam life and tint the sleeve by how hard the launch was
     if (launch.token !== lastTokenRef.current) {
       lastTokenRef.current = launch.token
       lifeRef.current = PLUNGER_BEAM_DURATION
@@ -51,13 +57,16 @@ const PlungerBeam = ({ launchRef, movementAxis, color }: PlungerBeamProps) => {
       )
     }
 
+    // Beam finished, hide it and stop
     if (lifeRef.current <= 0) {
       group.visible = false
       return
     }
 
     lifeRef.current -= delta
+    // k runs from 1 at spawn down to 0 at the end, used to fade and thin the beam out
     const k = Math.max(lifeRef.current / PLUNGER_BEAM_DURATION, 0)
+    // Thicker beam for a stronger launch, then it thins as it fades
     const radiusScale = (0.5 + launchChargeRef.current) * (0.4 + 0.6 * k)
 
     group.visible = true
@@ -68,7 +77,9 @@ const PlungerBeam = ({ launchRef, movementAxis, color }: PlungerBeamProps) => {
 
   return (
     <group ref={groupRef} quaternion={orientation} visible={false}>
+      {/* Push the beam forward so it starts at the tip and shoots up the lane */}
       <group position={[0, 0, -PLUNGER_BEAM_ORIGIN_OFFSET]}>
+        {/* Outer colored sleeve, open-ended cylinder, additive and depth-write off so it blends like light instead of a solid tube */}
         <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, -PLUNGER_BEAM_LENGTH / 2]}>
           <cylinderGeometry
             args={[
@@ -89,6 +100,7 @@ const PlungerBeam = ({ launchRef, movementAxis, color }: PlungerBeamProps) => {
             opacity={0}
           />
         </mesh>
+        {/* Inner white-hot core, thinner and brighter than the sleeve */}
         <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, -PLUNGER_BEAM_LENGTH / 2]}>
           <cylinderGeometry
             args={[

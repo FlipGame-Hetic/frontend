@@ -2,7 +2,7 @@ import { cleanup, render, act } from "@testing-library/react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import type { ScreenEnvelope } from "@frontend/types"
 import { LEFT_KEYS, RIGHT_KEYS } from "@/components/flippers/flipperConfig"
-import { PLUNGER_KEY } from "@/components/plunger/plungerConfig"
+import { PLUNGER_KEYBOARD_KEY } from "@/components/plunger/plungerConfig"
 import {
   getPlungerInputSnapshot,
   getPressedKeys,
@@ -139,12 +139,12 @@ describe("front-screen useScreenHub", () => {
         event_type: "FlipperLeft",
         payload: { state: 1 },
       })
-      pressKey(PLUNGER_KEY)
+      pressKey(PLUNGER_KEYBOARD_KEY)
       triggerPlungerMaxLaunch()
     })
 
     expect(LEFT_KEYS.some((key) => getPressedKeys().has(key))).toBe(true)
-    expect(getPressedKeys().has(PLUNGER_KEY)).toBe(true)
+    expect(getPressedKeys().has(PLUNGER_KEYBOARD_KEY)).toBe(true)
     expect(getPlungerInputSnapshot()).toMatchObject({
       position: 1,
       released: true,
@@ -165,7 +165,7 @@ describe("front-screen useScreenHub", () => {
       score: 9876,
     })
     expect(LEFT_KEYS.every((key) => !getPressedKeys().has(key))).toBe(true)
-    expect(getPressedKeys().has(PLUNGER_KEY)).toBe(false)
+    expect(getPressedKeys().has(PLUNGER_KEYBOARD_KEY)).toBe(false)
     expect(getPlungerInputSnapshot()).toMatchObject({
       position: 0,
       released: true,
@@ -229,7 +229,7 @@ describe("front-screen useScreenHub", () => {
       })
     })
 
-    expect(getPressedKeys().has(PLUNGER_KEY)).toBe(true)
+    expect(getPressedKeys().has(PLUNGER_KEYBOARD_KEY)).toBe(true)
 
     act(() => {
       options.onEvent?.({
@@ -240,7 +240,7 @@ describe("front-screen useScreenHub", () => {
       })
     })
 
-    expect(getPressedKeys().has(PLUNGER_KEY)).toBe(false)
+    expect(getPressedKeys().has(PLUNGER_KEYBOARD_KEY)).toBe(false)
   })
 
   it("launches the plunger at max charge when PlungerCharge release has no matching hold", () => {
@@ -288,7 +288,7 @@ describe("front-screen useScreenHub", () => {
     })
 
     expect(LEFT_KEYS.every((key) => !getPressedKeys().has(key))).toBe(true)
-    expect(getPressedKeys().has(PLUNGER_KEY)).toBe(false)
+    expect(getPressedKeys().has(PLUNGER_KEYBOARD_KEY)).toBe(false)
     expect(getPlungerInputSnapshot().releaseToken).toBe(before)
   })
 

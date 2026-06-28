@@ -19,6 +19,21 @@ export const BALL_MAX_NORMAL_SPEED = 0
 export const BALL_SNAP_MAX_GAP = 0.3
 export const BALL_SNAP_EPSILON = 0.005
 
+// Stuck-ball watchdog : speed (well below normal play) under which a ball is considered wedged
+export const BALL_STUCK_VELOCITY = 0.5
+// Frames of continuous low speed before the first unstick attempt (~2s at 60fps)
+export const BALL_STUCK_FRAMES_BEFORE_ATTEMPT = 120
+// After a nudge, number of frames of continuous low speed that mark the attempt as failed and trigger the next one (on 60fps)
+export const BALL_STUCK_RESTUCK_FRAMES = 90
+// Window watched after a nudge : if the ball never re-sticks within it, the attempt is a success (on 60fps)
+export const BALL_STUCK_OBSERVE_FRAMES = 300
+// Random 2D nudges tried before giving up and teleporting the ball to safety
+export const BALL_STUCK_MAX_IMPULSE_ATTEMPTS = 3
+// Strength of each unstick nudge
+export const BALL_UNSTICK_IMPULSE = 5
+// Center-to-center distance under which two balls count as touching for the watchdog cradle contagion, just over 2*radius since physics keeps their centers apart
+export const BALL_REST_CONTACT_DISTANCE = BALL_RADIUS * 2 * 1.08
+
 // Manually spawned ball preview
 export const BALL_SPAWN_PREVIEW_OPACITY = 0.32
 export const BALL_SPAWN_PREVIEW_COLLISION_COLOR = "#ff3333"

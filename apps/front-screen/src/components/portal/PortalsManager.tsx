@@ -38,6 +38,7 @@ import PortalGhost from "./PortalGhost"
 import PortalSurface from "./PortalSurface"
 import useScreenShakeStore from "@/stores/useScreenShakeStore"
 import { SHAKE_INTENSITY } from "@/components/screenShake/screenShakeConfig"
+import { toVector3 } from "../physics/physicsConfig"
 
 const extractBallId = (payload: CollisionPayload): string | null => {
   const obj = payload.other.rigidBodyObject
@@ -98,8 +99,8 @@ const PortalsManager = () => {
 
       const pos = masterBody.translation()
       const vel = masterBody.linvel()
-      const ballPos = new Vector3(pos.x, pos.y, pos.z)
-      const ballVel = new Vector3(vel.x, vel.y, vel.z)
+      const ballPos = toVector3(pos)
+      const ballVel = toVector3(vel)
 
       const portalPos = getPortalPosition(fromPortal)
       const normal = getPortalNormal(fromPortal)

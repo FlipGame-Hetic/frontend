@@ -1,39 +1,68 @@
-import BallTrail from "./trail/BallTrail"
-import useBallStore from "@/stores/useBallStore"
-import usePortalTraversalStore from "@/stores/usePortalTraversalStore"
 import { isPointInPlungerLaneSensor } from "@/components/plunger/plungerConfig"
+import useBallStore from "@/stores/useBallStore"
+import useGameStore from "@/stores/useGameStore"
+import usePortalTraversalStore from "@/stores/usePortalTraversalStore"
 import type { PositionType } from "@/types/worldTypes"
+import { GAME_PHASE } from "@frontend/types"
 import { useFrame } from "@react-three/fiber"
 import type { RapierRigidBody } from "@react-three/rapier"
 import { BallCollider, RigidBody, useAfterPhysicsStep, useRapier } from "@react-three/rapier"
 import { useEffect, useRef } from "react"
-import { DRAIN_RESPAWN_DELAY_MS, DRAIN_SAFETY_FALLBACK_Y } from "../drain/drainConfig"
+import type { Vector3Like } from "three"
+import { MULTIBALL_SPAWN_POSITION1, MULTIBALL_SPAWN_POSITION2 } from "../bonusZone/bonusZoneConfig"
 import { commitBallDrain } from "../drain/drainCommit"
-import { registerBallFade, unregisterBallFade } from "./runtime/ballFadeRegistry"
-import { registerBallBody, unregisterBallBody } from "./runtime/ballBodyRegistry"
-import { removeBallPosition, setBallPosition } from "./runtime/ballPositionRegistry"
-import useBallMaterial from "./material/useBallMaterial"
+import { DRAIN_RESPAWN_DELAY_MS, DRAIN_SAFETY_FALLBACK_Y } from "../drain/drainConfig"
+import { forgetFlipperContact, isBallOnFlipper } from "../flippers/flipperContact"
 import {
-  clampVelocityToPlayfield,
-  clampNormalToPlayfield,
-  projectOnPlayfield,
-  PLAYFIELD_DOWN,
-  PLAYFIELD_UNIT_NORMAL,
-} from "../physics/playfieldPlane"
+  createStuckBallWatchdog,
+  type StuckBallWatchdog,
+} from "../physics/collision/stuckBallWatchdog"
 import { isPointInSnapExemptZone } from "../physics/snap/snapExemptZones"
 import {
-  BALL_COLLISION_GROUPS_WITH_RAILS,
+  clampNormalToPlayfield,
+  clampVelocityToPlayfield,
+  PLAYFIELD_DOWN,
+  PLAYFIELD_UNIT_NORMAL,
+  projectOnPlayfield,
+} from "../playfield/playfieldConfig"
+import { cleanupPortalBall } from "../portal/portalTraversalState"
+import {
   BALL_COLLISION_GROUPS_IGNORE_RAILS,
+  BALL_COLLISION_GROUPS_WITH_RAILS,
 } from "../rails/railCollisionGroups"
-import { isOnRail, cleanupRailBall } from "../rails/railState"
 import {
   RAIL_BASE_ACCEL,
   RAIL_BOOST_PER_SECOND,
   RAIL_MAX_ACCEL,
   RAIL_MIN_VEL,
 } from "../rails/railConfig"
-import { cleanupPortalBall } from "../portal/portalTraversalState"
-import { BALL_RADIUS, BALL_SNAP_MAX_GAP, BALL_SNAP_EPSILON } from "./ballConfig"
+import { cleanupRailBall, isOnRail } from "../rails/railState"
+import {
+  BALL_RADIUS,
+  BALL_REST_CONTACT_DISTANCE,
+  BALL_SNAP_EPSILON,
+  BALL_SNAP_MAX_GAP,
+  BALL_STUCK_FRAMES_BEFORE_ATTEMPT,
+  BALL_STUCK_MAX_IMPULSE_ATTEMPTS,
+  BALL_STUCK_OBSERVE_FRAMES,
+  BALL_STUCK_RESTUCK_FRAMES,
+  BALL_STUCK_VELOCITY,
+  BALL_UNSTICK_IMPULSE,
+} from "./ballConfig"
+import useBallMaterial from "./material/useBallMaterial"
+import { registerBallBody, unregisterBallBody } from "./runtime/ballBodyRegistry"
+import { registerBallFade, unregisterBallFade } from "./runtime/ballFadeRegistry"
+import {
+  getBallPositionEntries,
+  removeBallPosition,
+  setBallPosition,
+} from "./runtime/ballPositionRegistry"
+import {
+  forgetBallContagion,
+  isRestingByContagion,
+  setBallAtRest,
+} from "./runtime/ballRestContagion"
+import BallTrail from "./trail/BallTrail"
 import { TRAIL_MULTIBALL_POINTS, TRAIL_POINTS } from "./trail/ballTrailConfig"
 
 interface BallProps {
@@ -50,6 +79,25 @@ interface BallProps {
   minNormalSpeed: number
   maxNormalSpeed: number
   color?: string
+}
+
+// Nudge a wedged ball with a fixed 2D impulse so it can never be pushed up off the ground
+const applyUnstickImpulse = (body: RapierRigidBody, dir: Vector3Like) => {
+  body.applyImpulse(
+    {
+      x: dir.x * BALL_UNSTICK_IMPULSE,
+      y: dir.y * BALL_UNSTICK_IMPULSE,
+      z: dir.z * BALL_UNSTICK_IMPULSE,
+    },
+    true,
+  )
+}
+
+// Last resort : drop the ball at a random portal mouth (reuses the multiball spawn points, stays in play) and kill its velocity
+const teleportToRandomPortal = (body: RapierRigidBody) => {
+  const [x, y, z] = Math.random() < 0.5 ? MULTIBALL_SPAWN_POSITION1 : MULTIBALL_SPAWN_POSITION2
+  body.setTranslation({ x, y, z }, true)
+  body.setLinvel({ x: 0, y: 0, z: 0 }, true)
 }
 
 const Ball = ({
@@ -72,6 +120,21 @@ const Ball = ({
   const timeOnRailRef = useRef(0)
   const fadingRef = useRef(false)
   const drainedRef = useRef(false)
+  const stuckWatchdogRef = useRef<StuckBallWatchdog | null>(null)
+
+  // Created once per ball, lazily so the factory doesn't run on every render
+  stuckWatchdogRef.current ??= createStuckBallWatchdog({
+    stuckVelocity: BALL_STUCK_VELOCITY,
+    framesBeforeAttempt: BALL_STUCK_FRAMES_BEFORE_ATTEMPT,
+    restuckFrames: BALL_STUCK_RESTUCK_FRAMES,
+    observeFrames: BALL_STUCK_OBSERVE_FRAMES,
+    maxImpulseAttempts: BALL_STUCK_MAX_IMPULSE_ATTEMPTS,
+    applyImpulse: applyUnstickImpulse,
+    teleport: teleportToRandomPortal,
+    // Only run the contagion BFS at the rare moment the watchdog would act
+    isSuppressed: () =>
+      isRestingByContagion(id, getBallPositionEntries(), BALL_REST_CONTACT_DISTANCE),
+  })
 
   const meshRef = useBallMaterial(color)
   const { rapier } = useRapier()
@@ -87,6 +150,8 @@ const Ball = ({
       unregisterBallBody(id)
       cleanupRailBall(id)
       cleanupPortalBall(id)
+      forgetFlipperContact(id)
+      forgetBallContagion(id)
       usePortalTraversalStore.getState().removeGhost(id)
       removeBallPosition(id)
     }
@@ -185,6 +250,20 @@ const Ball = ({
       body.applyImpulse({ x: 0, y: 0, z: accel * delta * mass }, true)
     } else {
       timeOnRailRef.current = 0
+    }
+
+    // Seed this ball as at-rest when waiting in the plunger lane or cradled on a flipper, which spreads to balls stacked on it
+    setBallAtRest(id, inPlungerLane || isBallOnFlipper(id))
+
+    // Stuck-ball watchdog : skip while out of active play, the resting check then happens only when it would act
+    if (
+      useGameStore.getState().phase !== GAME_PHASE.Playing ||
+      fadingRef.current ||
+      drainedRef.current
+    ) {
+      stuckWatchdogRef.current?.reset()
+    } else {
+      stuckWatchdogRef.current?.tick(body)
     }
   })
 

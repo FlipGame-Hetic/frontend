@@ -1,11 +1,10 @@
-import { Euler, Vector3 } from "three"
-import type { VectorLike } from "../playfieldPlane"
+import { Euler, Vector3, type Vector3Like } from "three"
 import { SNAP_EXEMPT_ZONES } from "./snapExemptZonesConfig"
 
 const localPoint = new Vector3()
 const euler = new Euler()
 
-export const isPointInSnapExemptZone = (point: VectorLike): boolean => {
+export const isPointInSnapExemptZone = (point: Vector3Like): boolean => {
   for (const zone of SNAP_EXEMPT_ZONES) {
     localPoint.set(
       point.x - zone.position[0],

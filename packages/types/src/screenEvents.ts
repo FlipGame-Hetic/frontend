@@ -82,6 +82,7 @@ interface ScreenEventPayloads {
     ulti_id: UltiId
     shape: UltiShape
     cancellable: boolean
+    activation_charge?: number
     duration_ms?: number
     payload?: UltiPayload
   }

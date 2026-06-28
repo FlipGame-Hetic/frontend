@@ -11,20 +11,23 @@ import {
   PLUNGER_LANE_GATE_ROTATION,
 } from "./plungerConfig"
 
+// One-way gate at the top of the lane, it marks a ball as in play once it reaches the table and then blocks it from rolling back into the lane
 const PlungerLaneGate = () => {
   const setBallPlaying = useBallStore((state) => state.setBallPlaying)
-  const playingCount = useBallStore((state) => state.playingBallIds.length)
-  const isGateActive = playingCount > 0
+  const playingBallsCount = useBallStore((state) => state.playingBallIds.length)
+
+  const isGateActive = playingBallsCount > 0
 
   const handleSensorExit = useCallback(
     (payload: CollisionPayload) => {
+      // Each ball carries its id in its Rapier userData, early return if the body is not a ball
       const ballId = getBallId(payload.other.rigidBodyObject?.userData)
       if (!ballId) return
 
       const ballPosition = payload.other.rigidBody?.translation()
       if (!ballPosition) return
 
-      // Ball left the sensor on the far side of the gate plane (onto the table), so mark it as playing
+      // If the ball has left the lane by crossing the gate, it is now playing
       if (
         isPastPlungerLaneGate(ballPosition, PLUNGER_LANE_GATE_POSITION, PLUNGER_LANE_GATE_NORMAL)
       ) {
@@ -36,6 +39,7 @@ const PlungerLaneGate = () => {
 
   return (
     <RigidBody type="fixed" colliders={false}>
+      {/* Gate sensor that checks whether the ball has crossed the gate on the right side */}
       <CuboidCollider
         sensor
         name="plunger-lane-gate-sensor"
@@ -45,7 +49,7 @@ const PlungerLaneGate = () => {
         onIntersectionExit={handleSensorExit}
       />
 
-      {/* Solid gate only exists while a ball is in play, so it blocks re-entry into the lane, otherwise the lane stays open */}
+      {/* When a ball is in play, this collider renders to block the lane and prevent the ball from re-entering */}
       {isGateActive && (
         <CuboidCollider
           name="plunger-lane-gate"

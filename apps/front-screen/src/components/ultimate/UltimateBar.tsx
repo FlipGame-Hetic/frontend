@@ -61,7 +61,13 @@ const UltimateBar = () => {
 
   // Reuses drainState.ratio only when it was computed for the current active ultimate
   const activeDrainRatio = active?.startedAt === drainState.startedAt ? drainState.ratio : 1
-  const fillRatio = active ? activeDrainRatio : chargeMax > 0 ? Math.min(1, charge / chargeMax) : 0
+  const activeStartRatio =
+    active && chargeMax > 0 ? Math.min(1, active.activationCharge / chargeMax) : 1
+  const fillRatio = active
+    ? activeStartRatio * activeDrainRatio
+    : chargeMax > 0
+      ? Math.min(1, charge / chargeMax)
+      : 0
 
   // Converts Ghost's copied ultimate id into a character slug because icon files are named by character.
   // While an ultimate is active, the icon stays on the running ult (active.ultiId); nextUltiId only takes over once it ends/cancels.
