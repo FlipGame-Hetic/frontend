@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest"
 
 vi.mock("@react-three/rapier", () => ({}))
 
-vi.mock("@/components/physics/playfieldPlane", () => ({
+vi.mock("@/components/playfield/playfieldConfig", () => ({
   normalizedPlayfieldDirection: ({ x, z }: { x: number; y: number; z: number }) => {
     const len = Math.hypot(x, z)
     if (len < 0.001) return null
