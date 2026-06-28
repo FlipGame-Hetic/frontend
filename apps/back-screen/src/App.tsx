@@ -1,17 +1,16 @@
-import { useCallback, useState } from "react"
+import { RetroBackground } from "@/components/RetroBackground"
+import { StatusBar } from "@/components/StatusBar"
+import type { LogEntry } from "@/components/TerminalLog"
+import { TerminalLog } from "@/components/TerminalLog"
+import { useKeyboardInput } from "@/hooks/useKeyboardInput"
+import { useScreenHubClient } from "@/hooks/useScreenHubClient"
+import SceneRouter from "@/scenes/SceneRouter"
+import { useBackScreenStore } from "@/stores/useBackScreenStore"
 import type { GameMessage } from "@frontend/types"
 import { GAME_PHASE } from "@frontend/types"
-import { useGameSocket } from "@frontend/ws"
 import { ConnectionOverlay } from "@frontend/ui"
-import { StatusBar } from "@/components/StatusBar"
-import { TerminalLog } from "@/components/TerminalLog"
-import type { LogEntry } from "@/components/TerminalLog"
-import { PhaseSwitcher } from "@/components/PhaseSwitcher"
-import { RetroBackground } from "@/components/RetroBackground"
-import SceneRouter from "@/scenes/SceneRouter"
-import { useScreenHubClient } from "@/hooks/useScreenHubClient"
-import { useKeyboardInput } from "@/hooks/useKeyboardInput"
-import { useBackScreenStore } from "@/stores/useBackScreenStore"
+import { useGameSocket } from "@frontend/ws"
+import { useCallback, useState } from "react"
 
 const MAX_LOGS = 500
 const isDebug = new URLSearchParams(window.location.search).has("debug")
@@ -63,7 +62,7 @@ function App() {
         <div className="relative min-w-0 flex-1">
           <SceneRouter />
         </div>
-        <PhaseSwitcher />
+        {/* <PhaseSwitcher /> */}
       </div>
       <ConnectionOverlay status={hubStatus} />
     </div>
