@@ -254,6 +254,14 @@ The visual theme is defined once in `packages/tailwind-config/theme.css` and imp
 - Portal effect — adapted from [Shadertoy `lcfyDj`](https://www.shadertoy.com/view/lcfyDj) by [MisterPrada](https://www.shadertoy.com/user/MisterPrada) ([@Mister_Prada](https://twitter.com/Mister_Prada)) — [CC BY-NC-SA 3.0](https://creativecommons.org/licenses/by-nc-sa/3.0/) (Shadertoy default license; non-commercial use with attribution)
 - Matrix rain boss effect — adapted from [Shadertoy `Matrix Rain Shader`](https://www.shadertoy.com/view/lsXSDn) by [raja](https://www.shadertoy.com/user/raja) — [CC BY-NC-SA 3.0](https://creativecommons.org/licenses/by-nc-sa/3.0/) (Shadertoy default license; non-commercial use with attribution)
 
+**3D models**
+
+The playfield is modelled in-house. The ambient "random event" props use external models:
+
+- _"Jedi Holocron"_ ([skfb.ly/owXZr](https://skfb.ly/owXZr)) by Greggory_Fisher — licensed under [CC BY 4.0](http://creativecommons.org/licenses/by/4.0/).
+- _"blnk-100 concept hovering car"_ ([skfb.ly/6SSJ9](https://skfb.ly/6SSJ9)) by DEDROX — licensed under [CC BY 4.0](http://creativecommons.org/licenses/by/4.0/).
+- A second hovering car model — Public Domain (CC0), no attribution required.
+
 ---
 
 ## Team

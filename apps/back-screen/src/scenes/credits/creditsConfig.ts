@@ -53,6 +53,13 @@ export const CREDITS_SECTIONS: CreditSection[] = [
         ],
       },
       {
+        title: "Modèles 3D",
+        items: [
+          "Jedi Holocron — Greggory_Fisher (CC BY 4.0 - Sketchfab)",
+          "blnk-100 concept hovering car — DEDROX (CC BY 4.0 - Sketchfab)",
+        ],
+      },
+      {
         title: "Polices",
         items: ["Rajdhani", "Share Tech Mono", "Orbitron"],
       },

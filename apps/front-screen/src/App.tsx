@@ -6,6 +6,7 @@ import { Leva } from "leva"
 import { Suspense, useEffect } from "react"
 import BallsManager from "./components/balls/BallsManager"
 import CabinetCamera from "./components/CabinetCamera"
+import AmbientEventsManager from "./components/ambientEvents/AmbientEventsManager"
 import ControlHints from "./components/controlHints/ControlHintsManager"
 import DefaultCamera from "./components/DefaultCamera"
 import Drain from "./components/drain/Drain"
@@ -93,6 +94,7 @@ const App = () => {
           </Suspense>
         </PhysicsManager>
         <ParticleBurstManager />
+        <AmbientEventsManager />
         <ControlHints />
         <UltimateBar />
       </World>
