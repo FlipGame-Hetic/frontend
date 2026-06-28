@@ -6,13 +6,13 @@ import { CREDITS_SECTIONS, SCROLL_SPEED_PX_PER_SEC, START_DELAY_MS } from "./cre
 function FinalCreditsBlock({ className = "" }: { className?: string }) {
   return (
     <div className={`flex flex-col items-center gap-5 ${className}`}>
-      <div className="font-display text-[clamp(2.5rem,6vw,5rem)] leading-none font-bold tracking-[0.16em] text-[#F3E600] uppercase [text-shadow:3px_0_rgba(197,0,60,0.55),-3px_0_rgba(85,234,212,0.5),0_4px_0_rgba(0,0,0,0.95)]">
+      <div className="font-display text-[clamp(2.5rem,6.4vw,5.6rem)] leading-none font-bold tracking-[0.16em] text-[#F3E600] uppercase [text-shadow:3px_0_rgba(197,0,60,0.55),-3px_0_rgba(85,234,212,0.5),0_4px_0_rgba(0,0,0,0.95)]">
         S.P.A.M.E.R
       </div>
-      <span className="font-mono text-[clamp(0.8rem,1.6vw,1.15rem)] tracking-[0.3em] text-[rgba(243,230,0,0.6)] uppercase">
+      <span className="font-mono text-[clamp(0.8rem,1.9vw,1.55rem)] tracking-[0.3em] text-[rgba(243,230,0,0.6)] uppercase">
         Merci d&apos;avoir joué !
       </span>
-      <div className="font-mono text-[clamp(0.6rem,1vw,0.8rem)] tracking-[0.35em] text-[rgba(243,230,0,0.3)]">
+      <div className="font-mono text-[clamp(0.6rem,1.2vw,1.05rem)] tracking-[0.35em] text-[rgba(243,230,0,0.3)]">
         2026
       </div>
     </div>
@@ -81,30 +81,33 @@ export default function CreditsScene() {
   return (
     <div ref={viewportRef} className="absolute inset-0 z-40 overflow-hidden bg-[#05070d]">
       <div ref={contentRef} className="absolute top-0 left-0 w-full will-change-transform">
-        <div className="mx-auto flex max-w-[62ch] flex-col items-center gap-24 px-12 py-24 text-center">
-          <h1 className="font-display text-[clamp(3rem,8vw,7rem)] leading-none font-bold tracking-[0.16em] text-[#F3E600] uppercase [text-shadow:3px_0_rgba(197,0,60,0.55),-3px_0_rgba(85,234,212,0.5),0_4px_0_rgba(0,0,0,0.95)]">
+        <div className="mx-auto flex max-w-[62ch] flex-col items-center gap-[clamp(3.5rem,10vh,6rem)] px-[clamp(1.5rem,4vw,3rem)] py-[clamp(4rem,12vh,6rem)] text-center">
+          <h1 className="font-display text-[clamp(3rem,8.5vw,8rem)] leading-none font-bold tracking-[0.16em] text-[#F3E600] uppercase [text-shadow:3px_0_rgba(197,0,60,0.55),-3px_0_rgba(85,234,212,0.5),0_4px_0_rgba(0,0,0,0.95)]">
             S.P.A.M.E.R
           </h1>
 
           {CREDITS_SECTIONS.map((section) => (
-            <section key={section.heading} className="flex w-full flex-col items-center gap-12">
+            <section
+              key={section.heading}
+              className="flex w-full flex-col items-center gap-[clamp(2rem,5vh,3rem)]"
+            >
               <div className="flex flex-col items-center gap-3">
-                <h2 className="font-display text-[clamp(1.6rem,3.6vw,2.7rem)] font-bold tracking-[0.3em] text-[rgba(85,234,212,0.85)] uppercase">
+                <h2 className="font-display text-[clamp(1.6rem,4vw,3.4rem)] font-bold tracking-[0.3em] text-[rgba(85,234,212,0.85)] uppercase">
                   {section.heading}
                 </h2>
                 <div className="h-px w-20 bg-[linear-gradient(90deg,transparent,rgba(85,234,212,0.5),transparent)]" />
               </div>
 
-              <div className="flex w-full flex-col items-center gap-11">
+              <div className="flex w-full flex-col items-center gap-[clamp(1.75rem,4.5vh,2.75rem)]">
                 {section.entries.map((entry, i) => (
                   <div key={i} className="flex flex-col items-center gap-3">
                     {entry.title && (
-                      <h3 className="font-mono text-[clamp(0.72rem,1.4vw,1.05rem)] tracking-[0.28em] text-[rgba(243,230,0,0.55)] uppercase">
+                      <h3 className="font-mono text-[clamp(0.72rem,1.7vw,1.45rem)] tracking-[0.28em] text-[rgba(243,230,0,0.55)] uppercase">
                         {entry.title}
                       </h3>
                     )}
                     {entry.message && (
-                      <p className="max-w-[40ch] font-mono text-[clamp(0.95rem,1.8vw,1.3rem)] leading-relaxed text-[rgba(85,234,212,0.75)]">
+                      <p className="max-w-[40ch] font-mono text-[clamp(0.95rem,2.1vw,1.75rem)] leading-relaxed text-[rgba(85,234,212,0.75)]">
                         {entry.message}
                       </p>
                     )}
@@ -113,7 +116,7 @@ export default function CreditsScene() {
                         {entry.items.map((item) => (
                           <li
                             key={item}
-                            className="font-display text-[clamp(1.5rem,3.2vw,2.5rem)] font-semibold tracking-wide text-[#F3E600]"
+                            className="font-display text-[clamp(1.5rem,3.6vw,3.1rem)] font-semibold tracking-wide text-[#F3E600]"
                           >
                             {item}
                           </li>
@@ -134,7 +137,7 @@ export default function CreditsScene() {
 
       <div
         ref={finalLayerRef}
-        className="pointer-events-none absolute top-0 left-0 z-20 w-full px-12 text-center opacity-0 will-change-transform"
+        className="pointer-events-none absolute top-0 left-0 z-20 w-full px-[clamp(1.5rem,4vw,3rem)] text-center opacity-0 will-change-transform"
       >
         <FinalCreditsBlock />
       </div>

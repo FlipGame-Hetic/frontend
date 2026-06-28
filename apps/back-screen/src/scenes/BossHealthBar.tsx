@@ -22,7 +22,7 @@ export default function BossHealthBar() {
       <div
         key={lastDamage.big ? lastDamage.at : "name"}
         className={cn(
-          "font-display text-[clamp(1.6rem,3.6vw,3rem)] leading-none font-bold tracking-[0.18em] uppercase",
+          "font-display text-[clamp(1.6rem,4vw,3.6rem)] leading-none font-bold tracking-[0.18em] uppercase",
           lastDamage.big && "boss-name-hit",
         )}
         style={{ color: "#F4F4F4", textShadow: NAME_SHADOW }}
@@ -43,7 +43,7 @@ export default function BossHealthBar() {
       </div>
 
       <div
-        className="font-display text-[clamp(0.9rem,1.6vw,1.4rem)] leading-none font-bold tracking-[0.2em] tabular-nums"
+        className="font-display text-[clamp(0.9rem,1.9vw,1.7rem)] leading-none font-bold tracking-[0.2em] tabular-nums"
         style={{ color: "#F4F4F4", textShadow: "0 2px 0 rgba(0,0,0,0.9)" }}
       >
         {Math.max(0, Math.ceil(bossHp))} / {bossMaxHp}
