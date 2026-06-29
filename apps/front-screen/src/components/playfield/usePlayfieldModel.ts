@@ -1,6 +1,10 @@
-import { useGLTF } from "@react-three/drei"
 import { useMemo } from "react"
 import { type AnimationClip, type Object3D, Mesh, Quaternion, Vector3 } from "three"
+import useModel from "@/three/useModel"
+
+// Optimized playfield cabinet served from public/ : geometry is Draco-compressed and textures are KTX2,
+// decoded by the Draco + KTX2 loaders wired up in `@/three/useModel`.
+const PLAYFIELD_MODEL_URL = "/models/playfield/playfield.glb"
 
 // The playfield model sits 12 units too high on Y, so every position read from it is lowered by 12 to line up with the rest of the scene
 const PLAYFIELD_OFFSET: [number, number, number] = [0, -12, 0]
@@ -245,7 +249,7 @@ interface PlayfieldModel {
 }
 
 const usePlayfieldModel = (): PlayfieldModel => {
-  const { scene, animations } = useGLTF("/models/playfield/playfield.glb")
+  const { scene, animations } = useModel(PLAYFIELD_MODEL_URL)
   const nodes = useMemo(() => collectPlayfieldNodes(scene), [scene])
 
   return useMemo(() => ({ nodes, animations }), [animations, nodes])
