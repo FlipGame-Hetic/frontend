@@ -1,56 +1,16 @@
 import { RetroBackground } from "@/components/RetroBackground"
-import { StatusBar } from "@/components/StatusBar"
-import type { LogEntry } from "@/components/TerminalLog"
-import { TerminalLog } from "@/components/TerminalLog"
 import { useKeyboardInput } from "@/hooks/useKeyboardInput"
 import { useScreenHubClient } from "@/hooks/useScreenHubClient"
 import SceneRouter from "@/scenes/SceneRouter"
 import { useBackScreenStore } from "@/stores/useBackScreenStore"
-import type { GameMessage } from "@frontend/types"
 import { GAME_PHASE } from "@frontend/types"
 import { ConnectionOverlay } from "@frontend/ui"
-import { useGameSocket } from "@frontend/ws"
-import { useCallback, useState } from "react"
-
-const MAX_LOGS = 500
-const isDebug = new URLSearchParams(window.location.search).has("debug")
-
-let nextId = 0
 
 function App() {
   const hubStatus = useScreenHubClient()
   useKeyboardInput()
 
   const phase = useBackScreenStore((s) => s.phase)
-  const [logs, setLogs] = useState<LogEntry[]>([])
-
-  const onMessage = useCallback((message: GameMessage) => {
-    if (!isDebug) return
-    const entry: LogEntry = {
-      id: nextId++,
-      timestamp: new Date(),
-      message,
-    }
-    setLogs((prev) => {
-      const next = [...prev, entry]
-      return next.length > MAX_LOGS ? next.slice(-MAX_LOGS) : next
-    })
-  }, [])
-
-  const { status } = useGameSocket({ onMessage })
-
-  const handleClear = useCallback(() => {
-    setLogs([])
-  }, [])
-
-  if (isDebug) {
-    return (
-      <div className="bg-surface-dark flex h-screen flex-col text-white">
-        <StatusBar status={status} messageCount={logs.length} onClear={handleClear} />
-        <TerminalLog logs={logs} />
-      </div>
-    )
-  }
 
   const accentColor = phase === GAME_PHASE.GameOver ? "#C5003C" : "#F3E600"
   const withBlur = phase === GAME_PHASE.Paused || phase === GAME_PHASE.GameOver
@@ -62,7 +22,6 @@ function App() {
         <div className="relative min-w-0 flex-1">
           <SceneRouter />
         </div>
-        {/* <PhaseSwitcher /> */}
       </div>
       <ConnectionOverlay status={hubStatus} />
     </div>

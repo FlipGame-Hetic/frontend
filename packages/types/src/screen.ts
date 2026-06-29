@@ -1,3 +1,6 @@
+// Status of connection to WebSocket
+export type ConnectionStatus = "disconnected" | "connecting" | "connected"
+
 // Possible sources for a webSocket event (game_engine is not used but may happen with the physical cabinet, and is kept for documentation and contract purposes)
 export type ScreenId = "front_screen" | "back_screen" | "dmd_screen"
 type ScreenSource = ScreenId | "backend" | "game_engine"
