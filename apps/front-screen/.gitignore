@@ -10,6 +10,10 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+
+# three.js decoders copied from node_modules on dev/build (see vite.config.ts) — regenerated, never committed
+/public/basis
+/public/draco
 *.local
 
 # TypeScript build info
