@@ -8,7 +8,7 @@ export type PortalId = "A" | "B"
 export const PORTAL_A_POSITION: PositionType = [-2.73, 1.7, -4.285]
 export const PORTAL_A_ROTATION: PositionType = [-0.1, 0.28, 0]
 
-export const PORTAL_B_POSITION: PositionType = [2.2, 1.75, -4.28]
+export const PORTAL_B_POSITION: PositionType = [2.2, 1.8, -4.28]
 export const PORTAL_B_ROTATION: PositionType = [-0, -0.17, 0]
 
 export const PORTAL_SENSOR_HALF_EXTENTS: PositionType = [0.3, 0.3, 0.5]
