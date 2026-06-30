@@ -21,9 +21,36 @@ vi.mock("@/dmd/DmdCanvas", () => ({
   },
 }))
 
-vi.mock("@/components/DevOverlay", () => ({
-  DevOverlay: () => null,
+vi.mock("leva", () => ({
+  Leva: () => null,
+  useControls: () => ({
+    scene: null,
+    cols: 128,
+    dotColor: "#FF8C00",
+    gapRatio: 0.2,
+    offOpacity: 0.05,
+  }),
 }))
+
+vi.mock("@/dmd/useDmdDevControls", () => ({
+  useDmdDevControls: () => ({
+    config: {
+      cols: 128,
+      rows: 72,
+      dotColor: "#FF8C00",
+      bgColor: "#000000",
+      offOpacity: 0.05,
+      gapRatio: 0.2,
+    },
+    devPhase: null,
+  }),
+}))
+
+vi.mock("@frontend/ui", async (importOriginal) => {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
+  const original = await importOriginal<typeof import("@frontend/ui")>()
+  return { ...original, useDebugOverlayShown: () => false }
+})
 
 const lastScreenHubOptions = (): { onEvent?: (envelope: ScreenEnvelope) => void } => {
   return useScreenHubMock.mock.calls.at(-1)?.[0] as {

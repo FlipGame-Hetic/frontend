@@ -1,6 +1,6 @@
 import useBallStore from "@/stores/useBallStore"
 import useGameStore from "@/stores/useGameStore"
-import useDebugOverlayStore from "@/stores/useDebugOverlayStore"
+import { useDebugOverlayShown } from "@frontend/ui"
 import { GAME_PHASE } from "@frontend/types"
 import type { PositionType } from "@/types/worldTypes"
 import { isPointInPlungerLaneSensor, PLUNGER_BALL_SPAWN } from "@/components/plunger/plungerConfig"
@@ -22,7 +22,6 @@ import {
   BALL_MIN_NORMAL_SPEED,
   BALL_MAX_NORMAL_SPEED,
 } from "./ballConfig"
-import { runtimeEnvironment } from "@frontend/utils"
 
 const SPAWN_PREVIEW_HIDE_DELAY_MS = 1000
 
@@ -45,8 +44,7 @@ const BallsManager = () => {
   }, [spawnPos])
 
   // Debug overlays (Leva + Stats) show in dev or on demand via window.debug() ; gate the spawn shortcuts the same way
-  const debugVisible = useDebugOverlayStore((state) => state.visible)
-  const overlayShown = !runtimeEnvironment.isProduction || debugVisible
+  const overlayShown = useDebugOverlayShown()
 
   // Spawn preview used when spawning a ball manually using Leva sliders
   const [isSpawnPreviewVisible, setIsSpawnPreviewVisible] = useState(false)

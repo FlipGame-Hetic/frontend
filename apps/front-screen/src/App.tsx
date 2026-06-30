@@ -1,5 +1,5 @@
 import DebugProvider from "@/debug/DebugProvider"
-import { ConnectionOverlay } from "@frontend/ui"
+import { ConnectionOverlay, useDebugOverlayShown } from "@frontend/ui"
 import { runtimeEnvironment } from "@frontend/utils"
 import type { CameraProps } from "@react-three/fiber"
 import { Leva } from "leva"
@@ -30,16 +30,13 @@ import { useFlipperButtonRelay } from "./hooks/useFlipperButtonRelay"
 import { useScreenHub } from "./hooks/useScreenHub"
 import { useUltimateInput } from "./hooks/useUltimateInput"
 import useCharactersStore from "./stores/useCharactersStore"
-import useDebugOverlayStore from "./stores/useDebugOverlayStore"
 
 const App = () => {
   const hubStatus = useScreenHub()
   useFlipperButtonRelay()
   useUltimateInput()
 
-  const debugVisible = useDebugOverlayStore((state) => state.visible)
-  // Overlays show in dev, or on demand via window.debug() so the cabinet can toggle them without a reload
-  const overlayShown = !runtimeEnvironment.isProduction || debugVisible
+  const overlayShown = useDebugOverlayShown()
 
   useEffect(() => {
     void useCharactersStore.getState().load()

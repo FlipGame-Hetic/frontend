@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useScreenHub, registerScreenSender, sendEventTo } from "@frontend/ws"
 import { readScreenToken } from "@frontend/utils"
-import { ConnectionOverlay } from "@frontend/ui"
+import { ConnectionOverlay, useDebugOverlayShown } from "@frontend/ui"
 import { isScreenEvent, GAME_PHASE } from "@frontend/types"
 import type { ScreenEnvelope, GamePhase } from "@frontend/types"
-import { DEFAULT_DMD_CONFIG } from "@/dmd/config"
-import type { DmdConfig } from "@/dmd/config"
+import { Leva } from "leva"
 import { DmdCanvas } from "@/dmd/DmdCanvas"
+import { useDmdDevControls } from "@/dmd/useDmdDevControls"
 import { ScoreScene } from "@/dmd/scenes/ScoreScene"
 import type { ScoreData } from "@/dmd/scenes/ScoreScene"
 import { IdleScene } from "@/dmd/scenes/IdleScene"
@@ -16,7 +16,6 @@ import { CharacterSelectScene } from "@/dmd/scenes/CharacterSelectScene"
 import { GameOverScene } from "@/dmd/scenes/GameOverScene"
 import { ComboScene } from "@/dmd/scenes/ComboScene"
 import { parseComboSequence } from "@/dmd/scenes/comboPayload"
-import { DevOverlay } from "@/components/DevOverlay"
 
 const SCREEN_ID = "dmd_screen" as const
 const TOKEN = readScreenToken()
@@ -24,9 +23,9 @@ const TOKEN = readScreenToken()
 const COMBO_FLASH_MS = 1800
 
 function App() {
-  const [config, setConfig] = useState<DmdConfig>(DEFAULT_DMD_CONFIG)
+  const { config, devPhase } = useDmdDevControls()
+  const overlayShown = useDebugOverlayShown()
   const [phase, setPhase] = useState<GamePhase>(GAME_PHASE.Idle)
-  const [devPhase, setDevPhase] = useState<GamePhase | null>(null)
   const [comboActive, setComboActive] = useState(false)
   const comboTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const totalBallsRef = useRef(0)
@@ -142,14 +141,7 @@ function App() {
     <>
       <DmdCanvas config={config} scene={activeScene} />
       <ConnectionOverlay status={status} />
-      {import.meta.env.DEV && (
-        <DevOverlay
-          config={config}
-          onChange={setConfig}
-          phase={effectivePhase}
-          onPhaseChange={setDevPhase}
-        />
-      )}
+      <Leva hidden={!overlayShown} titleBar={{ title: "DMD Dev" }} collapsed />
     </>
   )
 }
