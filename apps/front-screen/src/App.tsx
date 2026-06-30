@@ -25,6 +25,7 @@ import UltimateBar from "./components/ultimate/UltimateBar"
 import UltimateScreenTint from "./components/ultimate/UltimateScreenTint"
 import ParticleBurstManager from "./components/vfx/ParticleBurstManager"
 import World from "./components/World"
+import { useBallInPlayRelay } from "./hooks/useBallInPlayRelay"
 import { useFlipperButtonRelay } from "./hooks/useFlipperButtonRelay"
 import { useScreenHub } from "./hooks/useScreenHub"
 import { useUltimateInput } from "./hooks/useUltimateInput"
@@ -33,6 +34,7 @@ import useCharactersStore from "./stores/useCharactersStore"
 const App = () => {
   const hubStatus = useScreenHub()
   useFlipperButtonRelay()
+  useBallInPlayRelay()
   useUltimateInput()
 
   const overlayShown = useDebugOverlayShown()

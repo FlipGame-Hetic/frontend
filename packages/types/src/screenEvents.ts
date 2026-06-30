@@ -48,6 +48,7 @@ interface ScreenEventPayloads {
   MenuButton: { id: ButtonId; state: number }
   StartGame: { player_id: string; character: string }
   PlungerCharge: { state: number }
+  BallInPlay: { in_play: boolean }
   FlipperLeft: { state: number }
   FlipperRight: { state: number }
   Bumper: { ball_id: string }
