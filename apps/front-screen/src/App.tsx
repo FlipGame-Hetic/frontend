@@ -51,7 +51,6 @@ const App = () => {
         hidden={!overlayShown}
         titleBar={{ title: "Tweaks GUI" }}
         theme={{ sizes: { rootWidth: "350px" } }}
-        collapsed
       />
       <World cameraSettings={cameraSettings as CameraProps}>
         <SceneAmbientLight />

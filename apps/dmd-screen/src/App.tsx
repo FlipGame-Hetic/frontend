@@ -141,7 +141,7 @@ function App() {
     <>
       <DmdCanvas config={config} scene={activeScene} />
       <ConnectionOverlay status={status} />
-      <Leva hidden={!overlayShown} titleBar={{ title: "DMD Dev" }} collapsed />
+      <Leva hidden={!overlayShown} titleBar={{ title: "DMD Dev" }} />
     </>
   )
 }
