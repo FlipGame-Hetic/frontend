@@ -1,0 +1,1 @@
+export const GAME_OVER_INPUT_LOCK_MS = 1500

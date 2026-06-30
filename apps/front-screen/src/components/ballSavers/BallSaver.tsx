@@ -11,10 +11,14 @@ import {
 } from "@react-three/rapier"
 import { useCallback, useEffect, useMemo, useRef } from "react"
 import { Box3, MathUtils, type Mesh, Vector3 } from "three"
+import {
+  createBallSaverHologramMaterial,
+  updateBallSaverHologramMaterial,
+} from "./ballSaverHologramMaterial"
 import { hasBallId } from "@/components/balls/runtime/ballUserData"
 import useBallStore from "@/stores/useBallStore"
 import useBallSaverPhaseStore from "@/stores/useBallSaverPhaseStore"
-import { cloneWithWorldOrientation } from "../playfield/usePlayfieldModel"
+import { cloneWithWorldOrientation, isMesh } from "../playfield/usePlayfieldModel"
 import { setBodyCollidersEnabled } from "../physics/collision/rigidBodyColliders"
 import { easeOutCubic } from "@/utils/easing"
 import {
@@ -79,7 +83,24 @@ const BallSaver = ({ mesh, side, worldPosition }: BallSaverProps) => {
     areBallSaverTargetsDown(side, state.activatedTargetIds),
   )
 
-  const clone = useMemo(() => cloneWithWorldOrientation(mesh), [mesh])
+  const hologramMaterial = useMemo(() => createBallSaverHologramMaterial(), [])
+  const clone = useMemo(() => {
+    const cloned = cloneWithWorldOrientation(mesh)
+    // Swap the raw GLB look for the holographic material, drop shadows so the hologram stays floaty
+    cloned.traverse((node) => {
+      if (!isMesh(node)) return
+      node.material = hologramMaterial
+      node.castShadow = false
+      node.receiveShadow = false
+    })
+    return cloned
+  }, [mesh, hologramMaterial])
+
+  useEffect(() => {
+    return () => {
+      hologramMaterial.dispose()
+    }
+  }, [hologramMaterial])
   // How far the saver sinks below the table when down, derived from the mesh height so it fully hides
   const dropDistance = useMemo(() => {
     const size = new Vector3()
@@ -192,6 +213,7 @@ const BallSaver = ({ mesh, side, worldPosition }: BallSaverProps) => {
     if (!body) return
 
     const now = performance.now()
+    updateBallSaverHologramMaterial(hologramMaterial, now / 1000)
 
     if (
       phaseRef.current === "active" &&

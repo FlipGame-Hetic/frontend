@@ -1,8 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { render } from "@testing-library/react"
+import type { ScreenEvent } from "@frontend/types"
 
 const { mockBroadcastEvent, handlers, mockApplyImpulse, mockBody } = vi.hoisted(() => {
   const mockApplyImpulse = vi.fn()
+  const mockBroadcastEvent = vi.fn<(event: ScreenEvent) => void>()
   const mockBody = {
     translation: () => ({ x: 0, y: 0, z: 0 }),
     mass: () => 1,
@@ -11,7 +13,7 @@ const { mockBroadcastEvent, handlers, mockApplyImpulse, mockBody } = vi.hoisted(
   }
 
   return {
-    mockBroadcastEvent: vi.fn(),
+    mockBroadcastEvent,
     handlers: { onCollisionEnter: null as ((payload: unknown) => void) | null },
     mockApplyImpulse,
     mockBody,
@@ -112,10 +114,38 @@ describe("Bumper — handleCollision", () => {
   })
 
   describe("success — ball collision", () => {
-    it("calls broadcastEvent exactly once when the ball hits the bumper", () => {
+    it("broadcasts a haptic pulse and the score event when the ball hits the bumper", () => {
       render(<Bumper position={[0, 0, 0]} />)
       callHandler(makeBallPayload())
-      expect(mockBroadcastEvent).toHaveBeenCalledOnce()
+      expect(mockBroadcastEvent).toHaveBeenCalledTimes(2)
+      const hapticEvent = mockBroadcastEvent.mock.calls[0]?.[0]
+      expect(hapticEvent).toMatchObject({
+        event_type: "BallHit",
+        payload: {
+          hits: [
+            {
+              id: "bumper",
+              type: "bumper",
+              position: { x: 0, z: 0 },
+            },
+          ],
+        },
+      })
+      expect(mockBroadcastEvent).toHaveBeenNthCalledWith(2, {
+        event_type: "Bumper",
+        payload: { ball_id: "ball-1" },
+      })
+
+      if (hapticEvent?.event_type !== "BallHit") {
+        throw new Error("Expected first broadcast to be a BallHit event")
+      }
+      const hit = hapticEvent.payload.hits[0]
+      expect(hit).toBeDefined()
+      if (!hit) {
+        throw new Error("Expected BallHit event to contain one hit")
+      }
+      expect(hit.force).toBeGreaterThan(0)
+      expect(hit.force).toBeLessThanOrEqual(1)
     })
 
     it("broadcasts the back-screen bumper event with the ball id", () => {
@@ -127,7 +157,7 @@ describe("Bumper — handleCollision", () => {
       })
     })
 
-    it("does not broadcast score events when scoring is disabled", () => {
+    it("keeps haptics but does not broadcast score events when scoring is disabled", () => {
       const ballBody = {
         translation: () => ({ x: 1, y: 0, z: 1 }),
         mass: () => 1,
@@ -139,7 +169,14 @@ describe("Bumper — handleCollision", () => {
       render(<Bumper position={[0, 0, 0]} awardScore={false} />)
       callHandler(makeBallPayload({ rigidBody: ballBody }))
 
-      expect(mockBroadcastEvent).not.toHaveBeenCalled()
+      expect(mockBroadcastEvent).toHaveBeenCalledOnce()
+      expect(mockBroadcastEvent.mock.calls[0]?.[0]).toMatchObject({
+        event_type: "BallHit",
+        payload: { hits: [{ id: "bumper", type: "bumper", position: { x: 0, z: 0 } }] },
+      })
+      expect(mockBroadcastEvent.mock.calls.some(([event]) => event.event_type === "Bumper")).toBe(
+        false,
+      )
       expect(ballBody.applyImpulse).toHaveBeenCalledOnce()
     })
 

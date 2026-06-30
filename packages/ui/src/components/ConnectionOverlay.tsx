@@ -1,6 +1,6 @@
 // WebSocket connection state overlay, displayed on all 3 screens
-import type { CSSProperties, FC } from "react"
 import type { ConnectionStatus } from "@frontend/types"
+import type { CSSProperties, FC } from "react"
 
 interface ConnectionOverlayProps {
   status: ConnectionStatus

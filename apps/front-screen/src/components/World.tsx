@@ -1,22 +1,23 @@
-import { Canvas, type CameraProps } from "@react-three/fiber"
+import { Canvas } from "@react-three/fiber"
 import type { ReactNode } from "react"
+import { DEFAULT_CAMERA } from "./camera/cameraConfig"
 import NightCityEnvironment from "./environment/NightCityEnvironment"
+import LoadingScreen from "./loading/LoadingScreen"
 import PostProcessing from "./postprocessing/PostProcessing"
 
 interface WorldProps {
-  cameraSettings: CameraProps
   children: ReactNode
 }
 
-const World = ({ cameraSettings, children }: WorldProps) => {
+const World = ({ children }: WorldProps) => {
   return (
-    <div className="h-dvh w-full">
+    <div className="relative h-dvh w-full overflow-hidden">
       <Canvas
         // Uses R3F's [min, max] DPR tuple to cap dense-screen rendering at 2
         dpr={[1, 2]}
         gl={{ powerPreference: "high-performance" }}
         shadows="percentage"
-        camera={cameraSettings}
+        camera={DEFAULT_CAMERA}
         onCreated={({ gl }) => {
           // Enables material.clippingPlanes so the multiball gate can trim the parts of its meshes that overflow its frame
           gl.localClippingEnabled = true
@@ -27,6 +28,7 @@ const World = ({ cameraSettings, children }: WorldProps) => {
         <PostProcessing />
         {children}
       </Canvas>
+      <LoadingScreen />
     </div>
   )
 }

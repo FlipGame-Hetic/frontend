@@ -5,6 +5,33 @@ import { playCreditsMusic, stopCreditsMusic } from "@/audio/creditsMusic"
 import { useBackScreenStore } from "@/stores/useBackScreenStore"
 import { MODE_OPTIONS, CHARACTER_OPTIONS } from "@/scenes/scene.types"
 
+const gameOverButtonsBlockedUntilRelease = new Set<ButtonId>()
+const pressedMenuButtons = new Set<ButtonId>()
+const gameOverSceneChangeButtons = new Set<ButtonId>([
+  BUTTON_IDS.flipperLeft,
+  BUTTON_IDS.flipperRight,
+  BUTTON_IDS.start,
+])
+
+function isGameOverInputLocked(): boolean {
+  const { phase, gameOverInputUnlockAt } = useBackScreenStore.getState()
+  return phase === GAME_PHASE.GameOver && Date.now() < gameOverInputUnlockAt
+}
+
+function shouldIgnoreGameOverButtonInput(id: ButtonId, wasPressed: boolean): boolean {
+  if (!gameOverSceneChangeButtons.has(id)) return false
+
+  const { phase } = useBackScreenStore.getState()
+  if (phase !== GAME_PHASE.GameOver) return false
+
+  if (isGameOverInputLocked() || wasPressed) {
+    gameOverButtonsBlockedUntilRelease.add(id)
+    return true
+  }
+
+  return gameOverButtonsBlockedUntilRelease.has(id)
+}
+
 function skipLocked(options: { locked?: boolean }[], from: number, dir: 1 | -1): number {
   const len = options.length
   let idx = (from + dir + len) % len
@@ -62,6 +89,7 @@ export function menuConfirm(): void {
       break
     }
     case GAME_PHASE.GameOver: {
+      if (isGameOverInputLocked()) return
       playNavigationForward()
       sendEventTo("front_screen", {
         event_type: "menu_confirm",
@@ -117,6 +145,7 @@ export function menuBack(): void {
   }
   if (phase === GAME_PHASE.Idle || phase === GAME_PHASE.Playing || phase === GAME_PHASE.Paused)
     return
+  if (phase === GAME_PHASE.GameOver && isGameOverInputLocked()) return
   playNavigationBackward()
   sendEventTo("front_screen", { event_type: "menu_back", payload: {} })
 }
@@ -129,6 +158,16 @@ const menuButtonHandlers: Record<ButtonId, () => void> = {
   [BUTTON_IDS.extra2]: menuRight,
 }
 
-export function handleMenuButton(id: ButtonId): void {
+export function handleMenuButton(id: ButtonId, state = 1): void {
+  const wasPressed = pressedMenuButtons.has(id)
+
+  if (state <= 0) {
+    pressedMenuButtons.delete(id)
+    gameOverButtonsBlockedUntilRelease.delete(id)
+    return
+  }
+
+  pressedMenuButtons.add(id)
+  if (shouldIgnoreGameOverButtonInput(id, wasPressed)) return
   menuButtonHandlers[id]()
 }

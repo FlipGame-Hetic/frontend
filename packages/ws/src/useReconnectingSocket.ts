@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react"
-import type { ConnectionStatus } from "@frontend/types"
 import { nextBackoffDelay } from "./wsConfig"
+import type { ConnectionStatus } from "@frontend/types"
 
 export interface UseReconnectingSocketOptions<T> {
   url: string

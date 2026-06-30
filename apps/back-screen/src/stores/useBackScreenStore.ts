@@ -2,6 +2,7 @@ import { create } from "zustand"
 import type { GamePhase, GameMode, CharacterType, ScoreEntry } from "@frontend/types"
 import { CHARACTER_OPTIONS, GAME_PHASE } from "@frontend/types"
 import { isBigDamage } from "@/boss/bossDamageConfig"
+import { GAME_OVER_INPUT_LOCK_MS } from "@/menu/menuConfig"
 
 export const LAST_CHARACTER_STORAGE_KEY = "spamer:last-character"
 
@@ -55,6 +56,7 @@ interface BackScreenStore {
   creditsActive: boolean
   selectedMode: GameMode | null
   selectedCharacter: CharacterType | null
+  gameOverInputUnlockAt: number
   score: number
   ballNumber: number
   leaderboard: ScoreEntry[]
@@ -88,6 +90,7 @@ export const useBackScreenStore = create<BackScreenStore>()((set) => ({
   creditsActive: false,
   selectedMode: null,
   selectedCharacter: null,
+  gameOverInputUnlockAt: 0,
   score: 0,
   ballNumber: 1,
   leaderboard: [],
@@ -105,6 +108,8 @@ export const useBackScreenStore = create<BackScreenStore>()((set) => ({
       phase,
       menuIndex: phase === GAME_PHASE.CharacterSelect ? getLastCharacterMenuIndex() : 0,
       creditsActive: false,
+      gameOverInputUnlockAt:
+        phase === GAME_PHASE.GameOver ? Date.now() + GAME_OVER_INPUT_LOCK_MS : 0,
     })
     if (phase !== GAME_PHASE.Playing) {
       set({

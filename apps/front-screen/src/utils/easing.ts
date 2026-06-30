@@ -2,6 +2,14 @@ export const easeOutCubic = (t: number): number => {
   return 1 - (1 - t) ** 3
 }
 
+export const easeInOutCubic = (t: number): number => {
+  return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2
+}
+
+export const easeInOutSine = (t: number): number => {
+  return -(Math.cos(Math.PI * t) - 1) / 2
+}
+
 export const easeOutBack = (t: number): number => {
   // 1.70158 is the canonical easeOutBack overshoot magic, c3 governs how far the curve backswings past the target
   const c1 = 1.70158

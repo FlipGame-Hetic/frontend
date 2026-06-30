@@ -17,6 +17,7 @@ import {
   applyMassScaledImpulse,
   readBouncerBallCollision,
 } from "../physics/collision/bouncerCollision"
+import { broadcastBouncerHit } from "../physics/collision/bouncerHaptics"
 import {
   SLINGSHOT_ACTIVE_FACE_POINTS,
   SLINGSHOT_FACE_HEIGHT,
@@ -88,6 +89,12 @@ const Slingshot = ({ position, side, moduleMesh, rubberMesh }: SlingshotProps) =
       if (!collision) return
 
       const { ballBody, ballId, ballPosition, exitDirection } = collision
+      broadcastBouncerHit({
+        id: moduleMesh.name || `${side}_slingshot`,
+        type: "slingshot",
+        position,
+        ballBody,
+      })
       broadcastEvent({ event_type: "BumperTriangle", payload: { ball_id: ballId } })
       playRandomSfx("slingshots")
       useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.slingshot)
@@ -111,7 +118,7 @@ const Slingshot = ({ position, side, moduleMesh, rubberMesh }: SlingshotProps) =
 
       stuckTracker.current.arm(ballBody)
     },
-    [activeFace.normal.x, activeFace.normal.z],
+    [activeFace.normal.x, activeFace.normal.z, moduleMesh.name, position, side],
   )
 
   useFrame(() => {

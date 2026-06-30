@@ -3,6 +3,10 @@ import { readRuntimeEnv } from "@frontend/utils"
 const RECONNECT_BASE_MS = 1000
 const RECONNECT_MAX_MS = 15000
 
+type WsEnvKey = "VITE_WS_URL" | "VITE_SCREEN_HUB_URL" | "VITE_API_URL"
+
+type RuntimeLocation = Pick<Location, "hostname" | "protocol">
+
 export const nextBackoffDelay = (attempt: number): number => {
   const exponential = Math.min(RECONNECT_MAX_MS, RECONNECT_BASE_MS * 2 ** attempt)
   // Approx. 20% jitter so every screen doesn't reconnect on the same beat and stampede the server after an outage
@@ -10,10 +14,6 @@ export const nextBackoffDelay = (attempt: number): number => {
 
   return Math.round(exponential + jitter)
 }
-
-type WsEnvKey = "VITE_WS_URL" | "VITE_SCREEN_HUB_URL" | "VITE_API_URL"
-
-type RuntimeLocation = Pick<Location, "hostname" | "protocol">
 
 const readLocation = (): RuntimeLocation | undefined => {
   return (globalThis as typeof globalThis & { location?: RuntimeLocation }).location

@@ -214,7 +214,7 @@ describe("front-screen useScreenHub", () => {
     expect(LEFT_KEYS.every((key) => !getPressedKeys().has(key))).toBe(true)
   })
 
-  it("maps PlungerCharge hold and release to the Space input", () => {
+  it("maps under-plunger hold and release to the Space input", () => {
     render(<ScreenHubHarness />)
     startSoloGame()
 
@@ -225,7 +225,7 @@ describe("front-screen useScreenHub", () => {
         from: "backend",
         to: { kind: "screen", id: "front_screen" },
         event_type: "PlungerCharge",
-        payload: { state: 1 },
+        payload: { state: 1, source: "under_plunger" },
       })
     })
 
@@ -236,10 +236,51 @@ describe("front-screen useScreenHub", () => {
         from: "backend",
         to: { kind: "screen", id: "front_screen" },
         event_type: "PlungerCharge",
-        payload: { state: 0 },
+        payload: { state: 0, source: "under_plunger" },
       })
     })
 
+    expect(getPressedKeys().has(PLUNGER_KEYBOARD_KEY)).toBe(false)
+  })
+
+  it("launches the standard plunger at max charge on press and ignores release", () => {
+    render(<ScreenHubHarness />)
+    startSoloGame()
+
+    const options = lastScreenHubOptions()
+    const before = getPlungerInputSnapshot().releaseToken
+
+    act(() => {
+      options.onEvent?.({
+        from: "backend",
+        to: { kind: "screen", id: "front_screen" },
+        event_type: "PlungerCharge",
+        payload: { state: 1, source: "plunger" },
+      })
+    })
+
+    expect(getPlungerInputSnapshot()).toMatchObject({
+      position: 1,
+      released: true,
+      releaseToken: before + 1,
+    })
+
+    act(() => {
+      options.onEvent?.({
+        from: "backend",
+        to: { kind: "screen", id: "front_screen" },
+        event_type: "PlungerCharge",
+        payload: { state: 1, source: "plunger" },
+      })
+      options.onEvent?.({
+        from: "backend",
+        to: { kind: "screen", id: "front_screen" },
+        event_type: "PlungerCharge",
+        payload: { state: 0, source: "plunger" },
+      })
+    })
+
+    expect(getPlungerInputSnapshot().releaseToken).toBe(before + 1)
     expect(getPressedKeys().has(PLUNGER_KEYBOARD_KEY)).toBe(false)
   })
 

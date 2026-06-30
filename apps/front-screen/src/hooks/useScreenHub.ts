@@ -29,11 +29,13 @@ const DEFAULT_START_MODE: GameMode = "solo"
 
 const TOKEN = readScreenToken()
 
-// Tracks whether the cabinet plunger is being physically held, to differenciate a press/release apart from a tap that means a max launch
-let cabinetPlungerHeld = false
+// Tracks under-plunger hold/release separately from the standard plunger button's press latch
+let cabinetUnderPlungerHeld = false
+let cabinetStandardPlungerPressed = false
 
 const resetCabinetInputLatch = (): void => {
-  cabinetPlungerHeld = false
+  cabinetUnderPlungerHeld = false
+  cabinetStandardPlungerPressed = false
 }
 
 const isPlaying = (): boolean => {
@@ -70,14 +72,26 @@ const handlers: ScreenEventHandlers = {
       return
     }
 
+    // Current backend frames do not include a source; missing source stays on the legacy under-plunger path.
+    if (payload.source === "plunger") {
+      if (payload.state > 0 && !cabinetStandardPlungerPressed) {
+        cabinetStandardPlungerPressed = true
+        triggerPlungerMaxLaunch()
+      }
+      if (payload.state <= 0) {
+        cabinetStandardPlungerPressed = false
+      }
+      return
+    }
+
     if (payload.state > 0) {
-      cabinetPlungerHeld = true
+      cabinetUnderPlungerHeld = true
       pressKey(PLUNGER_KEYBOARD_KEY)
       return
     }
 
-    if (cabinetPlungerHeld) {
-      cabinetPlungerHeld = false
+    if (cabinetUnderPlungerHeld) {
+      cabinetUnderPlungerHeld = false
       releaseKey(PLUNGER_KEYBOARD_KEY)
       return
     }

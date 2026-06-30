@@ -7,6 +7,7 @@ export default [
     "playwright-report/**",
     "test-results/**",
     "coverage/**",
+    "public/**",
     "eslint.config.js",
     "*.config.*",
     "public/config.js",

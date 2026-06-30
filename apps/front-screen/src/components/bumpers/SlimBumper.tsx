@@ -11,6 +11,7 @@ import { Vector3 } from "three"
 import { createStuckBallTracker } from "../physics/collision/stuckBallTracker"
 import { applyBumperImpulse, shouldSkipBumperHit } from "./bumperCollision"
 import { readBouncerBallCollision } from "../physics/collision/bouncerCollision"
+import { broadcastBouncerHit } from "../physics/collision/bouncerHaptics"
 import {
   SLIM_BUMPER_BOUNCE_AMP,
   SLIM_BUMPER_BOUNCE_DURATION,
@@ -55,37 +56,46 @@ const SlimBumper = ({ position, meshOverride }: SlimBumperProps) => {
     baseScale.current.copy(meshOverride.scale)
   }, [meshOverride])
 
-  const handleCollision = useCallback(({ other }: CollisionEnterPayload) => {
-    const collision = readBouncerBallCollision(other, bodyRef.current)
-    if (!collision) return
-    if (shouldSkipBumperHit(collision.ballBody)) return
+  const handleCollision = useCallback(
+    ({ other }: CollisionEnterPayload) => {
+      const collision = readBouncerBallCollision(other, bodyRef.current)
+      if (!collision) return
+      if (shouldSkipBumperHit(collision.ballBody)) return
 
-    const { ballBody, ballId, ballPosition, exitDirection } = collision
-    broadcastEvent({ event_type: "Bumper", payload: { ball_id: ballId } })
-    playRandomSfx("bumpers")
-    useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.slimBumper)
-    hitAt.current = performance.now() / 1000
+      const { ballBody, ballId, ballPosition, exitDirection } = collision
+      broadcastBouncerHit({
+        id: meshOverride.name || "slim_bumper",
+        type: "bumper",
+        position,
+        ballBody,
+      })
+      broadcastEvent({ event_type: "Bumper", payload: { ball_id: ballId } })
+      playRandomSfx("bumpers")
+      useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.slimBumper)
+      hitAt.current = performance.now() / 1000
 
-    useScorePopupsStore.getState().recordHit(ballPosition, ballId, "bumper")
+      useScorePopupsStore.getState().recordHit(ballPosition, ballId, "bumper")
 
-    emitParticleBurst({
-      kind: "slimBumper",
-      position: ballPosition,
-      direction: exitDirection ?? undefined,
-    })
+      emitParticleBurst({
+        kind: "slimBumper",
+        position: ballPosition,
+        direction: exitDirection ?? undefined,
+      })
 
-    if (!exitDirection) return
+      if (!exitDirection) return
 
-    applyBumperImpulse(
-      ballBody,
-      exitDirection,
-      SLIM_BUMPER_IMPULSE_STRENGTH,
-      BALL_MIN_NORMAL_SPEED,
-      BALL_MAX_NORMAL_SPEED,
-    )
+      applyBumperImpulse(
+        ballBody,
+        exitDirection,
+        SLIM_BUMPER_IMPULSE_STRENGTH,
+        BALL_MIN_NORMAL_SPEED,
+        BALL_MAX_NORMAL_SPEED,
+      )
 
-    stuckTracker.current.arm(ballBody)
-  }, [])
+      stuckTracker.current.arm(ballBody)
+    },
+    [meshOverride.name, position],
+  )
 
   useFrame(() => {
     const t = performance.now() / 1000 - hitAt.current

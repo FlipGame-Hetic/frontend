@@ -19,6 +19,18 @@ type MenuContext = Exclude<GamePhase, typeof GAME_PHASE.Playing | typeof GAME_PH
 export type GameMode = "solo" | "duo" | "boss"
 
 export type ComboDirection = "L" | "R"
+export type BallHitType = "bumper" | "rail" | "slingshot" | "drain" | "target" | "spinner"
+
+type PlungerChargeSource = "under_plunger" | "plunger"
+
+interface BallHitPayload {
+  hits: {
+    id: string
+    type: BallHitType
+    force: number
+    position?: { x: number; z: number }
+  }[]
+}
 
 // Payload for events that intentionally carry no data
 type EmptyPayload = Record<string, never>
@@ -47,11 +59,13 @@ interface ScreenEventPayloads {
   // --- Base-game workflow ---
   MenuButton: { id: ButtonId; state: number }
   StartGame: { player_id: string; character: string }
-  PlungerCharge: { state: number }
+  PlungerCharge: { state: number; source?: PlungerChargeSource }
+  BallInPlay: { in_play: boolean }
   FlipperLeft: { state: number }
   FlipperRight: { state: number }
   Bumper: { ball_id: string }
   BumperTriangle: { ball_id: string }
+  BallHit: BallHitPayload
   RailStart: { ball_id: string }
   RailEnd: { ball_id: string }
   // Used to increment score, ultimate charge, multiplier...

@@ -2,25 +2,25 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useScreenHub, registerScreenSender, sendEventTo } from "@frontend/ws"
 import { readScreenToken } from "@frontend/utils"
 import { ConnectionOverlay, useDebugOverlayShown } from "@frontend/ui"
-import { isScreenEvent, GAME_PHASE } from "@frontend/types"
+import { GAME_PHASE } from "@frontend/types"
 import type { ScreenEnvelope, GamePhase } from "@frontend/types"
 import { Leva } from "leva"
 import { DmdCanvas } from "@/dmd/DmdCanvas"
 import { useDmdDevControls } from "@/dmd/useDmdDevControls"
 import { ScoreScene } from "@/dmd/scenes/ScoreScene"
-import type { ScoreData } from "@/dmd/scenes/ScoreScene"
 import { IdleScene } from "@/dmd/scenes/IdleScene"
 import { PausedScene } from "@/dmd/scenes/PausedScene"
-import { ModeSelectScene } from "@/dmd/scenes/ModeSelectScene"
-import { CharacterSelectScene } from "@/dmd/scenes/CharacterSelectScene"
+import { SelectScene } from "@/dmd/scenes/SelectScene"
 import { GameOverScene } from "@/dmd/scenes/GameOverScene"
 import { ComboScene } from "@/dmd/scenes/ComboScene"
-import { parseComboSequence } from "@/dmd/scenes/comboPayload"
+import { ScreenEventRouter } from "@/dmd/sceneRouter"
 
 const SCREEN_ID = "dmd_screen" as const
 const TOKEN = readScreenToken()
 
 const COMBO_FLASH_MS = 1800
+const MODE_BLINK_MS = 600
+const CHARACTER_BLINK_MS = 500
 
 function App() {
   const { config, devPhase } = useDmdDevControls()
@@ -28,13 +28,12 @@ function App() {
   const [phase, setPhase] = useState<GamePhase>(GAME_PHASE.Idle)
   const [comboActive, setComboActive] = useState(false)
   const comboTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const totalBallsRef = useRef(0)
 
   const scenes = useMemo(
     () => ({
       idle: new IdleScene(),
-      mode_select: new ModeSelectScene(),
-      character_select: new CharacterSelectScene(),
+      mode_select: new SelectScene("SELECT MODE", MODE_BLINK_MS),
+      character_select: new SelectScene("PICK FIGHTER", CHARACTER_BLINK_MS),
       playing: new ScoreScene(),
       paused: new PausedScene(),
       game_over: new GameOverScene(),
@@ -49,78 +48,29 @@ function App() {
     }
   }, [])
 
-  const onEvent = useCallback(
-    (envelope: ScreenEnvelope) => {
-      if (isScreenEvent(envelope, "phase_change")) {
-        if (envelope.payload.phase === GAME_PHASE.Playing) {
-          totalBallsRef.current = 0
-        }
-        scenes.playing.update({
-          player: envelope.payload.player ?? 1,
-          ballNumber: envelope.payload.ball ?? 1,
-        })
-        setPhase(envelope.payload.phase)
-        return
-      }
+  // Flash the combo overlay for a fixed window, then return to the score scene.
+  const triggerComboFlash = useCallback(() => {
+    if (comboTimerRef.current !== null) clearTimeout(comboTimerRef.current)
+    setComboActive(true)
+    comboTimerRef.current = setTimeout(() => {
+      setComboActive(false)
+      comboTimerRef.current = null
+    }, COMBO_FLASH_MS)
+  }, [])
 
-      if (isScreenEvent(envelope, "ScoreUpdate")) {
-        const score = envelope.payload.score
-        const ball = envelope.payload.ball ?? 1
-        const player = envelope.payload.player !== undefined ? Number(envelope.payload.player) : 1
-        const update: Partial<ScoreData> = { score, player, ballNumber: ball }
-        if (envelope.payload.multiplier !== undefined)
-          update.multiplier = envelope.payload.multiplier
-        scenes.playing.update(update)
-        scenes.game_over.update(score)
-        return
-      }
+  // Build the router once (deps are stable). Constructed in an effect so the
+  // ref-backed timer callback is never read during render.
+  const routerRef = useRef<ScreenEventRouter | null>(null)
+  useEffect(() => {
+    routerRef.current = new ScreenEventRouter(scenes, {
+      onPhaseChange: setPhase,
+      onComboFlash: triggerComboFlash,
+    })
+  }, [scenes, triggerComboFlash])
 
-      if (isScreenEvent(envelope, "GameOver")) {
-        scenes.game_over.update(envelope.payload.final_score)
-        setPhase(GAME_PHASE.GameOver)
-        return
-      }
-
-      if (isScreenEvent(envelope, "ComboActivated")) {
-        const comboSequence = parseComboSequence(envelope.payload.sequence)
-        scenes.combo.update({ sequence: comboSequence })
-        if (comboTimerRef.current !== null) clearTimeout(comboTimerRef.current)
-        setComboActive(true)
-        comboTimerRef.current = setTimeout(() => {
-          setComboActive(false)
-          comboTimerRef.current = null
-        }, COMBO_FLASH_MS)
-        return
-      }
-
-      if (isScreenEvent(envelope, "MultiplierUpdate")) {
-        const { multiplier, duration_ms } = envelope.payload
-        scenes.playing.update({
-          multiplier,
-          multiplierDurationMs: duration_ms ?? 0,
-          multiplierStartedAt: duration_ms !== undefined ? performance.now() : 0,
-        })
-        return
-      }
-
-      if (isScreenEvent(envelope, "mode_selected")) {
-        scenes.mode_select.update(envelope.payload.mode)
-        return
-      }
-
-      if (isScreenEvent(envelope, "character_selected")) {
-        scenes.character_select.update(envelope.payload.character)
-        return
-      }
-
-      if (isScreenEvent(envelope, "LifeUpdate")) {
-        const lives = envelope.payload.lives_remaining
-        if (lives > totalBallsRef.current) totalBallsRef.current = lives
-        scenes.playing.update({ lives, maxLives: totalBallsRef.current })
-      }
-    },
-    [scenes],
-  )
+  const onEvent = useCallback((envelope: ScreenEnvelope) => {
+    routerRef.current?.handle(envelope)
+  }, [])
 
   const { status, send } = useScreenHub({ screenId: SCREEN_ID, token: TOKEN, onEvent })
 
