@@ -1,12 +1,15 @@
 import useBallStore from "@/stores/useBallStore"
 import useGameStore from "@/stores/useGameStore"
+import { useDebugOverlayShown } from "@frontend/ui"
+import { GAME_PHASE } from "@frontend/types"
 import type { PositionType } from "@/types/worldTypes"
 import { isPointInPlungerLaneSensor, PLUNGER_BALL_SPAWN } from "@/components/plunger/plungerConfig"
-import { getBallColorForCharacter } from "@/config/characterColors"
+import { useCurrentBallColor } from "@/config/characterConfig"
+import useKeyBinding from "@/hooks/useKeyBinding"
 import { useControls, button } from "leva"
 import { useCallback, useEffect, useRef, useState } from "react"
 import Ball from "./Ball"
-import BallSpawnPreview from "./BallSpawnPreview"
+import BallSpawnPreview from "./preview/BallSpawnPreview"
 import {
   DEFAULT_BALL_SPAWN,
   BALL_MASS,
@@ -26,15 +29,24 @@ const BallsManager = () => {
   const { balls, spawnBall } = useBallStore()
   const phase = useGameStore((s) => s.phase)
   const ballNumber = useGameStore((s) => s.ballNumber)
-  const character = useGameStore(
-    (s) => s.selectedPlayers.find((p) => p.player === s.currentPlayer)?.character,
-  )
-  const ballColor = getBallColorForCharacter(character)
+  const ballColor = useCurrentBallColor()
+
+  // Spawn position used when spawning a ball manually using Leva sliders
   const [spawnPos, setSpawnPos] = useState<[number, number, number]>([
     DEFAULT_BALL_SPAWN[0],
     DEFAULT_BALL_SPAWN[1],
     DEFAULT_BALL_SPAWN[2],
   ])
+  // Mirror of spawnPos kept in a ref so the Leva button (whose callback is captured once) always reads the latest slider values
+  const spawnPosRef = useRef(spawnPos)
+  useEffect(() => {
+    spawnPosRef.current = spawnPos
+  }, [spawnPos])
+
+  // Debug overlays (Leva + Stats) show in dev or on demand via window.debug() ; gate the spawn shortcuts the same way
+  const overlayShown = useDebugOverlayShown()
+
+  // Spawn preview used when spawning a ball manually using Leva sliders
   const [isSpawnPreviewVisible, setIsSpawnPreviewVisible] = useState(false)
   const spawnPreviewHideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isEditingSpawnSliderRef = useRef(false)
@@ -103,42 +115,29 @@ const BallsManager = () => {
     }
   }, [clearSpawnPreviewHideTimeout])
 
+  // On entering Playing (or a new ball number) with no ball on the table, serve one into the plunger lane
   useEffect(() => {
-    if (phase !== "playing") return
+    if (phase !== GAME_PHASE.Playing) return
     if (useBallStore.getState().balls.length > 0) return
     spawnBall(PLUNGER_BALL_SPAWN, { isPlaying: false })
   }, [phase, ballNumber, spawnBall])
 
   const handleSpawn = useCallback(() => {
-    const [x, y, z] = spawnPos
+    const [x, y, z] = spawnPosRef.current
     const position: PositionType = [x, y, z]
+    // A hand-spawned ball counts as in-play unless it lands in the plunger lane, where it waits to be launched
     const isPlaying = !isPointInPlungerLaneSensor({ x, y, z })
     setIsSpawnPreviewVisible(false)
     spawnBall(position, { isPlaying })
-  }, [spawnPos, spawnBall])
+  }, [spawnBall])
 
   const handleSpawnInPlunger = useCallback(() => {
     setIsSpawnPreviewVisible(false)
     spawnBall(PLUNGER_BALL_SPAWN, { isPlaying: false })
   }, [spawnBall])
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement | null
-
-      if (e.repeat || target?.isContentEditable || target?.closest("input, textarea, select")) {
-        return
-      }
-
-      if (e.code === "KeyS") handleSpawn()
-      else if (e.code === "KeyP") handleSpawnInPlunger()
-    }
-
-    window.addEventListener("keydown", handleKeyDown)
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown)
-    }
-  }, [handleSpawn, handleSpawnInPlunger])
+  useKeyBinding("KeyS", handleSpawn, { enabled: overlayShown })
+  useKeyBinding("KeyP", handleSpawnInPlunger, { enabled: overlayShown })
 
   useControls(
     "Ball Spawner",
@@ -197,6 +196,7 @@ const BallsManager = () => {
   return (
     <>
       {isSpawnPreviewVisible && <BallSpawnPreview position={spawnPos} color={ballColor} />}
+
       {balls.map((ball) => (
         <Ball
           key={ball.id}

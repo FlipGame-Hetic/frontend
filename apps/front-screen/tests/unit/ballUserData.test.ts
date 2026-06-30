@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { hasBallId, getBallId } from "@/components/balls/ballUserData"
+import { hasBallId, getBallId } from "@/components/balls/runtime/ballUserData"
 
 describe("hasBallId", () => {
   it("returns true for an object with a string ballId", () => {

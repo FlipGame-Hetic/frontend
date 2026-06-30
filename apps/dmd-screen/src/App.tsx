@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { useScreenHub } from "@frontend/ws"
+import { useScreenHub, registerScreenSender, sendEventTo } from "@frontend/ws"
+import { readScreenToken } from "@frontend/utils"
+import { ConnectionOverlay, useDebugOverlayShown } from "@frontend/ui"
+import { GAME_PHASE } from "@frontend/types"
 import type { ScreenEnvelope, GamePhase } from "@frontend/types"
-import { DEFAULT_DMD_CONFIG } from "@/dmd/config"
-import type { DmdConfig } from "@/dmd/config"
+import { Leva } from "leva"
 import { DmdCanvas } from "@/dmd/DmdCanvas"
+import { useDmdDevControls } from "@/dmd/useDmdDevControls"
 import { ScoreScene } from "@/dmd/scenes/ScoreScene"
 import { IdleScene } from "@/dmd/scenes/IdleScene"
 import { PausedScene } from "@/dmd/scenes/PausedScene"
@@ -11,23 +14,18 @@ import { SelectScene } from "@/dmd/scenes/SelectScene"
 import { GameOverScene } from "@/dmd/scenes/GameOverScene"
 import { ComboScene } from "@/dmd/scenes/ComboScene"
 import { ScreenEventRouter } from "@/dmd/sceneRouter"
-import { DevOverlay } from "@/components/DevOverlay"
 
 const SCREEN_ID = "dmd_screen" as const
-const TOKEN =
-  (globalThis as unknown as Record<string, Record<string, string> | undefined>).__ENV__
-    ?.VITE_SCREEN_TOKEN ??
-  (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_SCREEN_TOKEN ??
-  ""
+const TOKEN = readScreenToken()
 
 const COMBO_FLASH_MS = 1800
 const MODE_BLINK_MS = 600
 const CHARACTER_BLINK_MS = 500
 
 function App() {
-  const [config, setConfig] = useState<DmdConfig>(DEFAULT_DMD_CONFIG)
-  const [phase, setPhase] = useState<GamePhase>("idle")
-  const [devPhase, setDevPhase] = useState<GamePhase | null>(null)
+  const { config, devPhase } = useDmdDevControls()
+  const overlayShown = useDebugOverlayShown()
+  const [phase, setPhase] = useState<GamePhase>(GAME_PHASE.Idle)
   const [comboActive, setComboActive] = useState(false)
   const comboTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -74,23 +72,26 @@ function App() {
     routerRef.current?.handle(envelope)
   }, [])
 
-  useScreenHub({ screenId: SCREEN_ID, token: TOKEN, onEvent })
+  const { status, send } = useScreenHub({ screenId: SCREEN_ID, token: TOKEN, onEvent })
+
+  useEffect(() => {
+    registerScreenSender(SCREEN_ID, send)
+  }, [send])
+
+  useEffect(() => {
+    if (status !== "connected") return
+    sendEventTo("front_screen", { event_type: "request_resync", payload: {} })
+  }, [status])
 
   const effectivePhase = devPhase ?? phase
   const activeScene =
-    comboActive && effectivePhase === "playing" ? scenes.combo : scenes[effectivePhase]
+    comboActive && effectivePhase === GAME_PHASE.Playing ? scenes.combo : scenes[effectivePhase]
 
   return (
     <>
       <DmdCanvas config={config} scene={activeScene} />
-      {import.meta.env.DEV && (
-        <DevOverlay
-          config={config}
-          onChange={setConfig}
-          phase={effectivePhase}
-          onPhaseChange={setDevPhase}
-        />
-      )}
+      <ConnectionOverlay status={status} />
+      <Leva hidden={!overlayShown} titleBar={{ title: "DMD Dev" }} />
     </>
   )
 }

@@ -25,13 +25,8 @@ interface MockHowlInstance {
   seek: () => number
 }
 
-const { connectMusicNode, howlInstances } = vi.hoisted(() => ({
-  connectMusicNode: vi.fn(),
+const { howlInstances } = vi.hoisted(() => ({
   howlInstances: [] as MockHowlInstance[],
-}))
-
-vi.mock("@/audio/musicAnalyser", () => ({
-  connectMusicNode,
 }))
 
 vi.mock("howler", () => ({
@@ -115,7 +110,6 @@ const playedTrackIndexes = (): number[] =>
 describe("soundEngine music playlist", () => {
   beforeEach(() => {
     howlInstances.length = 0
-    connectMusicNode.mockClear()
   })
 
   afterEach(() => {
@@ -191,7 +185,6 @@ describe("soundEngine looping sfx", () => {
   beforeEach(() => {
     vi.useFakeTimers()
     howlInstances.length = 0
-    connectMusicNode.mockClear()
   })
 
   afterEach(() => {

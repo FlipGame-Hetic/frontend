@@ -8,8 +8,8 @@ import {
   distanceAlongSegment,
   closestPointOnSegment,
   getCornerBlendWeight,
-} from "@/components/playfield/topTunnelAssistRuntime"
-import type { TopTunnelAssistSegmentConfig } from "@/components/playfield/topTunnelAssistConfig"
+} from "@/components/topTunnelAssist/topTunnelAssistRuntime"
+import type { TopTunnelAssistSegmentConfig } from "@/components/topTunnelAssist/topTunnelAssistConfig"
 
 function makeSegmentConfig(
   id: string,

@@ -12,9 +12,11 @@ import {
 } from "@react-three/rapier"
 import { useCallback, useMemo, useRef } from "react"
 import type { Group, Mesh } from "three"
-import { normalizedPlayfieldDirection } from "../physics/playfieldPlane"
-import { getBallId } from "../balls/ballUserData"
-import { createStuckBallTracker } from "../physics/stuckBallTracker"
+import { createStuckBallTracker } from "../physics/collision/stuckBallTracker"
+import {
+  applyMassScaledImpulse,
+  readBouncerBallCollision,
+} from "../physics/collision/bouncerCollision"
 import {
   SLINGSHOT_ACTIVE_FACE_POINTS,
   SLINGSHOT_FACE_HEIGHT,
@@ -31,22 +33,16 @@ import {
 } from "./slingshotConfig"
 import useScreenShakeStore from "@/stores/useScreenShakeStore"
 import { SHAKE_INTENSITY } from "@/components/screenShake/screenShakeConfig"
+import { emitParticleBurst } from "../vfx/particles/particleBurstQueue"
 
 interface SlingshotProps {
   position: PositionType
   side: "left" | "right"
-  slingshotId: number
   moduleMesh: Mesh
   rubberMesh?: Mesh
 }
 
-const Slingshot = ({
-  position,
-  side,
-  slingshotId: _slingshotId,
-  moduleMesh,
-  rubberMesh,
-}: SlingshotProps) => {
+const Slingshot = ({ position, side, moduleMesh, rubberMesh }: SlingshotProps) => {
   const bodyRef = useRef<RapierRigidBody>(null)
   const rubberGroupRef = useRef<Group>(null)
   const hitAt = useRef(-Infinity)
@@ -55,15 +51,7 @@ const Slingshot = ({
       stuckVelocity: SLINGSHOT_STUCK_VELOCITY,
       stuckFrames: SLINGSHOT_STUCK_FRAMES,
       unstick: (body, dir) => {
-        const m = body.mass()
-        body.applyImpulse(
-          {
-            x: dir.x * SLINGSHOT_UNSTICK_IMPULSE * m,
-            y: dir.y * SLINGSHOT_UNSTICK_IMPULSE * m,
-            z: dir.z * SLINGSHOT_UNSTICK_IMPULSE * m,
-          },
-          true,
-        )
+        applyMassScaledImpulse(body, dir, SLINGSHOT_UNSTICK_IMPULSE)
       },
     }),
   )
@@ -94,40 +82,37 @@ const Slingshot = ({
     }
   }, [side])
 
-  const handleCollision = useCallback(({ other }: CollisionEnterPayload) => {
-    if (!bodyRef.current || !other.rigidBody) return
-    if (other.rigidBodyObject?.name !== "ball") return
-    const ballId = getBallId(other.rigidBodyObject.userData) ?? ""
-    broadcastEvent({ event_type: "BumperTriangle", payload: { ball_id: ballId } })
-    playRandomSfx("slingshots")
-    useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.slingshot)
-    hitAt.current = performance.now() / 1000
+  const handleCollision = useCallback(
+    ({ other }: CollisionEnterPayload) => {
+      const collision = readBouncerBallCollision(other, bodyRef.current)
+      if (!collision) return
 
-    const slingshotPos = bodyRef.current.translation()
-    const ballPos = other.rigidBody.translation()
-    useScorePopupsStore
-      .getState()
-      .recordHit({ x: ballPos.x, y: ballPos.y, z: ballPos.z }, ballId, "bumper")
-    const exitDir = normalizedPlayfieldDirection({
-      x: ballPos.x - slingshotPos.x,
-      y: ballPos.y - slingshotPos.y,
-      z: ballPos.z - slingshotPos.z,
-    })
+      const { ballBody, ballId, ballPosition, exitDirection } = collision
+      broadcastEvent({ event_type: "BumperTriangle", payload: { ball_id: ballId } })
+      playRandomSfx("slingshots")
+      useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.slingshot)
+      hitAt.current = performance.now() / 1000
 
-    if (exitDir) {
-      const mass = other.rigidBody.mass()
-      other.rigidBody.applyImpulse(
-        {
-          x: exitDir.x * SLINGSHOT_IMPULSE_STRENGTH * mass,
-          y: exitDir.y * SLINGSHOT_IMPULSE_STRENGTH * mass,
-          z: exitDir.z * SLINGSHOT_IMPULSE_STRENGTH * mass,
+      useScorePopupsStore.getState().recordHit(ballPosition, ballId, "bumper")
+
+      emitParticleBurst({
+        kind: "slingshot",
+        position: ballPosition,
+        direction: {
+          x: activeFace.normal.x,
+          y: 0,
+          z: activeFace.normal.z,
         },
-        true,
-      )
-    }
+      })
 
-    stuckTracker.current.arm(other.rigidBody)
-  }, [])
+      if (exitDirection) {
+        applyMassScaledImpulse(ballBody, exitDirection, SLINGSHOT_IMPULSE_STRENGTH)
+      }
+
+      stuckTracker.current.arm(ballBody)
+    },
+    [activeFace.normal.x, activeFace.normal.z],
+  )
 
   useFrame(() => {
     if (rubberGroupRef.current) {

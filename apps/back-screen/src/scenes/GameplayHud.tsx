@@ -1,22 +1,19 @@
 import { useBackScreenStore } from "@/stores/useBackScreenStore"
-import { RetroBackground } from "@/components/RetroBackground"
-import { formatScore } from "@/utils/formatScore"
+import { formatScore } from "@frontend/utils"
 
 export default function GameplayHud() {
   const ballNumber = useBackScreenStore((s) => s.ballNumber)
   const score = useBackScreenStore((s) => s.score)
 
   return (
-    <div className="bg-arcade-black relative flex h-full w-full overflow-hidden">
-      <RetroBackground />
-
+    <div className="relative flex h-full w-full overflow-hidden">
       <div className="relative z-10 flex h-full w-full flex-col justify-between p-10">
         <div className="flex items-center justify-between">
-          <div className="font-mono text-[clamp(0.38rem,0.75vw,0.52rem)] tracking-[0.28em] text-[rgba(85,234,212,0.5)] uppercase">
+          <div className="font-mono text-[clamp(0.38rem,0.92vw,0.7rem)] tracking-[0.28em] text-[rgba(85,234,212,0.5)] uppercase">
             PROTOCOLE.ACTIF // SÉQUENCE EN COURS
           </div>
           <div className="flex items-center gap-3">
-            <div className="font-mono text-[clamp(0.3rem,0.6vw,0.42rem)] tracking-widest text-[rgba(243,230,0,0.35)] uppercase">
+            <div className="font-mono text-[clamp(0.3rem,0.75vw,0.58rem)] tracking-widest text-[rgba(243,230,0,0.35)] uppercase">
               BILLE
             </div>
             <BallIndicator current={ballNumber} total={3} />
@@ -24,13 +21,13 @@ export default function GameplayHud() {
         </div>
 
         <div className="flex flex-col gap-2">
-          <div className="font-mono text-[clamp(0.3rem,0.6vw,0.42rem)] tracking-widest text-[rgba(243,230,0,0.35)] uppercase">
+          <div className="font-mono text-[clamp(0.3rem,0.75vw,0.58rem)] tracking-widest text-[rgba(243,230,0,0.35)] uppercase">
             SCORE
           </div>
-          <div className="font-display text-[clamp(3.5rem,10vw,9rem)] leading-none font-bold tracking-[0.06em] text-[#55EAD4] tabular-nums [text-shadow:3px_0_rgba(197,0,60,0.55),-3px_0_rgba(85,234,212,0.5),0_4px_0_rgba(0,0,0,0.95)]">
+          <div className="font-display text-[clamp(3.5rem,10.5vw,10rem)] leading-none font-bold tracking-[0.06em] text-[#55EAD4] tabular-nums [text-shadow:3px_0_rgba(197,0,60,0.55),-3px_0_rgba(85,234,212,0.5),0_4px_0_rgba(0,0,0,0.95)]">
             {formatScore(score)}
           </div>
-          <div className="font-mono text-[clamp(0.5rem,1vw,0.7rem)] tracking-widest text-[rgba(85,234,212,0.3)] uppercase">
+          <div className="font-mono text-[clamp(0.5rem,1.2vw,0.95rem)] tracking-widest text-[rgba(85,234,212,0.3)] uppercase">
             PTS
           </div>
         </div>

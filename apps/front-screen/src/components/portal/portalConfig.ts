@@ -1,6 +1,7 @@
 import type { PositionType } from "@/types/worldTypes"
 import { Euler, Matrix4, Vector3 } from "three"
 import { BALL_RADIUS } from "../balls/ballConfig"
+import { toVector3 } from "../physics/physicsConfig"
 
 export type PortalId = "A" | "B"
 
@@ -25,7 +26,7 @@ const FLIP = new Matrix4().set(-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1)
 const buildPortalMatrix = (position: PositionType, rotation: PositionType): Matrix4 => {
   const mat = new Matrix4()
   mat.makeRotationFromEuler(new Euler(rotation[0], rotation[1], rotation[2]))
-  mat.setPosition(new Vector3(position[0], position[1], position[2]))
+  mat.setPosition(toVector3(position))
   return mat
 }
 

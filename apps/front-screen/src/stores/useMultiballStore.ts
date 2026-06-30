@@ -1,4 +1,13 @@
 import { playSfx } from "@/audio/soundEngine"
+import {
+  clearMultiballBounceState,
+  isBounceDebounced,
+  isMultiballCounterLocked,
+  pruneExpiredBounceTimes,
+  recordBounceTime,
+  trackSpawnTimer,
+  untrackSpawnTimer,
+} from "@/components/bonusZone/multiballGate/multiballBounceState"
 import { SHAKE_INTENSITY } from "@/components/screenShake/screenShakeConfig"
 import useBallStore from "@/stores/useBallStore"
 import useScreenShakeStore from "@/stores/useScreenShakeStore"
@@ -6,7 +15,13 @@ import { broadcastEvent } from "@frontend/ws"
 import type { Vector3Tuple } from "three"
 import { create } from "zustand"
 
-const BOUNCE_DEBOUNCE_MS = 200
+interface RegisterMultiballBounceOptions {
+  ballId: string
+  threshold: number
+  spawnPositions: [Vector3Tuple, Vector3Tuple]
+  spawnIntervalMs: number
+  ballCount: number
+}
 
 export type MultiballBounceResult =
   | { status: "ignored" }
@@ -15,46 +30,23 @@ export type MultiballBounceResult =
 
 interface MultiballStore {
   bounceCount: number
-  cooldownActive: boolean
-  registerBounce: (
-    ballId: string,
-    threshold: number,
-    position1: Vector3Tuple,
-    position2: Vector3Tuple,
-    spawnIntervalMs: number,
-    cooldownMs: number,
-    ballCount: number,
-  ) => MultiballBounceResult
+  registerBounce: (options: RegisterMultiballBounceOptions) => MultiballBounceResult
   reset: () => void
 }
 
 const useMultiballStore = create<MultiballStore>()((set, get) => {
-  let cooldownTimer: ReturnType<typeof setTimeout> | null = null
-  const spawnTimers: ReturnType<typeof setTimeout>[] = []
-  const lastBounceTimeByBall = new Map<string, number>()
-
   return {
     bounceCount: 0,
-    cooldownActive: false,
 
-    registerBounce: (
-      ballId,
-      threshold,
-      position1,
-      position2,
-      spawnIntervalMs,
-      cooldownMs,
-      ballCount,
-    ) => {
-      const state = get()
-      if (state.cooldownActive) return { status: "ignored" }
-
+    registerBounce: ({ ballId, threshold, spawnPositions, spawnIntervalMs, ballCount }) => {
       const now = performance.now()
-      const lastTime = lastBounceTimeByBall.get(ballId)
-      if (lastTime !== undefined && now - lastTime < BOUNCE_DEBOUNCE_MS) {
-        return { status: "ignored" }
-      }
-      lastBounceTimeByBall.set(ballId, now)
+      pruneExpiredBounceTimes(now)
+
+      const state = get()
+      if (isMultiballCounterLocked()) return { status: "ignored" }
+
+      if (isBounceDebounced(ballId, now)) return { status: "ignored" }
+      recordBounceTime(ballId, now)
 
       const nextCount = state.bounceCount + 1
 
@@ -69,35 +61,25 @@ const useMultiballStore = create<MultiballStore>()((set, get) => {
       playSfx("multiball_triggered")
       broadcastEvent({ event_type: "MultiballTriggered", payload: { ball_id: ballId } })
       useScreenShakeStore.getState().addTrauma(SHAKE_INTENSITY.multiballTrigger)
-      set({ bounceCount: 0, cooldownActive: true })
+      set({ bounceCount: 0 })
 
       const spawnBall = useBallStore.getState().spawnBall
+      // Stagger the extra balls over spawnIntervalMs and track each timer so reset() can cancel any still pending
       for (let i = 0; i < ballCount; i++) {
         const timer = setTimeout(() => {
-          const pos = Math.random() < 0.5 ? position1 : position2
+          untrackSpawnTimer(timer)
+          const pos = Math.random() < 0.5 ? spawnPositions[0] : spawnPositions[1]
           spawnBall(pos, { isPlaying: true })
         }, i * spawnIntervalMs)
-        spawnTimers.push(timer)
+        trackSpawnTimer(timer)
       }
-
-      if (cooldownTimer !== null) clearTimeout(cooldownTimer)
-      cooldownTimer = setTimeout(() => {
-        set({ cooldownActive: false })
-        cooldownTimer = null
-      }, cooldownMs)
 
       return { status: "triggered" }
     },
 
     reset: () => {
-      if (cooldownTimer !== null) {
-        clearTimeout(cooldownTimer)
-        cooldownTimer = null
-      }
-      for (const t of spawnTimers) clearTimeout(t)
-      spawnTimers.length = 0
-      lastBounceTimeByBall.clear()
-      set({ bounceCount: 0, cooldownActive: false })
+      clearMultiballBounceState()
+      set({ bounceCount: 0 })
     },
   }
 })

@@ -27,6 +27,7 @@ const BallSaverCooldownRing = ({ side }: BallSaverCooldownRingProps) => {
 
       const remaining = cooldownEndsAt - performance.now()
       const progress = Math.min(1, Math.max(0, 1 - remaining / BALL_SAVER_COOLDOWN_MS))
+      // Fill the ring by shrinking the dash offset from full circumference to 0 as the cooldown elapses
       circle.style.strokeDashoffset = (
         BALL_SAVER_COOLDOWN_RING_CIRCUMFERENCE *
         (1 - progress)
@@ -35,6 +36,7 @@ const BallSaverCooldownRing = ({ side }: BallSaverCooldownRingProps) => {
       if (progress < 1) frameId = requestAnimationFrame(update)
     }
 
+    // Store only provides the end time, a rAF loop animates the ring smoothly without a React render per frame
     frameId = requestAnimationFrame(update)
 
     return () => {

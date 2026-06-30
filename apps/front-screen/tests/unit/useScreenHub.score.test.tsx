@@ -1,9 +1,15 @@
 import { cleanup, render, act } from "@testing-library/react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import type { ScreenEnvelope } from "@frontend/types"
-import { LEFT_KEYS, RIGHT_KEYS } from "@/components/flipperJoints/jointsConfig"
-import { PLUNGER_KEY } from "@/components/plunger/plungerConfig"
-import { getPlungerInputSnapshot, getPressedKeys, releaseKey } from "@/stores/inputStore"
+import { LEFT_KEYS, RIGHT_KEYS } from "@/components/flippers/flipperConfig"
+import { PLUNGER_KEYBOARD_KEY } from "@/components/plunger/plungerConfig"
+import {
+  getPlungerInputSnapshot,
+  getPressedKeys,
+  pressKey,
+  resetInputState,
+  triggerPlungerMaxLaunch,
+} from "@/input/inputState"
 import useGameStore from "@/stores/useGameStore"
 import { useScreenHub } from "@/hooks/useScreenHub"
 
@@ -35,7 +41,16 @@ const lastScreenHubOptions = (): { onEvent?: (envelope: ScreenEnvelope) => void 
 }
 
 const releaseKnownInputKeys = (): void => {
-  ;[...LEFT_KEYS, ...RIGHT_KEYS, PLUNGER_KEY].forEach(releaseKey)
+  resetInputState()
+}
+
+const startSoloGame = (): void => {
+  act(() => {
+    useGameStore.getState().startGame({
+      mode: "solo",
+      players: [{ player: 1, character: "enforcer" }],
+    })
+  })
 }
 
 describe("front-screen useScreenHub", () => {
@@ -50,8 +65,6 @@ describe("front-screen useScreenHub", () => {
     useScreenHubBaseMock.mockReturnValue({
       status: "connected",
       send: sendMock,
-      broadcast: vi.fn(),
-      sendTo: vi.fn(),
     })
   })
 
@@ -106,8 +119,74 @@ describe("front-screen useScreenHub", () => {
     })
   })
 
+  it("uses incoming GameOver final score and ends the local game", () => {
+    render(<ScreenHubHarness />)
+
+    act(() => {
+      useGameStore.getState().startGame({
+        mode: "solo",
+        players: [{ player: 1, character: "enforcer" }],
+      })
+    })
+    sendMock.mockClear()
+
+    const options = lastScreenHubOptions()
+
+    act(() => {
+      options.onEvent?.({
+        from: "backend",
+        to: { kind: "screen", id: "front_screen" },
+        event_type: "FlipperLeft",
+        payload: { state: 1 },
+      })
+      pressKey(PLUNGER_KEYBOARD_KEY)
+      triggerPlungerMaxLaunch()
+    })
+
+    expect(LEFT_KEYS.some((key) => getPressedKeys().has(key))).toBe(true)
+    expect(getPressedKeys().has(PLUNGER_KEYBOARD_KEY)).toBe(true)
+    expect(getPlungerInputSnapshot()).toMatchObject({
+      position: 1,
+      released: true,
+    })
+    const releaseTokenBeforeGameOver = getPlungerInputSnapshot().releaseToken
+
+    act(() => {
+      options.onEvent?.({
+        from: "game_engine",
+        to: { kind: "broadcast" },
+        event_type: "GameOver",
+        payload: { final_score: 9876 },
+      })
+    })
+
+    expect(useGameStore.getState()).toMatchObject({
+      phase: "game_over",
+      score: 9876,
+    })
+    expect(LEFT_KEYS.every((key) => !getPressedKeys().has(key))).toBe(true)
+    expect(getPressedKeys().has(PLUNGER_KEYBOARD_KEY)).toBe(false)
+    expect(getPlungerInputSnapshot()).toMatchObject({
+      position: 0,
+      released: true,
+      releaseToken: releaseTokenBeforeGameOver + 1,
+    })
+    expect(sendMock).toHaveBeenCalledWith({
+      from: "front_screen",
+      to: { kind: "broadcast" },
+      event_type: "phase_change",
+      payload: {
+        phase: "game_over",
+        ball: 1,
+        player: 1,
+        score: 9876,
+      },
+    })
+  })
+
   it("maps cabinet flipper state events to local input keys", () => {
     render(<ScreenHubHarness />)
+    startSoloGame()
 
     const options = lastScreenHubOptions()
 
@@ -137,6 +216,7 @@ describe("front-screen useScreenHub", () => {
 
   it("maps PlungerCharge hold and release to the Space input", () => {
     render(<ScreenHubHarness />)
+    startSoloGame()
 
     const options = lastScreenHubOptions()
 
@@ -149,7 +229,7 @@ describe("front-screen useScreenHub", () => {
       })
     })
 
-    expect(getPressedKeys().has(PLUNGER_KEY)).toBe(true)
+    expect(getPressedKeys().has(PLUNGER_KEYBOARD_KEY)).toBe(true)
 
     act(() => {
       options.onEvent?.({
@@ -160,11 +240,12 @@ describe("front-screen useScreenHub", () => {
       })
     })
 
-    expect(getPressedKeys().has(PLUNGER_KEY)).toBe(false)
+    expect(getPressedKeys().has(PLUNGER_KEYBOARD_KEY)).toBe(false)
   })
 
   it("launches the plunger at max charge when PlungerCharge release has no matching hold", () => {
     render(<ScreenHubHarness />)
+    startSoloGame()
 
     const options = lastScreenHubOptions()
     const before = getPlungerInputSnapshot().releaseToken
@@ -185,7 +266,33 @@ describe("front-screen useScreenHub", () => {
     })
   })
 
-  it("turns capacity cabinet events into backend UltimateActivated events", () => {
+  it("ignores cabinet gameplay input while the game is not playing", () => {
+    render(<ScreenHubHarness />)
+
+    const options = lastScreenHubOptions()
+    const before = getPlungerInputSnapshot().releaseToken
+
+    act(() => {
+      options.onEvent?.({
+        from: "backend",
+        to: { kind: "screen", id: "front_screen" },
+        event_type: "FlipperLeft",
+        payload: { state: 1 },
+      })
+      options.onEvent?.({
+        from: "backend",
+        to: { kind: "screen", id: "front_screen" },
+        event_type: "PlungerCharge",
+        payload: { state: 0 },
+      })
+    })
+
+    expect(LEFT_KEYS.every((key) => !getPressedKeys().has(key))).toBe(true)
+    expect(getPressedKeys().has(PLUNGER_KEYBOARD_KEY)).toBe(false)
+    expect(getPlungerInputSnapshot().releaseToken).toBe(before)
+  })
+
+  it("no longer reacts to capacity cabinet events (back is the ultimate state machine)", () => {
     render(<ScreenHubHarness />)
 
     const options = lastScreenHubOptions()
@@ -195,13 +302,30 @@ describe("front-screen useScreenHub", () => {
         from: "backend",
         to: { kind: "screen", id: "front_screen" },
         event_type: "CapacityL2",
-        payload: null,
+        payload: {},
+      })
+    })
+
+    expect(broadcastEventMock).not.toHaveBeenCalled()
+  })
+
+  it("broadcasts StartGame with the character slug", () => {
+    render(<ScreenHubHarness />)
+
+    const options = lastScreenHubOptions()
+
+    act(() => {
+      options.onEvent?.({
+        from: "backend",
+        to: { kind: "screen", id: "front_screen" },
+        event_type: "start_game",
+        payload: { mode: "solo", players: [{ player: 1, character: "viper" }] },
       })
     })
 
     expect(broadcastEventMock).toHaveBeenCalledWith({
-      event_type: "UltimateActivated",
-      payload: { player_id: "1" },
+      event_type: "StartGame",
+      payload: { player_id: "1", character: "viper" },
     })
   })
 })

@@ -15,6 +15,7 @@ export const SFX_GAINS: Record<string, number> = {
   slingshots: 1.0,
   ball: 1.0,
   score: 1.0,
+  ultimates: 1.5,
 }
 
 const sfx = (dir: string, name: string): [string, string] => [
@@ -30,6 +31,8 @@ export const SFX_PATHS: Record<string, [string, string]> = {
   flipper_up: sfx("flipperJoints", "up"),
   flipper_down: sfx("flipperJoints", "down"),
   game_over: sfx("score", "game_over"),
+  ultimate_ready: sfx("ultimates", "ready"),
+  ultimate_trigger: sfx("ultimates", "trigger"),
   multiball_triggered: sfx("multiball", "multiball"),
   hit0: sfx("multiball", "hit0"),
   hit1: sfx("multiball", "hit1"),

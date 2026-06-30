@@ -1,54 +1,32 @@
 import { readFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
-import { BufferAttribute, BufferGeometry, Mesh, MeshBasicMaterial, PlaneGeometry } from "three"
+import { BoxGeometry, Mesh, MeshBasicMaterial, PlaneGeometry } from "three"
 import { describe, expect, it } from "vitest"
-import { createBonusZoneHitTester } from "@/components/playfield/bonusZoneHitTest"
+import { createBonusZoneHitTester } from "@/components/bonusZone/bonusZoneHitTester"
 import { cloneAtWorldTransform } from "@/components/playfield/usePlayfieldModel"
 
 const PLAYFIELD_MODEL_PATH = join(
   dirname(fileURLToPath(import.meta.url)),
-  "../../public/models/playfield.glb",
+  "../../public/models/playfield/playfield.glb",
 )
+
+type Vec3Tuple = [number, number, number]
+type QuaternionTuple = [number, number, number, number]
 
 interface GlbJson {
   accessors: {
-    bufferView: number
-    byteOffset?: number
-    componentType: number
-    count: number
-    type: "SCALAR" | "VEC2" | "VEC3" | "VEC4"
+    max?: Vec3Tuple
+    min?: Vec3Tuple
   }[]
-  bufferViews: { byteLength: number; byteOffset?: number; byteStride?: number }[]
-  meshes: { primitives: { attributes: { POSITION: number }; indices?: number; mode?: number }[] }[]
+  meshes: { primitives: { attributes: { POSITION: number }; mode?: number }[] }[]
   nodes: {
     mesh?: number
     name?: string
-    rotation?: number[]
-    scale?: number[]
-    translation?: number[]
+    rotation?: QuaternionTuple
+    scale?: Vec3Tuple
+    translation?: Vec3Tuple
   }[]
-}
-
-type AccessorArray = Float32Array | Uint8Array | Uint16Array | Uint32Array
-type AccessorArrayConstructor =
-  | Float32ArrayConstructor
-  | Uint8ArrayConstructor
-  | Uint16ArrayConstructor
-  | Uint32ArrayConstructor
-
-const ACCESSOR_ITEM_SIZES: Record<GlbJson["accessors"][number]["type"], number> = {
-  SCALAR: 1,
-  VEC2: 2,
-  VEC3: 3,
-  VEC4: 4,
-}
-
-const ACCESSOR_ARRAYS: Partial<Record<number, AccessorArrayConstructor>> = {
-  5121: Uint8Array,
-  5123: Uint16Array,
-  5125: Uint32Array,
-  5126: Float32Array,
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -61,7 +39,6 @@ function parseGlbJson(source: string): GlbJson {
   if (
     !isRecord(parsed) ||
     !Array.isArray(parsed.accessors) ||
-    !Array.isArray(parsed.bufferViews) ||
     !Array.isArray(parsed.meshes) ||
     !Array.isArray(parsed.nodes)
   ) {
@@ -71,11 +48,10 @@ function parseGlbJson(source: string): GlbJson {
   return parsed as unknown as GlbJson
 }
 
-function readPlayfieldModelChunks(): { json: GlbJson; bin: Buffer } {
+function readPlayfieldModelJson(): GlbJson {
   const model = readFileSync(PLAYFIELD_MODEL_PATH)
   let offset = 12
   let json: GlbJson | undefined
-  let bin: Buffer | undefined
 
   while (offset < model.length) {
     const chunkLength = model.readUInt32LE(offset)
@@ -86,44 +62,16 @@ function readPlayfieldModelChunks(): { json: GlbJson; bin: Buffer } {
       json = parseGlbJson(model.toString("utf8", chunkStart, chunkStart + chunkLength))
     }
 
-    if (chunkType === "BIN\0") {
-      bin = model.subarray(chunkStart, chunkStart + chunkLength)
-    }
-
     offset = chunkStart + chunkLength
   }
 
-  if (!json || !bin) throw new Error("Missing GLB chunks in playfield.glb")
+  if (!json) throw new Error("Missing JSON chunk in playfield.glb")
 
-  return { json, bin }
-}
-
-function readAccessor(json: GlbJson, bin: Buffer, accessorIndex: number): AccessorArray {
-  const accessor = json.accessors[accessorIndex]
-  if (!accessor) throw new Error(`Missing accessor: ${String(accessorIndex)}`)
-
-  const bufferView = json.bufferViews[accessor.bufferView]
-  if (!bufferView) throw new Error(`Missing buffer view: ${String(accessor.bufferView)}`)
-
-  const ArrayType = ACCESSOR_ARRAYS[accessor.componentType]
-  if (!ArrayType) {
-    throw new Error(`Unsupported accessor component type: ${String(accessor.componentType)}`)
-  }
-
-  const itemSize = ACCESSOR_ITEM_SIZES[accessor.type]
-  const byteOffset = (bufferView.byteOffset ?? 0) + (accessor.byteOffset ?? 0)
-  const expectedStride = itemSize * ArrayType.BYTES_PER_ELEMENT
-  if (bufferView.byteStride && bufferView.byteStride !== expectedStride) {
-    throw new Error("Strided GLB accessors are not supported by this test helper")
-  }
-
-  if (!(bin.buffer instanceof ArrayBuffer)) throw new Error("Unsupported shared GLB buffer")
-
-  return new ArrayType(bin.buffer, bin.byteOffset + byteOffset, accessor.count * itemSize)
+  return json
 }
 
 function loadPlayfieldMesh(name: string): Mesh {
-  const { json, bin } = readPlayfieldModelChunks()
+  const json = readPlayfieldModelJson()
   const node = json.nodes.find((candidate) => candidate.name === name)
   if (node?.mesh === undefined) throw new Error(`Missing playfield mesh node: ${name}`)
 
@@ -135,15 +83,13 @@ function loadPlayfieldMesh(name: string): Mesh {
     throw new Error(`Unsupported primitive mode for ${name}: ${String(primitive.mode)}`)
   }
 
-  const geometry = new BufferGeometry()
-  const positions = readAccessor(json, bin, primitive.attributes.POSITION)
-  if (!(positions instanceof Float32Array))
-    throw new Error(`Unsupported position accessor: ${name}`)
+  const positions = json.accessors[primitive.attributes.POSITION]
+  if (!positions?.min || !positions.max) throw new Error(`Missing position bounds for ${name}`)
 
-  geometry.setAttribute("position", new BufferAttribute(positions, 3))
-  if (primitive.indices !== undefined) {
-    geometry.setIndex(new BufferAttribute(readAccessor(json, bin, primitive.indices), 1))
-  }
+  const [minX, minY, minZ] = positions.min
+  const [maxX, maxY, maxZ] = positions.max
+  const geometry = new BoxGeometry(maxX - minX, maxY - minY, maxZ - minZ)
+  geometry.translate((minX + maxX) / 2, (minY + maxY) / 2, (minZ + maxZ) / 2)
 
   const mesh = new Mesh(geometry, new MeshBasicMaterial())
   mesh.name = name

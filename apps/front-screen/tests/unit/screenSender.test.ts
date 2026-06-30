@@ -15,7 +15,7 @@ describe("screenSender", () => {
   describe("broadcastEvent — no sender registered", () => {
     it("is a silent no-op and does not throw", () => {
       expect(() => {
-        broadcastEvent({ event_type: "bumper_hit", payload: { bumper_id: 0 } })
+        broadcastEvent({ event_type: "Bumper", payload: { ball_id: "ball-0" } })
       }).not.toThrow()
     })
   })
@@ -25,7 +25,7 @@ describe("screenSender", () => {
       const mockSend = vi.fn()
       registerScreenSender("front_screen", mockSend)
 
-      broadcastEvent({ event_type: "bumper_hit", payload: { bumper_id: 5 } })
+      broadcastEvent({ event_type: "Bumper", payload: { ball_id: "ball-5" } })
 
       expect(mockSend).toHaveBeenCalledOnce()
     })
@@ -34,24 +34,26 @@ describe("screenSender", () => {
       const mockSend = vi.fn()
       registerScreenSender("front_screen", mockSend)
 
-      broadcastEvent({ event_type: "bumper_hit", payload: { bumper_id: 5 } })
+      broadcastEvent({ event_type: "Bumper", payload: { ball_id: "ball-5" } })
 
       expect(mockSend).toHaveBeenCalledWith(
         expect.objectContaining<Partial<ScreenEnvelope>>({
           from: "front_screen",
           to: { kind: "broadcast" },
-          event_type: "bumper_hit",
+          event_type: "Bumper",
         }),
       )
     })
 
-    it("correctly maps bumper_id in the payload", () => {
+    it("correctly maps the payload", () => {
       const mockSend = vi.fn()
       registerScreenSender("front_screen", mockSend)
 
-      broadcastEvent({ event_type: "bumper_hit", payload: { bumper_id: 8 } })
+      broadcastEvent({ event_type: "Bumper", payload: { ball_id: "ball-8" } })
 
-      expect(mockSend).toHaveBeenCalledWith(expect.objectContaining({ payload: { bumper_id: 8 } }))
+      expect(mockSend).toHaveBeenCalledWith(
+        expect.objectContaining({ payload: { ball_id: "ball-8" } }),
+      )
     })
   })
 
@@ -62,7 +64,7 @@ describe("screenSender", () => {
 
       registerScreenSender("front_screen", oldSend)
       registerScreenSender("front_screen", newSend)
-      broadcastEvent({ event_type: "bumper_hit", payload: { bumper_id: 3 } })
+      broadcastEvent({ event_type: "Bumper", payload: { ball_id: "ball-3" } })
 
       expect(oldSend).not.toHaveBeenCalled()
       expect(newSend).toHaveBeenCalledOnce()

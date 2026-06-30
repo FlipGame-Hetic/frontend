@@ -1,8 +1,7 @@
 import useBallStore from "@/stores/useBallStore"
-import useGameStore from "@/stores/useGameStore"
 import usePortalTraversalStore from "@/stores/usePortalTraversalStore"
 import useScorePopupsStore from "@/stores/useScorePopupsStore"
-import { getBallColorForCharacter } from "@/config/characterColors"
+import { useCurrentBallColor } from "@/config/characterConfig"
 import { playRandomSfx } from "@/audio/soundEngine"
 import { broadcastEvent } from "@frontend/ws"
 import { useFrame } from "@react-three/fiber"
@@ -10,7 +9,7 @@ import type { CollisionPayload } from "@react-three/rapier"
 import { CuboidCollider, RigidBody } from "@react-three/rapier"
 import { useCallback } from "react"
 import { Vector3 } from "three"
-import { getBallId } from "@/components/balls/ballUserData"
+import { getBallId } from "@/components/balls/runtime/ballUserData"
 import {
   PORTAL_A_POSITION,
   PORTAL_A_ROTATION,
@@ -39,6 +38,7 @@ import PortalGhost from "./PortalGhost"
 import PortalSurface from "./PortalSurface"
 import useScreenShakeStore from "@/stores/useScreenShakeStore"
 import { SHAKE_INTENSITY } from "@/components/screenShake/screenShakeConfig"
+import { toVector3 } from "../physics/physicsConfig"
 
 const extractBallId = (payload: CollisionPayload): string | null => {
   const obj = payload.other.rigidBodyObject
@@ -80,10 +80,7 @@ const handlePortalExit = (portalId: PortalId, payload: CollisionPayload): void =
 
 const PortalsManager = () => {
   const ghostBallIds = usePortalTraversalStore((s) => s.ghostBallIds)
-  const character = useGameStore(
-    (s) => s.selectedPlayers.find((p) => p.player === s.currentPlayer)?.character,
-  )
-  const ballColor = getBallColorForCharacter(character)
+  const ballColor = useCurrentBallColor()
 
   useFrame(() => {
     const traversals = getAllTraversals()
@@ -102,8 +99,8 @@ const PortalsManager = () => {
 
       const pos = masterBody.translation()
       const vel = masterBody.linvel()
-      const ballPos = new Vector3(pos.x, pos.y, pos.z)
-      const ballVel = new Vector3(vel.x, vel.y, vel.z)
+      const ballPos = toVector3(pos)
+      const ballVel = toVector3(vel)
 
       const portalPos = getPortalPosition(fromPortal)
       const normal = getPortalNormal(fromPortal)

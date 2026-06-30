@@ -1,41 +1,59 @@
 import { cn } from "@frontend/utils"
 import { useBackScreenStore } from "@/stores/useBackScreenStore"
 import { CHARACTER_OPTIONS } from "./scene.types"
-import { RetroBackground } from "@/components/RetroBackground"
+import { MenuControlsLegend } from "@/components/MenuControlsLegend"
+import BigBall from "./characterSelect/BigBall"
 
 export default function CharacterSelectScene() {
   const menuIndex = useBackScreenStore((s) => s.menuIndex)
   const active = CHARACTER_OPTIONS[menuIndex] ?? CHARACTER_OPTIONS[0]
 
   return (
-    <div className="bg-arcade-black relative flex h-full w-full overflow-hidden">
-      <RetroBackground />
+    <div className="relative flex h-full w-full overflow-hidden">
+      <MenuControlsLegend />
 
-      <div className="relative z-10 flex h-full w-full">
-        <div className="flex flex-1 flex-col justify-between p-12">
-          <div className="font-mono text-[clamp(0.32rem,0.65vw,0.46rem)] tracking-[0.28em] text-[rgba(85,234,212,0.4)] uppercase">
+      <div className="relative z-10 flex h-full w-full flex-col pb-[clamp(80px,15vh,130px)] landscape:flex-row">
+        <div className="flex min-h-0 w-full flex-col justify-center gap-[clamp(1rem,3vh,1.5rem)] p-[clamp(1.5rem,4vw,3rem)] landscape:flex-1 landscape:justify-between landscape:gap-0">
+          <div className="font-mono text-[clamp(0.32rem,0.8vw,0.62rem)] tracking-[0.28em] text-[rgba(85,234,212,0.4)] uppercase">
             FIGHTER.IDENTIFICATION // SÉLECTION
           </div>
 
           <div className="flex flex-col gap-5">
-            <div className="font-display text-[clamp(2rem,5vw,4.2rem)] leading-none font-bold tracking-widest text-[#F3E600] uppercase [text-shadow:2px_0_rgba(197,0,60,0.45),-2px_0_rgba(85,234,212,0.4),0_3px_0_rgba(0,0,0,0.95)]">
+            <div className="font-display text-[clamp(2rem,5.4vw,4.8rem)] leading-none font-bold tracking-widest text-[#F3E600] uppercase [text-shadow:2px_0_rgba(197,0,60,0.45),-2px_0_rgba(85,234,212,0.4),0_3px_0_rgba(0,0,0,0.95)]">
               {active.label}
             </div>
 
             <div className="h-px w-28 bg-[linear-gradient(90deg,rgba(243,230,0,0.3),transparent)]" />
 
-            <div className="font-mono text-[clamp(0.58rem,1.6vw,1rem)] leading-relaxed text-[rgba(85,234,212,0.42)]">
+            <div className="font-mono text-[clamp(0.58rem,1.9vw,1.4rem)] leading-relaxed text-[rgba(85,234,212,0.42)]">
               {active.locked ? "DONNÉES NON DISPONIBLES." : active.description}
             </div>
-          </div>
 
-          <div className="font-mono text-[clamp(0.28rem,0.55vw,0.38rem)] tracking-widest text-[rgba(243,230,0,0.2)] uppercase">
-            FLIPPER.G / FLIPPER.D — NAVIGUER // CHOISIR
+            {!active.locked && (
+              <div
+                className="relative mt-2 max-w-[34ch] border-l-2 pl-4"
+                style={{ borderColor: active.color }}
+              >
+                <div
+                  className="mb-2 flex items-center gap-2 font-mono text-[clamp(0.3rem,0.78vw,0.6rem)] tracking-[0.32em] uppercase"
+                  style={{ color: active.color }}
+                >
+                  <span
+                    className="inline-block h-1.5 w-1.5 rotate-45"
+                    style={{ background: active.color, boxShadow: `0 0 8px ${active.color}` }}
+                  />
+                  ULTIME // CAPACITÉ SPÉCIALE
+                </div>
+                <div className="font-mono text-[clamp(0.5rem,1.5vw,1.18rem)] leading-relaxed text-[rgba(243,230,0,0.78)]">
+                  {active.description_ultimate}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        <div className="flex w-[42%] flex-col items-center justify-between py-12 pr-14">
-          <div />
+        <div className="flex w-full flex-col items-center justify-center gap-[clamp(1rem,3vh,2rem)] p-[clamp(1.5rem,4vw,3rem)] landscape:w-[42%] landscape:justify-between landscape:gap-0 landscape:py-12 landscape:pr-14 landscape:pl-0">
+          <div className="hidden landscape:block" />
 
           <BigBall option={active} />
 
@@ -54,18 +72,6 @@ export default function CharacterSelectScene() {
         </div>
       </div>
     </div>
-  )
-}
-
-function BigBall({ option }: { option: (typeof CHARACTER_OPTIONS)[number] }) {
-  return (
-    <div
-      className="h-[clamp(130px,19vw,240px)] w-[clamp(130px,19vw,240px)] rounded-full transition-all duration-300"
-      style={{
-        background: option.gradient,
-        boxShadow: option.glow !== "none" ? option.glow : "none",
-      }}
-    />
   )
 }
 

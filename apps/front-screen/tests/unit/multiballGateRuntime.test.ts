@@ -4,16 +4,16 @@ import {
   MULTIBALL_GATE_CLOSE_TRIGGER_Z,
   MULTIBALL_GATE_OPEN_DURATION_MS,
   MULTIBALL_GATE_REOPEN_DELAY_MS,
-} from "@/components/playfield/bonusZoneConfig"
+} from "@/components/bonusZone/bonusZoneConfig"
 import {
   advanceMultiballGateState,
   createOpenMultiballGateState,
   hasClearedMultiballGate,
   shouldCloseMultiballGateFromSensor,
   shouldCloseMultiballGateFromSensorExit,
-  shouldTrackMultiballGateSensorBall,
+  shouldTrackBallInSensor,
   triggerMultiballGateClose,
-} from "@/components/playfield/multiballGateRuntime"
+} from "@/components/bonusZone/multiballGate/multiballGateRuntime"
 
 const makeSensorPayload = (name: string, zVelocity: number | null) =>
   ({
@@ -30,12 +30,12 @@ const makeSensorPayload = (name: string, zVelocity: number | null) =>
 
 describe("multiballGateRuntime", () => {
   it("tracks sensor balls unless they are clearly exiting toward +Z", () => {
-    expect(shouldTrackMultiballGateSensorBall(makeSensorPayload("wall", -2))).toBe(false)
-    expect(shouldTrackMultiballGateSensorBall(makeSensorPayload("ball", null))).toBe(false)
-    expect(shouldTrackMultiballGateSensorBall(makeSensorPayload("ball", 0))).toBe(true)
-    expect(shouldTrackMultiballGateSensorBall(makeSensorPayload("ball", 0.05))).toBe(true)
-    expect(shouldTrackMultiballGateSensorBall(makeSensorPayload("ball", -2))).toBe(true)
-    expect(shouldTrackMultiballGateSensorBall(makeSensorPayload("ball", 2))).toBe(false)
+    expect(shouldTrackBallInSensor(makeSensorPayload("wall", -2))).toBe(false)
+    expect(shouldTrackBallInSensor(makeSensorPayload("ball", null))).toBe(false)
+    expect(shouldTrackBallInSensor(makeSensorPayload("ball", 0))).toBe(true)
+    expect(shouldTrackBallInSensor(makeSensorPayload("ball", 0.05))).toBe(true)
+    expect(shouldTrackBallInSensor(makeSensorPayload("ball", -2))).toBe(true)
+    expect(shouldTrackBallInSensor(makeSensorPayload("ball", 2))).toBe(false)
   })
 
   it("closes only for balls moving from +Z toward -Z on sensor enter", () => {

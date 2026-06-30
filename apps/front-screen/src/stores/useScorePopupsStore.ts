@@ -1,12 +1,10 @@
-import { getAnyBallPosition, getBallPosition } from "@/components/balls/ballPositionRegistry"
-import { getCurrentBallColor } from "@/components/balls/ballUserData"
+import {
+  getAnyBallPosition,
+  getBallPosition,
+} from "@/components/balls/runtime/ballPositionRegistry"
+import { getCurrentBallColorSnapshot } from "@/config/characterConfig"
+import type { Position3Type } from "@/types/worldTypes"
 import { create } from "zustand"
-
-interface Position {
-  x: number
-  y: number
-  z: number
-}
 
 type ScorePopupKind = "score" | "multiball-countdown" | "multiball-trigger"
 
@@ -15,7 +13,7 @@ interface ScorePopup {
   kind: ScorePopupKind
   amount?: number
   text?: string
-  position: Position
+  position: Position3Type
   color: string
 }
 
@@ -23,25 +21,28 @@ interface HitRecord {
   ballId?: string
   color: string
   reason?: string
-  position: Position
+  position: Position3Type
   ts: number
 }
 
 interface ScorePopupsState {
   popups: ScorePopup[]
   recentHits: HitRecord[]
-  addPopup: (amount: number, position: Position) => void
+  addPopup: (amount: number, position: Position3Type) => void
   removePopup: (id: number) => void
-  recordHit: (position: Position, ballId?: string, reason?: string) => void
+  recordHit: (position: Position3Type, ballId?: string, reason?: string) => void
   spawnPopupFromDelta: (amount: number, reason?: string, ballId?: string) => void
-  spawnMultiballCountdownPopup: (remaining: number, position: Position) => void
-  spawnMultiballTriggeredPopup: (position: Position) => void
+  spawnMultiballCountdownPopup: (remaining: number, position: Position3Type) => void
+  spawnMultiballTriggeredPopup: (position: Position3Type) => void
 }
 
+// Monotonic id source kept outside the store so incrementing it doesn't trigger a render on its own
 let nextId = 0
 
+// Max number of hits that can be displayed at once
 const HITS_CAP = 16
 const HIT_EXPIRY_MS = 2000
+// Shorter than HIT_EXPIRY_MS : a hit can still be retained yet too old to confidently pair with an incoming delta
 const HIT_MATCH_WINDOW_MS = 1500
 
 const pruneHits = (hits: HitRecord[], now: number): HitRecord[] => {
@@ -49,11 +50,43 @@ const pruneHits = (hits: HitRecord[], now: number): HitRecord[] => {
   return fresh.length > HITS_CAP ? fresh.slice(fresh.length - HITS_CAP) : fresh
 }
 
+const findMatchingHit = (
+  hits: HitRecord[],
+  now: number,
+  reason?: string,
+  ballId?: string,
+): { index: number; hit?: HitRecord } => {
+  // Prefer a recent hit from the same ball for precise collision popup placement
+  if (ballId) {
+    for (let i = hits.length - 1; i >= 0; i--) {
+      const hit = hits[i]
+      if (hit?.ballId === ballId && now - hit.ts < HIT_MATCH_WINDOW_MS) {
+        return { index: i, hit }
+      }
+    }
+  }
+  // Fallback to the scoring reason when the delta cannot be matched to a recent ball hit
+  if (reason) {
+    const index = hits.findIndex((hit) => hit.reason === reason)
+    if (index >= 0) return { index, hit: hits[index] }
+  }
+  // Last chance: keep any hit from the same ball, even outside the match window
+  if (ballId) {
+    for (let i = hits.length - 1; i >= 0; i--) {
+      const hit = hits[i]
+      if (hit?.ballId === ballId) {
+        return { index: i, hit }
+      }
+    }
+  }
+  return { index: -1 }
+}
+
 const useScorePopupsStore = create<ScorePopupsState>((set, get) => ({
   popups: [],
   recentHits: [],
   addPopup: (amount, position) => {
-    const color = getCurrentBallColor()
+    const color = getCurrentBallColorSnapshot()
 
     set((state) => ({
       popups: [...state.popups, { id: nextId++, kind: "score", amount, position, color }],
@@ -64,7 +97,7 @@ const useScorePopupsStore = create<ScorePopupsState>((set, get) => ({
   },
   recordHit: (position, ballId, reason) => {
     const now = performance.now()
-    const color = getCurrentBallColor()
+    const color = getCurrentBallColorSnapshot()
 
     set((state) => ({
       recentHits: pruneHits(
@@ -78,42 +111,16 @@ const useScorePopupsStore = create<ScorePopupsState>((set, get) => ({
 
     const now = performance.now()
     const hits = pruneHits(get().recentHits, now)
-    let matchedHit: HitRecord | undefined
+    const { index, hit: matchedHit } = findMatchingHit(hits, now, reason, ballId)
 
-    let index = -1
-    if (ballId) {
-      for (let i = hits.length - 1; i >= 0; i--) {
-        const hit = hits[i]
-        if (hit?.ballId === ballId && now - hit.ts < HIT_MATCH_WINDOW_MS) {
-          index = i
-          matchedHit = hit
-          break
-        }
-      }
-    }
-    if (index === -1 && reason) {
-      index = hits.findIndex((hit) => hit.reason === reason)
-      matchedHit = index >= 0 ? hits[index] : undefined
-    }
-    if (index === -1 && ballId) {
-      for (let i = hits.length - 1; i >= 0; i--) {
-        const hit = hits[i]
-        if (hit?.ballId === ballId) {
-          index = i
-          matchedHit = hit
-          break
-        }
-      }
-    }
-
-    let position: Position
+    let position: Position3Type
     if (matchedHit) {
       position = matchedHit.position
     } else {
       position = (ballId ? getBallPosition(ballId) : undefined) ??
         getAnyBallPosition() ?? { x: 0, y: 0, z: 0 }
     }
-    const color = matchedHit?.color ?? getCurrentBallColor()
+    const color = matchedHit?.color ?? getCurrentBallColorSnapshot()
     const remainingHits = index >= 0 ? hits.filter((_, i) => i !== index) : hits
 
     set((state) => ({
@@ -122,7 +129,7 @@ const useScorePopupsStore = create<ScorePopupsState>((set, get) => ({
     }))
   },
   spawnMultiballCountdownPopup: (remaining, position) => {
-    const color = getCurrentBallColor()
+    const color = getCurrentBallColorSnapshot()
 
     set((state) => ({
       popups: [
@@ -138,7 +145,7 @@ const useScorePopupsStore = create<ScorePopupsState>((set, get) => ({
     }))
   },
   spawnMultiballTriggeredPopup: (position) => {
-    const color = getCurrentBallColor()
+    const color = getCurrentBallColorSnapshot()
 
     set((state) => ({
       popups: [

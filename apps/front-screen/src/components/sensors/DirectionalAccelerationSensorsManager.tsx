@@ -1,10 +1,12 @@
-import { getBallId } from "@/components/balls/ballUserData"
+import { getBallId } from "@/components/balls/runtime/ballUserData"
+import useBallStore from "@/stores/useBallStore"
 import { useFrame } from "@react-three/fiber"
 import type { CollisionPayload, RapierRigidBody } from "@react-three/rapier"
 import { CuboidCollider, RigidBody } from "@react-three/rapier"
 import { useCallback, useEffect, useMemo, useRef } from "react"
 import { Vector3 } from "three"
 import type { DirectionalAccelerationSensorConfig } from "./directionalAccelerationSensorsConfig"
+import { toVector3 } from "../physics/physicsConfig"
 
 interface DirectionalAccelerationSensorsManagerProps {
   sensors: DirectionalAccelerationSensorConfig[]
@@ -23,7 +25,7 @@ interface RuntimeDirectionalSensor {
 const buildRuntimeSensor = (
   config: DirectionalAccelerationSensorConfig,
 ): RuntimeDirectionalSensor | null => {
-  const direction = new Vector3(...config.direction)
+  const direction = toVector3(config.direction)
   if (direction.lengthSq() <= 1e-6) return null
   direction.normalize()
   return { config, direction }
@@ -92,7 +94,14 @@ const DirectionalAccelerationSensorsManager = ({
     if (activeBallsRef.current.size === 0) return
     if (delta <= 0) return
 
+    const trackedBallIds = new Set(useBallStore.getState().balls.map((ball) => ball.id))
+
     for (const [ballId, state] of activeBallsRef.current) {
+      if (!trackedBallIds.has(ballId)) {
+        activeBallsRef.current.delete(ballId)
+        continue
+      }
+
       if (state.sensorIds.size === 0) {
         activeBallsRef.current.delete(ballId)
         continue

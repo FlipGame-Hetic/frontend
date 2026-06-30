@@ -2,6 +2,7 @@ import type { RenderContext, Scene } from "../types"
 import { drawStringCentered, drawStringScaledCentered } from "../font"
 import { blink } from "../anim"
 import { drawCorners } from "../frame"
+import { padScore } from "@frontend/utils"
 
 const SCORE_SCALE = 2
 const SCORE_SPACING = 2
@@ -18,7 +19,7 @@ export class GameOverScene implements Scene {
       drawStringCentered(buffer, cols, "GAME OVER", Math.floor(rows * 0.1))
     }
 
-    const scoreText = String(this.score).padStart(6, "0")
+    const scoreText = padScore(this.score)
     drawStringScaledCentered(
       buffer,
       cols,

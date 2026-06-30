@@ -1,4 +1,4 @@
-import { isScreenEvent } from "@frontend/types"
+import { isScreenEvent, GAME_PHASE } from "@frontend/types"
 import type { ComboDirection, GamePhase, ScreenEnvelope } from "@frontend/types"
 import { parseComboSequence } from "./scenes/comboPayload"
 import type { ScoreData } from "./scenes/ScoreScene"
@@ -40,7 +40,7 @@ export class ScreenEventRouter {
 
   handle(envelope: ScreenEnvelope): void {
     if (isScreenEvent(envelope, "phase_change")) {
-      if (envelope.payload.phase === "playing") this.maxLives = 0
+      if (envelope.payload.phase === GAME_PHASE.Playing) this.maxLives = 0
       this.scenes.playing.update({
         player: envelope.payload.player ?? 1,
         ballNumber: envelope.payload.ball ?? 1,
@@ -53,9 +53,16 @@ export class ScreenEventRouter {
       const score = envelope.payload.score
       const ball = envelope.payload.ball ?? 1
       const player = envelope.payload.player !== undefined ? Number(envelope.payload.player) : 1
-      const multiplier = envelope.payload.multiplier ?? 1
-      this.scenes.playing.update({ score, player, ballNumber: ball, multiplier })
+      const update: Partial<ScoreData> = { score, player, ballNumber: ball }
+      if (envelope.payload.multiplier !== undefined) update.multiplier = envelope.payload.multiplier
+      this.scenes.playing.update(update)
       this.scenes.game_over.update(score)
+      return
+    }
+
+    if (isScreenEvent(envelope, "GameOver")) {
+      this.scenes.game_over.update(envelope.payload.final_score)
+      this.hooks.onPhaseChange(GAME_PHASE.GameOver)
       return
     }
 

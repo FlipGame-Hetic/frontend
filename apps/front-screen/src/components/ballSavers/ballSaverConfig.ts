@@ -32,7 +32,7 @@ export const BALL_SAVER_STATUS_TEXT_CONFIG = {
     letterSpacing: 0.08,
     distanceFactor: 4.2,
     renderOrder: 900,
-    color: "#DFF6FF",
+    color: "#a81459",
     flickerMinDelayMs: 1200,
     flickerMaxDelayMs: 5200,
     flickerMinDurationMs: 24,
@@ -46,7 +46,7 @@ export const BALL_SAVER_STATUS_TEXT_CONFIG = {
     letterSpacing: 0.08,
     distanceFactor: 4.2,
     renderOrder: 900,
-    color: "#DFF6FF",
+    color: "#a81459",
     flickerMinDelayMs: 1200,
     flickerMaxDelayMs: 5200,
     flickerMinDurationMs: 24,
@@ -61,11 +61,12 @@ export const BALL_SAVER_MIN_CONTACT_DURATION_MS = 40
 export const BALL_SAVER_COOLDOWN_MS = 5000
 export const BALL_SAVER_RAISE_DURATION_MS = 180
 export const BALL_SAVER_RETRACT_DURATION_MS = 180
-export const BALL_SAVER_VISIBLE_HEIGHT = 0.04
+export const BALL_SAVER_VISIBLE_HEIGHT = 0.02
 export const BALL_SAVER_MIN_DROP_RATIO = 0.9
 
 export const BALL_SAVER_COOLDOWN_RING_RADIUS = 30
 export const BALL_SAVER_COOLDOWN_RING_STROKE_WIDTH = 5
+// Circle used as the SVG ring's dash length so strokeDashoffset can animate the cooldown sweep
 export const BALL_SAVER_COOLDOWN_RING_CIRCUMFERENCE = 2 * Math.PI * BALL_SAVER_COOLDOWN_RING_RADIUS
 
 export const getBallSaverSideFromWorldPosition = (position: PositionType): BallSaverSide => {

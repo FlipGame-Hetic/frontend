@@ -1,9 +1,11 @@
+import { GAME_PHASE } from "@frontend/types"
 import type { RenderContext, Scene } from "../types"
 import { setPixel } from "../buffer"
 import { drawString, measureString, drawStringScaledCentered } from "../font"
 import { drawHearts } from "../icons"
 import { drawCorners } from "../frame"
 import { MAX_BALLS, heartsWidth } from "../constants"
+import { padScore } from "@frontend/utils"
 
 const BAR_WIDTH = 60
 const BAR_Y = 14
@@ -34,7 +36,7 @@ export class ScoreScene implements Scene {
     player: 1,
     totalPlayers: 1,
     ballNumber: 1,
-    phase: "idle",
+    phase: GAME_PHASE.Idle,
     multiplier: 1,
     multiplierStartedAt: 0,
     multiplierDurationMs: 0,
@@ -86,7 +88,7 @@ export class ScoreScene implements Scene {
       }
     }
 
-    const scoreText = String(score).padStart(6, "0")
+    const scoreText = padScore(score)
     const scoreY = Math.floor(rows * SCORE_Y_RATIO)
     drawStringScaledCentered(buffer, cols, scoreText, scoreY, SCORE_SCALE, SCORE_SPACING)
 

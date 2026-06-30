@@ -1,25 +1,25 @@
 import { useEffect } from "react"
-import { useScreenHub, registerScreenSender } from "@frontend/ws"
-import { isScreenEvent } from "@frontend/types"
-import type { ScreenEnvelope } from "@frontend/types"
+import { useScreenHub, registerScreenSender, fetchGameState } from "@frontend/ws"
+import { readScreenToken } from "@frontend/utils"
+import { isScreenEvent, mapEnginePhaseToGamePhase, GAME_PHASE } from "@frontend/types"
+import type { ConnectionStatus, ScreenEnvelope } from "@frontend/types"
 import { useBackScreenStore } from "@/stores/useBackScreenStore"
 import { fetchLeaderboard } from "@/api/leaderboard"
 import { handleMenuButton } from "@/menu/menuActions"
 
 const SCREEN_ID = "back_screen" as const
-const TOKEN =
-  (globalThis as unknown as Record<string, Record<string, string> | undefined>).__ENV__
-    ?.VITE_SCREEN_TOKEN ??
-  (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_SCREEN_TOKEN ??
-  ""
+const TOKEN = readScreenToken()
 
-export function useScreenHubClient(): void {
+export function useScreenHubClient(): ConnectionStatus {
   const setPhase = useBackScreenStore((s) => s.setPhase)
   const setScore = useBackScreenStore((s) => s.setScore)
   const setBallNumber = useBackScreenStore((s) => s.setBallNumber)
+  const setBoss = useBackScreenStore((s) => s.setBoss)
+  const markBossDefeated = useBackScreenStore((s) => s.markBossDefeated)
+  const clearBoss = useBackScreenStore((s) => s.clearBoss)
   const setLeaderboard = useBackScreenStore((s) => s.setLeaderboard)
 
-  const { send } = useScreenHub({
+  const { send, status } = useScreenHub({
     screenId: SCREEN_ID,
     token: TOKEN,
     onEvent: (envelope: ScreenEnvelope) => {
@@ -38,6 +38,24 @@ export function useScreenHubClient(): void {
         if (envelope.payload.ball !== undefined) setBallNumber(envelope.payload.ball)
         return
       }
+      if (isScreenEvent(envelope, "GameOver")) {
+        setScore(envelope.payload.final_score)
+        setPhase(GAME_PHASE.GameOver)
+        return
+      }
+      if (isScreenEvent(envelope, "BossUpdate")) {
+        const { boss_id, boss_hp, boss_max_hp } = envelope.payload
+        setBoss({ bossId: boss_id, bossHp: boss_hp, bossMaxHp: boss_max_hp })
+        return
+      }
+      if (isScreenEvent(envelope, "BossDefeated")) {
+        markBossDefeated()
+        return
+      }
+      if (isScreenEvent(envelope, "BossCleared")) {
+        clearBoss()
+        return
+      }
       if (isScreenEvent(envelope, "LeaderboardUpdate")) {
         setLeaderboard(envelope.payload)
       }
@@ -51,4 +69,16 @@ export function useScreenHubClient(): void {
   useEffect(() => {
     void fetchLeaderboard().then(setLeaderboard)
   }, [setLeaderboard])
+
+  useEffect(() => {
+    if (status !== "connected") return
+    void fetchGameState().then((snapshot) => {
+      if (!snapshot) return
+      setScore(snapshot.score)
+      setPhase(mapEnginePhaseToGamePhase(snapshot.phase))
+    })
+    void fetchLeaderboard().then(setLeaderboard)
+  }, [status, setScore, setPhase, setLeaderboard])
+
+  return status
 }

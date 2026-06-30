@@ -10,6 +10,7 @@ export default [
     "public/**",
     "eslint.config.js",
     "*.config.*",
+    "public/config.js",
   ]),
   ...reactConfig,
   {

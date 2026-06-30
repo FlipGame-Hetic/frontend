@@ -1,126 +1,183 @@
-import { LEFT_KEYS, RIGHT_KEYS } from "@/components/flipperJoints/jointsConfig"
-import { PLUNGER_KEY } from "@/components/plunger/plungerConfig"
-import { triggerUltimate } from "@/gameplay/ultimate"
-import { pressKey, releaseKey, triggerPlungerMaxLaunch } from "@/stores/inputStore"
-import useGameStore, { CHARACTER_ID_BY_TYPE } from "@/stores/useGameStore"
+import { LEFT_KEYS, RIGHT_KEYS } from "@/components/flippers/flipperConfig"
+import { PLUNGER_KEYBOARD_KEY } from "@/components/plunger/plungerConfig"
+import { setMusicSuspended } from "@/audio/soundEngine"
+import { pressKey, releaseKey, triggerPlungerMaxLaunch } from "@/input/inputState"
+import useGameStore from "@/stores/useGameStore"
+import usePlayfieldReadyStore from "@/stores/usePlayfieldReadyStore"
 import useScorePopupsStore from "@/stores/useScorePopupsStore"
-import type { GameMode, ScreenEnvelope, ScreenEvent, StartGameEvent } from "@frontend/types"
-import { DEFAULT_CHARACTER, isScreenEvent, makeEnvelope } from "@frontend/types"
+import useUltimateStore from "@/stores/useUltimateStore"
+import type {
+  ConnectionStatus,
+  GameMode,
+  ScreenEnvelope,
+  ScreenEvent,
+  StartGameEvent,
+} from "@frontend/types"
+import { DEFAULT_CHARACTER, GAME_PHASE, makeEnvelope } from "@frontend/types"
+import { readScreenToken } from "@frontend/utils"
 import {
   broadcastEvent,
+  fetchGameState,
   registerScreenSender,
   sendEventTo,
   useScreenHub as useScreenHubBase,
-  wsLog,
 } from "@frontend/ws"
 import { useEffect } from "react"
 
 const SCREEN_ID = "front_screen" as const
 const DEFAULT_START_MODE: GameMode = "solo"
 
-const TOKEN =
-  (globalThis as unknown as Record<string, Record<string, string> | undefined>).__ENV__
-    ?.VITE_SCREEN_TOKEN ??
-  (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_SCREEN_TOKEN ??
-  ""
+const TOKEN = readScreenToken()
 
+// Tracks whether the cabinet plunger is being physically held, to differenciate a press/release apart from a tap that means a max launch
 let cabinetPlungerHeld = false
+
+const resetCabinetInputLatch = (): void => {
+  cabinetPlungerHeld = false
+}
+
+const isPlaying = (): boolean => {
+  return useGameStore.getState().phase === GAME_PHASE.Playing
+}
 
 const applyKeysState = (keys: string[], state: number): void => {
   const apply = state > 0 ? pressKey : releaseKey
   keys.forEach(apply)
 }
 
-const handleScreenEvent = (envelope: ScreenEnvelope): void => {
-  wsLog("front-screen", `handleScreenEvent "${envelope.event_type}"`, envelope)
+type ScreenEventType = ScreenEvent["event_type"]
+// Uses the extract to find the payload of a specified ScreenEvent
+type PayloadFor<K extends ScreenEventType> = Extract<ScreenEvent, { event_type: K }>["payload"]
 
-  const { selectMode, selectCharacter, startGame, setPhase, restartGame, setScore, menuBack } =
-    useGameStore.getState()
+type ScreenEventHandler<K extends ScreenEventType> = (payload: PayloadFor<K>) => void
+// Optional handler per event type, which receives that event's payload
+type ScreenEventHandlers = { [K in ScreenEventType]?: ScreenEventHandler<K> }
 
-  if (isScreenEvent(envelope, "FlipperLeft")) {
-    applyKeysState(LEFT_KEYS, envelope.payload.state)
-    return
-  }
+const handlers: ScreenEventHandlers = {
+  FlipperLeft: (payload) => {
+    if (!isPlaying()) return
+    applyKeysState(LEFT_KEYS, payload.state)
+  },
 
-  if (isScreenEvent(envelope, "FlipperRight")) {
-    applyKeysState(RIGHT_KEYS, envelope.payload.state)
-    return
-  }
+  FlipperRight: (payload) => {
+    if (!isPlaying()) return
+    applyKeysState(RIGHT_KEYS, payload.state)
+  },
 
-  if (isScreenEvent(envelope, "PlungerCharge")) {
-    if (envelope.payload.state > 0) {
+  PlungerCharge: (payload) => {
+    if (!isPlaying()) {
+      resetCabinetInputLatch()
+      return
+    }
+
+    if (payload.state > 0) {
       cabinetPlungerHeld = true
-      pressKey(PLUNGER_KEY)
+      pressKey(PLUNGER_KEYBOARD_KEY)
       return
     }
 
     if (cabinetPlungerHeld) {
       cabinetPlungerHeld = false
-      releaseKey(PLUNGER_KEY)
+      releaseKey(PLUNGER_KEYBOARD_KEY)
       return
     }
 
+    // Release with no preceding hold (a button tap) launches at full charge
     triggerPlungerMaxLaunch()
-    return
-  }
+  },
 
-  if (isScreenEvent(envelope, "CapacityL2") || isScreenEvent(envelope, "CapacityR2")) {
-    triggerUltimate(useGameStore.getState().currentPlayer)
-    return
-  }
+  ScoreUpdate: (payload) => {
+    const { score, ultimate_charge, ultimate_max, ulti_ready, next_ulti_id } = payload
+    useGameStore.getState().setScore(score)
+    useUltimateStore.getState().setChargeFromScore({
+      ultimate_charge,
+      ultimate_max,
+      ulti_ready,
+      next_ulti_id,
+    })
+  },
 
-  if (envelope.event_type === "ScoreUpdate") {
-    const payload = envelope.payload as { score: number }
-    setScore(payload.score)
-    return
-  }
+  UltimateTriggered: (payload) => {
+    useUltimateStore.getState().onTriggered(payload)
+  },
 
-  if (envelope.event_type === "ScoreDelta") {
-    const payload = envelope.payload as {
-      delta: number
-      reason: string
-      total: number
-      ball_id?: string
-    }
+  UltimateStopped: (payload) => {
+    useUltimateStore.getState().onStopped(payload)
+  },
+
+  ScoreDelta: (payload) => {
+    // timer_bonus deltas update the score but must not spawn a popup, the end-of-ball bonus has its own UI
     if (payload.reason !== "timer_bonus") {
       useScorePopupsStore
         .getState()
         .spawnPopupFromDelta(payload.delta, payload.reason, payload.ball_id)
     }
-    setScore(payload.total)
-    return
-  }
+    useGameStore.getState().setScore(payload.total)
+  },
 
-  if (isScreenEvent(envelope, "menu_back")) {
-    menuBack()
-    return
-  }
-  if (isScreenEvent(envelope, "menu_confirm")) {
-    if (envelope.payload.context === "idle") setPhase("mode_select")
-    if (envelope.payload.context === "game_over") restartGame()
-    return
-  }
-  if (isScreenEvent(envelope, "mode_selected")) {
-    selectMode(envelope.payload.mode)
-    return
-  }
-  if (isScreenEvent(envelope, "character_selected")) {
-    selectCharacter(envelope.payload.player, envelope.payload.character)
-    return
-  }
-  if (isScreenEvent(envelope, "start_game")) {
-    startGame(envelope.payload)
-    const player = envelope.payload.players[0]
+  GameOver: (payload) => {
+    const { setScore, endGame } = useGameStore.getState()
+    resetCabinetInputLatch()
+    setScore(payload.final_score)
+    endGame()
+  },
+
+  request_resync: () => {
+    const { phase, score, ballNumber, currentPlayer } = useGameStore.getState()
+    broadcastEvent({
+      event_type: "phase_change",
+      payload: { phase, ball: ballNumber, player: currentPlayer, score },
+    })
+    broadcastEvent({
+      event_type: "ScoreUpdate",
+      payload: { score, player: currentPlayer, ball: ballNumber },
+    })
+  },
+
+  menu_back: () => {
+    useGameStore.getState().menuBack()
+  },
+
+  playfield_music: (payload) => {
+    setMusicSuspended(!payload.playing)
+  },
+
+  menu_confirm: (payload) => {
+    const { setPhase, restartGame } = useGameStore.getState()
+    if (payload.context === GAME_PHASE.Idle) setPhase(GAME_PHASE.ModeSelect)
+    if (payload.context === GAME_PHASE.GameOver) restartGame()
+  },
+
+  mode_selected: (payload) => {
+    useGameStore.getState().selectMode(payload.mode)
+  },
+
+  character_selected: (payload) => {
+    useGameStore.getState().selectCharacter(payload.player, payload.character)
+  },
+
+  start_game: (payload) => {
+    resetCabinetInputLatch()
+    useGameStore.getState().startGame(payload)
+    const player = payload.players[0]
     if (player) {
       broadcastEvent({
         event_type: "StartGame",
         payload: {
           player_id: String(player.player),
-          character_id: CHARACTER_ID_BY_TYPE[player.character],
+          character: player.character,
         },
       })
     }
-  }
+  },
+}
+
+const handleScreenEvent = (envelope: ScreenEnvelope): void => {
+  // handlers is keyed by the event_type literals, but envelope.event_type is only a string, so the first 'as ScreenEventType' is what lets us index the handlers map to ScreenEventHandlers. Every handler becomes merged into one, so the second 'as' widens it back to (payload: unknown) => void to call it
+  const handler = handlers[envelope.event_type as ScreenEventType] as
+    | ((payload: unknown) => void)
+    | undefined
+  handler?.(envelope.payload)
 }
 
 const getStartGamePayload = (): StartGameEvent["payload"] => {
@@ -131,7 +188,7 @@ const getStartGamePayload = (): StartGameEvent["payload"] => {
     players:
       selectedPlayers.length > 0
         ? selectedPlayers.map((player) => ({ ...player }))
-        : [{ player: 1, character: DEFAULT_CHARACTER }],
+        : [{ player: 1, character: DEFAULT_CHARACTER.id }],
   }
 }
 
@@ -147,8 +204,8 @@ export const requestFrontScreenStartGame = (): void => {
   })
 }
 
-export const useScreenHub = (): void => {
-  const { send } = useScreenHubBase({
+export const useScreenHub = (): ConnectionStatus => {
+  const { send, status } = useScreenHubBase({
     screenId: SCREEN_ID,
     token: TOKEN,
     onEvent: handleScreenEvent,
@@ -158,8 +215,23 @@ export const useScreenHub = (): void => {
     registerScreenSender(SCREEN_ID, send)
   }, [send])
 
+  const playfieldReady = usePlayfieldReadyStore((s) => s.ready)
+
+  useEffect(() => {
+    if (status !== "connected" || !playfieldReady) return
+    void fetchGameState().then((snapshot) => {
+      if (snapshot?.phase !== "in_game") return
+      if (useGameStore.getState().phase === GAME_PHASE.Playing) return
+      useGameStore.getState().resumeGame(snapshot.score, snapshot.character ?? undefined)
+    })
+  }, [status, playfieldReady])
+
   useEffect(() => {
     const unsub = useGameStore.subscribe((state, prev) => {
+      if (state.phase === GAME_PHASE.GameOver && prev.phase !== GAME_PHASE.GameOver) {
+        resetCabinetInputLatch()
+      }
+
       if (state.score !== prev.score) {
         send({
           from: SCREEN_ID,
@@ -193,4 +265,6 @@ export const useScreenHub = (): void => {
     })
     return unsub
   }, [send])
+
+  return status
 }

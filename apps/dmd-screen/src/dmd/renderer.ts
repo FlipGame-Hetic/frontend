@@ -7,13 +7,14 @@ function hexToRgb(hex: string): [number, number, number] {
 }
 
 /**
- * Rasterizes a dot buffer onto a 2D canvas: paints the dim "ghost grid" of
- * unlit dots, then the lit dots on top with a glow. This is the only place that
- * knows how a brightness buffer becomes pixels — scenes never touch the canvas.
+ * Paints the dim "ghost grid" of unlit dots. Split out from the lit dots so
+ * callers can cache it onto an offscreen canvas and only repaint the active
+ * dots each frame. This and {@link drawActiveDotsToCanvas} are the only places
+ * that know how a brightness buffer becomes pixels — scenes never touch the
+ * canvas.
  */
-export function drawDotsToCanvas(
+export function drawDotGridToCanvas(
   ctx: CanvasRenderingContext2D,
-  buffer: DotBuffer,
   config: DmdConfig,
   width: number,
   height: number,
@@ -42,6 +43,28 @@ export function drawDotsToCanvas(
       ctx.fill()
     }
   }
+}
+
+/**
+ * Paints the lit dots with a glow on top of the ghost grid, reading brightness
+ * from the buffer and skipping dark cells.
+ */
+export function drawActiveDotsToCanvas(
+  ctx: CanvasRenderingContext2D,
+  buffer: DotBuffer,
+  config: DmdConfig,
+  width: number,
+  height: number,
+): void {
+  const { cols, rows, dotColor, gapRatio } = config
+
+  const cellW = width / cols
+  const cellH = height / rows
+  const cellSize = Math.min(cellW, cellH)
+  const radius = (cellSize * (1 - gapRatio)) / 2
+
+  const [r, g, b] = hexToRgb(dotColor)
+  const rgbStr = String(r) + "," + String(g) + "," + String(b)
 
   // Draw active dots with glow
   ctx.shadowColor = "rgba(" + rgbStr + ",0.6)"

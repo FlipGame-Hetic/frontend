@@ -87,18 +87,30 @@ importers:
       '@frontend/types':
         specifier: workspace:*
         version: link:../../packages/types
+      '@frontend/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       '@frontend/utils':
         specifier: workspace:*
         version: link:../../packages/utils
       '@frontend/ws':
         specifier: workspace:*
         version: link:../../packages/ws
+      '@react-three/fiber':
+        specifier: ^9.5.0
+        version: 9.5.0(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(three@0.183.1)
+      howler:
+        specifier: ^2.2.4
+        version: 2.2.4
       react:
         specifier: ^19.2.0
         version: 19.2.4
       react-dom:
         specifier: ^19.2.0
         version: 19.2.4(react@19.2.4)
+      three:
+        specifier: ^0.183.1
+        version: 0.183.1
       zustand:
         specifier: ^5.0.11
         version: 5.0.11(@types/react@19.2.14)(react@19.2.4)(use-sync-external-store@1.6.0(react@19.2.4))
@@ -115,6 +127,9 @@ importers:
       '@playwright/test':
         specifier: ^1.58.2
         version: 1.58.2
+      '@types/howler':
+        specifier: ^2.2.13
+        version: 2.2.13
       '@types/node':
         specifier: ^25.3.0
         version: 25.3.0
@@ -124,6 +139,9 @@ importers:
       '@types/react-dom':
         specifier: ^19.2.3
         version: 19.2.3(@types/react@19.2.14)
+      '@types/three':
+        specifier: ^0.183.1
+        version: 0.183.1
       '@vitejs/plugin-react':
         specifier: ^5.1.1
         version: 5.1.4(vite@7.3.1(@types/node@25.3.0)(jiti@2.7.0)(lightningcss@1.31.1)(yaml@2.9.0))
@@ -145,9 +163,18 @@ importers:
       '@frontend/types':
         specifier: workspace:*
         version: link:../../packages/types
+      '@frontend/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      '@frontend/utils':
+        specifier: workspace:*
+        version: link:../../packages/utils
       '@frontend/ws':
         specifier: workspace:*
         version: link:../../packages/ws
+      leva:
+        specifier: ^0.10.1
+        version: 0.10.1(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react:
         specifier: ^19.2.0
         version: 19.2.4
@@ -200,6 +227,9 @@ importers:
       '@frontend/types':
         specifier: workspace:*
         version: link:../../packages/types
+      '@frontend/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       '@frontend/utils':
         specifier: workspace:*
         version: link:../../packages/utils
@@ -313,6 +343,9 @@ importers:
 
   packages/ui:
     dependencies:
+      '@frontend/types':
+        specifier: workspace:*
+        version: link:../types
       '@frontend/utils':
         specifier: workspace:*
         version: link:../utils
@@ -322,13 +355,22 @@ importers:
       react-dom:
         specifier: ^19.0.0
         version: 19.2.4(react@19.2.4)
+      zustand:
+        specifier: ^5.0.11
+        version: 5.0.11(@types/react@19.2.14)(react@19.2.4)(use-sync-external-store@1.6.0(react@19.2.4))
     devDependencies:
       '@frontend/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
+      '@testing-library/react':
+        specifier: ^16.3.2
+        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@types/react':
         specifier: ^19.2.7
         version: 19.2.14
+      jsdom:
+        specifier: ^28.1.0
+        version: 28.1.0
 
   packages/utils:
     dependencies:
@@ -348,6 +390,9 @@ importers:
       '@frontend/types':
         specifier: workspace:*
         version: link:../types
+      '@frontend/utils':
+        specifier: workspace:*
+        version: link:../utils
       react:
         specifier: '>=19'
         version: 19.2.4

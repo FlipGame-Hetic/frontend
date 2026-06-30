@@ -9,8 +9,9 @@ interface BallStore {
   spawnBall: (position: PositionType, options?: { isPlaying?: boolean }) => void
   deleteBall: (id: string) => void
   drainBall: (id: string) => BallDrainResult
+  splitPlayingBalls: (positions: PositionType[]) => boolean
   resetBalls: () => void
-  setBallPlaying: (id: string, isPlaying: boolean) => void
+  setBallPlaying: (id: string) => void
 }
 
 interface BallDrainResult {
@@ -29,6 +30,7 @@ const getDrainResult = (
     wasTracked,
     remainingBallCount: balls.length,
     remainingPlayingBallCount: playingBallIds.length,
+    // isLifeLost is true only when the drain emptied the last ball, so losing one ball mid-multiball is not counted as a life
     isLifeLost: wasTracked && balls.length === 0,
   }
 }
@@ -41,6 +43,7 @@ const useBallStore = create<BallStore>()((set, get) => ({
     const id = crypto.randomUUID()
     set((state) => ({
       balls: [...state.balls, { id, position }],
+      // If playing, adds the new id to existing state array, otherwise leave as is (a ball spawned in plunger lane is not playing yet)
       playingBallIds: options?.isPlaying ? [...state.playingBallIds, id] : state.playingBallIds,
     }))
   },
@@ -54,6 +57,7 @@ const useBallStore = create<BallStore>()((set, get) => ({
     const state = get()
     const nextBalls = state.balls.filter((ball) => ball.id !== id)
     const nextPlayingBallIds = state.playingBallIds.filter((playingBallId) => playingBallId !== id)
+    // False when the id was already gone, so a potential duplicate drain event cannot remove a ball or lose a life twice
     const wasTracked =
       nextBalls.length !== state.balls.length ||
       nextPlayingBallIds.length !== state.playingBallIds.length
@@ -67,29 +71,34 @@ const useBallStore = create<BallStore>()((set, get) => ({
 
     return getDrainResult(nextBalls, nextPlayingBallIds, wasTracked)
   },
+  // Used for Keenu's ultimate
+  splitPlayingBalls: (positions) => {
+    // Snapshot before mutating, so we only consume balls that are actually playing right now
+    const snapshot = [...get().playingBallIds]
+    // No playing ball to consume : the ball already committed its drain, so the split fizzles and spawns nothing
+    if (snapshot.length === 0) return false
+
+    for (const position of positions) {
+      get().spawnBall(position, { isPlaying: true })
+    }
+    for (const id of snapshot) {
+      get().deleteBall(id)
+    }
+    return true
+  },
   resetBalls: () => {
     set({ balls: [], playingBallIds: [] })
   },
-  setBallPlaying: (id, isPlaying) => {
+  setBallPlaying: (id) => {
     set((state) => {
+      // Checks whether the ball had already been added to playingBalls to prevent duplicate sensor triggers
       const isAlreadyPlaying = state.playingBallIds.includes(id)
-
-      if (isPlaying) {
-        if (isAlreadyPlaying) {
-          return state
-        }
-
-        return {
-          playingBallIds: [...state.playingBallIds, id],
-        }
-      }
-
-      if (!isAlreadyPlaying) {
+      if (isAlreadyPlaying) {
         return state
       }
 
       return {
-        playingBallIds: state.playingBallIds.filter((playingBallId) => playingBallId !== id),
+        playingBallIds: [...state.playingBallIds, id],
       }
     })
   },

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react"
 import type { Group } from "three"
 import { BALL_RADIUS } from "../balls/ballConfig"
-import useBallMaterial from "../balls/useBallMaterial"
+import useBallMaterial from "../balls/material/useBallMaterial"
 import { getPortalFrontFacePosition, oppositePortal } from "./portalConfig"
 import { getTraversal, registerGhostRef, unregisterGhostRef } from "./portalTraversalState"
 
@@ -29,7 +29,7 @@ const PortalGhost = ({ ballId, color = "#FF8C00" }: PortalGhostProps) => {
   return (
     <group ref={groupRef} position={initialPos}>
       <mesh ref={meshRef}>
-        <sphereGeometry args={[BALL_RADIUS, 32, 32]} />
+        <sphereGeometry args={[BALL_RADIUS, 24, 24]} />
       </mesh>
     </group>
   )

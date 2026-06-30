@@ -9,6 +9,7 @@ export default [
     "coverage/**",
     "eslint.config.js",
     "*.config.*",
+    "public/config.js",
   ]),
   ...reactConfig,
   {
@@ -19,6 +20,11 @@ export default [
         },
         tsconfigRootDir: import.meta.dirname,
       },
+    },
+  },
+  {
+    rules: {
+      "react/no-unknown-property": "off",
     },
   },
 ]

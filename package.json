@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "pnpm --filter './apps/*' --parallel run dev",
     "workflow": "bash scripts/workflow.sh",
+    "play": "bash scripts/workflow-build.sh",
     "dev:front": "pnpm --filter @frontend/front-screen dev",
     "dev:back": "pnpm --filter @frontend/back-screen dev",
     "dev:dmd": "pnpm --filter @frontend/dmd-screen dev",
