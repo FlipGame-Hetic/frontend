@@ -243,7 +243,7 @@ describe("front-screen useScreenHub", () => {
     expect(getPressedKeys().has(PLUNGER_KEYBOARD_KEY)).toBe(false)
   })
 
-  it("launches the standard plunger at max charge on press and ignores release", () => {
+  it("launches the standard plunger at max charge for each press pulse and ignores release", () => {
     render(<ScreenHubHarness />)
     startSoloGame()
 
@@ -272,6 +272,11 @@ describe("front-screen useScreenHub", () => {
         event_type: "PlungerCharge",
         payload: { state: 1, source: "plunger" },
       })
+    })
+
+    expect(getPlungerInputSnapshot().releaseToken).toBe(before + 2)
+
+    act(() => {
       options.onEvent?.({
         from: "backend",
         to: { kind: "screen", id: "front_screen" },
@@ -280,7 +285,7 @@ describe("front-screen useScreenHub", () => {
       })
     })
 
-    expect(getPlungerInputSnapshot().releaseToken).toBe(before + 1)
+    expect(getPlungerInputSnapshot().releaseToken).toBe(before + 2)
     expect(getPressedKeys().has(PLUNGER_KEYBOARD_KEY)).toBe(false)
   })
 

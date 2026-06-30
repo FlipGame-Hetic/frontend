@@ -29,13 +29,11 @@ const DEFAULT_START_MODE: GameMode = "solo"
 
 const TOKEN = readScreenToken()
 
-// Tracks under-plunger hold/release separately from the standard plunger button's press latch
+// Tracks under-plunger hold/release separately from the standard plunger button pulse
 let cabinetUnderPlungerHeld = false
-let cabinetStandardPlungerPressed = false
 
 const resetCabinetInputLatch = (): void => {
   cabinetUnderPlungerHeld = false
-  cabinetStandardPlungerPressed = false
 }
 
 const isPlaying = (): boolean => {
@@ -74,12 +72,8 @@ const handlers: ScreenEventHandlers = {
 
     // Current backend frames do not include a source; missing source stays on the legacy under-plunger path.
     if (payload.source === "plunger") {
-      if (payload.state > 0 && !cabinetStandardPlungerPressed) {
-        cabinetStandardPlungerPressed = true
+      if (payload.state > 0) {
         triggerPlungerMaxLaunch()
-      }
-      if (payload.state <= 0) {
-        cabinetStandardPlungerPressed = false
       }
       return
     }
