@@ -3,6 +3,240 @@
 @import "@frontend/tailwind-config/theme.css";
 @source "../../../packages/ui/src";
 
+.loading-screen {
+  align-items: center;
+  background:
+    radial-gradient(circle at 50% 12%, rgba(0, 240, 255, 0.12), transparent 32%),
+    linear-gradient(180deg, #0d1020 0%, #07080f 56%, #040608 100%);
+  color: var(--color-arcade-white);
+  display: flex;
+  font-family: "Rajdhani", sans-serif;
+  inset: 0;
+  justify-content: center;
+  overflow: hidden;
+  pointer-events: auto;
+  position: absolute;
+  transition:
+    opacity 620ms ease,
+    visibility 620ms ease;
+  z-index: 80;
+}
+
+.loading-screen--fading {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.loading-screen::before,
+.loading-screen::after,
+.loading-screen__grid {
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+}
+
+.loading-screen::before {
+  background-image: linear-gradient(rgba(232, 244, 255, 0.07) 1px, transparent 1px);
+  background-size: 100% 4px;
+  mix-blend-mode: screen;
+  opacity: 0.34;
+}
+
+.loading-screen::after {
+  border: 1px solid rgba(0, 240, 255, 0.22);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+    inset 0 0 44px rgba(0, 217, 232, 0.14),
+    0 0 70px rgba(0, 217, 232, 0.12);
+  margin: 18px;
+}
+
+.loading-screen__grid {
+  background-image:
+    linear-gradient(rgba(0, 217, 232, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 217, 232, 0.07) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: linear-gradient(180deg, transparent 0%, black 26%, black 74%, transparent 100%);
+  opacity: 0.38;
+  transform: perspective(520px) rotateX(61deg) translateY(26%);
+  transform-origin: center bottom;
+}
+
+.loading-screen__frame {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  position: relative;
+  width: min(580px, calc(100% - 48px));
+  z-index: 1;
+}
+
+.loading-screen__frame::before,
+.loading-screen__frame::after {
+  border-color: var(--color-neon-cyan);
+  border-style: solid;
+  content: "";
+  height: 34px;
+  opacity: 0.72;
+  position: absolute;
+  top: -24px;
+  width: 34px;
+}
+
+.loading-screen__frame::before {
+  border-width: 2px 0 0 2px;
+  left: -18px;
+}
+
+.loading-screen__frame::after {
+  border-width: 2px 2px 0 0;
+  right: -18px;
+}
+
+.loading-screen__kicker {
+  color: rgba(232, 244, 255, 0.72);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.loading-screen__title {
+  color: #f7fdff;
+  font-family: var(--font-display), "Rajdhani", sans-serif;
+  font-size: 64px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  line-height: 0.9;
+  text-shadow:
+    0 0 8px rgba(0, 240, 255, 0.95),
+    0 0 24px rgba(0, 217, 232, 0.52),
+    3px 0 rgba(255, 45, 107, 0.34);
+  text-transform: uppercase;
+}
+
+.loading-screen__bar {
+  background: rgba(0, 217, 232, 0.12);
+  border: 1px solid rgba(0, 240, 255, 0.38);
+  height: 18px;
+  overflow: hidden;
+  position: relative;
+}
+
+.loading-screen__bar::before {
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(232, 244, 255, 0.12) 0,
+    rgba(232, 244, 255, 0.12) 1px,
+    transparent 1px,
+    transparent 12px
+  );
+  content: "";
+  inset: 0;
+  opacity: 0.5;
+  position: absolute;
+  z-index: 1;
+}
+
+.loading-screen__bar-fill {
+  background:
+    linear-gradient(90deg, var(--color-neon-cyan), #f7fdff 52%, var(--color-neon-yellow)),
+    var(--color-neon-cyan);
+  box-shadow:
+    0 0 12px rgba(0, 240, 255, 0.86),
+    0 0 34px rgba(0, 217, 232, 0.48);
+  height: 100%;
+  transform: scaleX(var(--loading-progress-ratio, 0));
+  transform-origin: left center;
+  width: 100%;
+}
+
+.loading-screen__meta {
+  align-items: center;
+  color: rgba(232, 244, 255, 0.76);
+  display: flex;
+  font-size: 19px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  justify-content: space-between;
+  letter-spacing: 0.18em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.loading-screen__error {
+  border-left: 2px solid var(--color-neon-pink);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-left: 18px;
+}
+
+.loading-screen__error-title {
+  color: #fff2f6;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-shadow:
+    0 0 10px rgba(255, 45, 107, 0.9),
+    0 0 28px rgba(255, 45, 107, 0.44);
+  text-transform: uppercase;
+}
+
+.loading-screen__error-list {
+  color: rgba(232, 244, 255, 0.72);
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-mono), monospace;
+  font-size: 13px;
+  gap: 6px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.loading-screen__reload {
+  align-self: flex-start;
+  background: rgba(255, 45, 107, 0.14);
+  border: 1px solid rgba(255, 45, 107, 0.74);
+  color: #fff2f6;
+  cursor: pointer;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  line-height: 1;
+  padding: 11px 16px;
+  text-transform: uppercase;
+}
+
+.loading-screen__reload:hover {
+  background: rgba(255, 45, 107, 0.24);
+  box-shadow: 0 0 18px rgba(255, 45, 107, 0.42);
+}
+
+@media (max-width: 640px) {
+  .loading-screen::after {
+    margin: 12px;
+  }
+
+  .loading-screen__frame {
+    gap: 15px;
+    width: calc(100% - 38px);
+  }
+
+  .loading-screen__title {
+    font-size: 40px;
+  }
+
+  .loading-screen__kicker,
+  .loading-screen__meta {
+    font-size: 13px;
+  }
+}
+
 .ball-saver-status {
   --ball-saver-status-color: #dff6ff;
   --ball-saver-status-font-size: 42px;

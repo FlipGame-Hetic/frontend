@@ -2,7 +2,13 @@ import useScreenShakeStore from "@/stores/useScreenShakeStore"
 import { useFrame } from "@react-three/fiber"
 import { useRef } from "react"
 import { Vector3 } from "three"
-import { MAX_OFFSET, MAX_OFFSET_Y, MAX_OFFSET_Z, TRAUMA_DECAY } from "./screenShakeConfig"
+import {
+  MAX_OFFSET,
+  MAX_OFFSET_Y,
+  MAX_OFFSET_Z,
+  SCREEN_SHAKE_FRAME_PRIORITY,
+  TRAUMA_DECAY,
+} from "./screenShakeConfig"
 
 const ScreenShakeController = () => {
   const lastOffset = useRef(new Vector3())
@@ -26,7 +32,7 @@ const ScreenShakeController = () => {
     camera.position.add(lastOffset.current)
 
     useScreenShakeStore.getState().setTrauma(trauma - TRAUMA_DECAY * delta)
-  })
+  }, SCREEN_SHAKE_FRAME_PRIORITY)
 
   return null
 }

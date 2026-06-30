@@ -1,12 +1,10 @@
 import DebugProvider from "@/debug/DebugProvider"
 import { ConnectionOverlay, useDebugOverlayShown } from "@frontend/ui"
-import { runtimeEnvironment } from "@frontend/utils"
 import { Leva } from "leva"
 import { Suspense, useEffect } from "react"
 import BallsManager from "./components/balls/BallsManager"
-import CabinetCamera from "./components/CabinetCamera"
+import CameraDirector from "./components/camera/CameraDirector"
 import ControlHints from "./components/controlHints/ControlHintsManager"
-import DefaultCamera from "./components/DefaultCamera"
 import Drain from "./components/drain/Drain"
 import TronGridFloor from "./components/environment/TronGridFloor"
 import SceneAmbientLight from "./components/light/SceneAmbientLight"
@@ -67,7 +65,7 @@ const App = () => {
           shadow-bias={-0.001}
           shadow-normalBias={0.1}
         />
-        {runtimeEnvironment.isProductionCabinet ? <CabinetCamera /> : <DefaultCamera />}
+        <CameraDirector />
         <ScreenShakeController />
         <TronGridFloor />
         <PhysicsManager showStats={overlayShown}>
