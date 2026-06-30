@@ -10,6 +10,8 @@ export default [
     "**/coverage/**",
     "**/eslint.config.js",
     "**/*.config.*",
+    "**/public/basis/**",
+    "**/public/draco/**",
     "**/public/config.js",
     "packages/eslint-config/**/*.js",
   ]),

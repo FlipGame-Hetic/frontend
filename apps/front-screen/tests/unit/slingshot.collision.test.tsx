@@ -1,9 +1,12 @@
 import { render } from "@testing-library/react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
+import type { ScreenEvent } from "@frontend/types"
 
 const { handlers, mockBallBody, mockBroadcastEvent, mockSourceBody } = vi.hoisted(() => {
+  const mockBroadcastEvent = vi.fn<(event: ScreenEvent) => void>()
   const mockBallBody = {
     translation: () => ({ x: 1, y: 0, z: 0 }),
+    linvel: () => ({ x: 7, y: 0, z: 0 }),
     mass: () => 2,
     applyImpulse: vi.fn(),
   }
@@ -14,7 +17,7 @@ const { handlers, mockBallBody, mockBroadcastEvent, mockSourceBody } = vi.hoiste
   return {
     handlers: { onCollisionEnter: null as ((payload: unknown) => void) | null },
     mockBallBody,
-    mockBroadcastEvent: vi.fn(),
+    mockBroadcastEvent,
     mockSourceBody,
   }
 })
@@ -83,6 +86,24 @@ describe("Slingshot — handleCollision", () => {
     render(<Slingshot position={[0, 0, 0]} side="left" moduleMesh={{} as never} />)
 
     callCollision()
+
+    const hapticEvent = mockBroadcastEvent.mock.calls[0]?.[0]
+    expect(hapticEvent).toMatchObject({
+      event_type: "BallHit",
+      payload: {
+        hits: [
+          {
+            id: "left_slingshot",
+            type: "slingshot",
+            position: { x: 0, z: 0 },
+          },
+        ],
+      },
+    })
+    if (hapticEvent?.event_type !== "BallHit") {
+      throw new Error("Expected first broadcast to be a BallHit event")
+    }
+    expect(typeof hapticEvent.payload.hits[0]?.force).toBe("number")
 
     expect(mockBroadcastEvent).toHaveBeenCalledWith({
       event_type: "BumperTriangle",

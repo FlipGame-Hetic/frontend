@@ -10,6 +10,7 @@ import type { Group, Mesh } from "three"
 import { createStuckBallTracker } from "../physics/collision/stuckBallTracker"
 import { applyBumperImpulse, shouldSkipBumperHit } from "./bumperCollision"
 import { readBouncerBallCollision } from "../physics/collision/bouncerCollision"
+import { broadcastBouncerHit } from "../physics/collision/bouncerHaptics"
 import {
   BUMPER_SCALE_FACTOR,
   BUMPER_SIZE_ARGS,
@@ -71,6 +72,12 @@ const Bumper = ({
       if (shouldSkipBumperHit(collision.ballBody)) return
 
       const { ballBody, ballId, ballPosition, exitDirection } = collision
+      broadcastBouncerHit({
+        id: meshOverride?.name ?? "bumper",
+        type: "bumper",
+        position,
+        ballBody,
+      })
       if (awardScore) {
         broadcastEvent({ event_type: "Bumper", payload: { ball_id: ballId } })
       }
@@ -100,7 +107,7 @@ const Bumper = ({
 
       stuckTracker.current.arm(ballBody)
     },
-    [awardScore, onBonusHit],
+    [awardScore, meshOverride?.name, onBonusHit, position],
   )
 
   useFrame(() => {
