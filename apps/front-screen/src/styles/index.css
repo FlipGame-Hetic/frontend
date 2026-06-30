@@ -5,9 +5,7 @@
 
 .loading-screen {
   align-items: center;
-  background:
-    radial-gradient(circle at 50% 12%, rgba(0, 240, 255, 0.12), transparent 32%),
-    linear-gradient(180deg, #0d1020 0%, #07080f 56%, #040608 100%);
+  background: #000;
   color: var(--color-arcade-white);
   display: flex;
   font-family: "Rajdhani", sans-serif;

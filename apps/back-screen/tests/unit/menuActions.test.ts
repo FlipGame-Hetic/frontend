@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { MENU_CONTROLS } from "@/components/controls/controlsConfig"
-import { GAME_OVER_INPUT_LOCK_MS } from "@/menu/menuConfig"
+import { GAME_OVER_BUTTON_STALE_MS, GAME_OVER_INPUT_LOCK_MS } from "@/menu/menuConfig"
 import { handleMenuButton, menuBack, menuConfirm } from "@/menu/menuActions"
 import { useBackScreenStore } from "@/stores/useBackScreenStore"
 import { BUTTON_IDS, GAME_PHASE } from "@frontend/types"
@@ -149,6 +149,42 @@ describe("handleMenuButton", () => {
     expect(sendEventToMock).not.toHaveBeenCalled()
 
     handleMenuButton(BUTTON_IDS.flipperRight, 0)
+    handleMenuButton(BUTTON_IDS.flipperRight, 1)
+
+    expect(sendEventToMock).toHaveBeenCalledWith("front_screen", {
+      event_type: "menu_confirm",
+      payload: { context: GAME_PHASE.GameOver },
+    })
+  })
+
+  it("unblocks a game over cabinet button when the release event is missed", () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(1_000)
+    useBackScreenStore.getState().setPhase(GAME_PHASE.GameOver)
+
+    handleMenuButton(BUTTON_IDS.flipperRight, 1)
+    vi.advanceTimersByTime(GAME_OVER_INPUT_LOCK_MS)
+    handleMenuButton(BUTTON_IDS.flipperRight, 1)
+
+    expect(sendEventToMock).not.toHaveBeenCalled()
+
+    vi.advanceTimersByTime(GAME_OVER_BUTTON_STALE_MS)
+    handleMenuButton(BUTTON_IDS.flipperRight, 1)
+
+    expect(sendEventToMock).toHaveBeenCalledWith("front_screen", {
+      event_type: "menu_confirm",
+      payload: { context: GAME_PHASE.GameOver },
+    })
+  })
+
+  it("unblocks a button already held before game over when the release event is missed", () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(1_000)
+    useBackScreenStore.setState({ phase: GAME_PHASE.Playing })
+
+    handleMenuButton(BUTTON_IDS.flipperRight, 1)
+    useBackScreenStore.getState().setPhase(GAME_PHASE.GameOver)
+    vi.advanceTimersByTime(GAME_OVER_BUTTON_STALE_MS)
     handleMenuButton(BUTTON_IDS.flipperRight, 1)
 
     expect(sendEventToMock).toHaveBeenCalledWith("front_screen", {

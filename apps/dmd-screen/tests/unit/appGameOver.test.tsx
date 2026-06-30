@@ -1,10 +1,12 @@
 import { cleanup, render, act } from "@testing-library/react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import type { ScreenEnvelope } from "@frontend/types"
+import { useDebugOverlayStore } from "@frontend/ui"
 import App from "@/App"
 
-const { dmdCanvasMock, useScreenHubMock } = vi.hoisted(() => ({
+const { dmdCanvasMock, levaMock, useScreenHubMock } = vi.hoisted(() => ({
   dmdCanvasMock: vi.fn(),
+  levaMock: vi.fn(),
   useScreenHubMock: vi.fn(),
 }))
 
@@ -22,7 +24,10 @@ vi.mock("@/dmd/DmdCanvas", () => ({
 }))
 
 vi.mock("leva", () => ({
-  Leva: () => null,
+  Leva: (props: unknown) => {
+    levaMock(props)
+    return null
+  },
   useControls: () => ({
     scene: null,
     cols: 128,
@@ -46,12 +51,6 @@ vi.mock("@/dmd/useDmdDevControls", () => ({
   }),
 }))
 
-vi.mock("@frontend/ui", async (importOriginal) => {
-  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-  const original = await importOriginal<typeof import("@frontend/ui")>()
-  return { ...original, useDebugOverlayShown: () => false }
-})
-
 const lastScreenHubOptions = (): { onEvent?: (envelope: ScreenEnvelope) => void } => {
   return useScreenHubMock.mock.calls.at(-1)?.[0] as {
     onEvent?: (envelope: ScreenEnvelope) => void
@@ -65,11 +64,16 @@ const lastCanvasSceneName = (): string | undefined => {
   return props?.scene?.constructor?.name
 }
 
+const lastLevaProps = (): { hidden?: boolean } | undefined =>
+  levaMock.mock.calls.at(-1)?.[0] as { hidden?: boolean } | undefined
+
 describe("dmd-screen App game over events", () => {
   beforeEach(() => {
     cleanup()
     dmdCanvasMock.mockClear()
+    levaMock.mockClear()
     useScreenHubMock.mockClear()
+    useDebugOverlayStore.setState({ visible: false })
     useScreenHubMock.mockReturnValue({
       status: "connected",
       send: vi.fn(),
@@ -91,5 +95,17 @@ describe("dmd-screen App game over events", () => {
     })
 
     expect(lastCanvasSceneName()).toBe("GameOverScene")
+  })
+
+  it("keeps Leva hidden until the debug overlay is toggled", () => {
+    render(<App />)
+
+    expect(lastLevaProps()?.hidden).toBe(true)
+
+    act(() => {
+      useDebugOverlayStore.getState().toggle()
+    })
+
+    expect(lastLevaProps()?.hidden).toBe(false)
   })
 })

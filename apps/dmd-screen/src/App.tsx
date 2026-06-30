@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useScreenHub, registerScreenSender, sendEventTo } from "@frontend/ws"
 import { readScreenToken } from "@frontend/utils"
-import { ConnectionOverlay, useDebugOverlayShown } from "@frontend/ui"
+import { ConnectionOverlay, useDebugOverlayStore } from "@frontend/ui"
 import { GAME_PHASE } from "@frontend/types"
 import type { ScreenEnvelope, GamePhase } from "@frontend/types"
 import { Leva } from "leva"
@@ -24,7 +24,7 @@ const CHARACTER_BLINK_MS = 500
 
 function App() {
   const { config, devPhase } = useDmdDevControls()
-  const overlayShown = useDebugOverlayShown()
+  const overlayShown = useDebugOverlayStore((state) => state.visible)
   const [phase, setPhase] = useState<GamePhase>(GAME_PHASE.Idle)
   const [comboActive, setComboActive] = useState(false)
   const comboTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
