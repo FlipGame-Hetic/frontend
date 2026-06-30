@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef } from "react"
 import type { DmdConfig } from "./config"
 import type { Scene } from "./types"
-import { clearBuffer, createBuffer, drawActiveDotsToCanvas, drawDotGridToCanvas } from "./buffer"
+import { clearBuffer, createBuffer } from "./buffer"
+import { drawActiveDotsToCanvas, drawDotGridToCanvas } from "./renderer"
 import { useAnimationFrame } from "./useAnimationFrame"
 
 const DMD_TARGET_FPS = 30

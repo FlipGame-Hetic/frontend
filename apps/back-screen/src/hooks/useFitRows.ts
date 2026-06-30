@@ -39,7 +39,9 @@ export function useFitRows(
     measure()
     const observer = new ResizeObserver(measure)
     observer.observe(container)
-    return () => { observer.disconnect(); }
+    return () => {
+      observer.disconnect()
+    }
   }, [containerRef, hardMax, rowSelector, listSelector])
 
   return fitCount

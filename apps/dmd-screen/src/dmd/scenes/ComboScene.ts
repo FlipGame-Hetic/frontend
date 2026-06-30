@@ -1,12 +1,10 @@
 import type { ComboDirection } from "@frontend/types"
 import type { RenderContext, Scene } from "../types"
 import { setPixel } from "../buffer"
-import { drawStringScaled, measureStringScaled } from "../font"
-
-const COMBO_SCALE = 3
-const COMBO_SPACING = 2
-const ARROW_W = 5
-const ARROW_GAP = 2
+import { drawStringScaledCentered } from "../font"
+import { blink } from "../anim"
+import { drawCorners } from "../frame"
+import { COMBO_SCALE, COMBO_SPACING, ARROW_W, ARROW_GAP } from "./comboSceneConfig"
 
 function drawLeftArrow(buffer: Float32Array, cols: number, x: number, y: number): void {
   setPixel(buffer, cols, x + 2, y, 1.0)
@@ -42,16 +40,11 @@ export class ComboScene implements Scene {
   render(ctx: RenderContext): void {
     const { buffer, cols, rows, elapsedMs } = ctx
 
-    const blink = Math.floor(elapsedMs / 350) % 2 === 0
-
-    const comboText = "COMBO"
-    const comboW = measureStringScaled(comboText, COMBO_SCALE, COMBO_SPACING)
-    const comboX = Math.floor((cols - comboW) / 2)
     const contentH = COMBO_SCALE * 7 + 6 + 5
     const comboY = Math.floor((rows - contentH) / 2)
 
-    if (blink) {
-      drawStringScaled(buffer, cols, comboText, comboX, comboY, COMBO_SCALE, COMBO_SPACING, 1.0)
+    if (blink(elapsedMs, 350)) {
+      drawStringScaledCentered(buffer, cols, "COMBO", comboY, COMBO_SCALE, COMBO_SPACING, 1.0)
     }
 
     if (this.sequence) {
@@ -70,11 +63,6 @@ export class ComboScene implements Scene {
       }
     }
 
-    for (let i = 0; i < 3; i++) {
-      setPixel(buffer, cols, i, 0, 0.3)
-      setPixel(buffer, cols, cols - 1 - i, 0, 0.3)
-      setPixel(buffer, cols, i, rows - 1, 0.3)
-      setPixel(buffer, cols, cols - 1 - i, rows - 1, 0.3)
-    }
+    drawCorners(buffer, cols, rows)
   }
 }
