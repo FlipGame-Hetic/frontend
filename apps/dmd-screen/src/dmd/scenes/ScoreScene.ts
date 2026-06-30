@@ -6,16 +6,17 @@ import { drawHearts } from "../icons"
 import { drawCorners } from "../frame"
 import { MAX_BALLS, heartsWidth } from "../constants"
 import { padScore } from "@frontend/utils"
-
-const BAR_WIDTH = 60
-const BAR_Y = 14
-const MULT_Y = 4
-const SCORE_Y_RATIO = 0.38
-const SCORE_SCALE = 2
-const SCORE_SPACING = 2
-const JITTER_THRESHOLD = 2.0
-const JITTER_MAX_INTENSITY = 2
-const HEARTS_MARGIN = 4
+import {
+  BAR_WIDTH,
+  BAR_Y,
+  MULT_Y,
+  SCORE_Y_RATIO,
+  SCORE_SCALE,
+  SCORE_SPACING,
+  JITTER_THRESHOLD,
+  JITTER_MAX_INTENSITY,
+  HEARTS_MARGIN,
+} from "./scoreSceneConfig"
 
 export interface ScoreData {
   score: number

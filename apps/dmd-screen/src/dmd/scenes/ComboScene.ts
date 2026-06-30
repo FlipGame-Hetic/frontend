@@ -4,11 +4,7 @@ import { setPixel } from "../buffer"
 import { drawStringScaledCentered } from "../font"
 import { blink } from "../anim"
 import { drawCorners } from "../frame"
-
-const COMBO_SCALE = 3
-const COMBO_SPACING = 2
-const ARROW_W = 5
-const ARROW_GAP = 2
+import { COMBO_SCALE, COMBO_SPACING, ARROW_W, ARROW_GAP } from "./comboSceneConfig"
 
 function drawLeftArrow(buffer: Float32Array, cols: number, x: number, y: number): void {
   setPixel(buffer, cols, x + 2, y, 1.0)

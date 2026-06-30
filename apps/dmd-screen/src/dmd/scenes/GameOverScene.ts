@@ -3,9 +3,7 @@ import { drawStringCentered, drawStringScaledCentered } from "../font"
 import { blink } from "../anim"
 import { drawCorners } from "../frame"
 import { padScore } from "@frontend/utils"
-
-const SCORE_SCALE = 2
-const SCORE_SPACING = 2
+import { SCORE_SCALE, SCORE_SPACING } from "./gameOverSceneConfig"
 
 export class GameOverScene implements Scene {
   private score = 0

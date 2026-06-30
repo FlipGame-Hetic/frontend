@@ -1,11 +1,7 @@
 import type { RenderContext, Scene } from "../types"
 import { drawStringCentered } from "../font"
 import { blink } from "../anim"
-
-const TITLE_Y_RATIO = 0.15
-const VALUE_Y_RATIO = 0.55
-const HINT = "< SELECT >"
-const HINT_BRIGHTNESS = 0.4
+import { TITLE_Y_RATIO, VALUE_Y_RATIO, HINT, HINT_BRIGHTNESS } from "./selectSceneConfig"
 
 /**
  * Generic "choose one thing" menu screen. Shows a title, the currently-selected
