@@ -8,7 +8,7 @@
 export type ColorInput = string | [number, number, number] | number
 
 /** Bit 24: set when a cell holds an explicit color (distinguishes unset from black). */
-export const SET_FLAG = 0x1000000
+const SET_FLAG = 0x1000000
 
 const RGB_MASK = 0xffffff
 

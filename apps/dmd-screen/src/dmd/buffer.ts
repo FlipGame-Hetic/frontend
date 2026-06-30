@@ -2,11 +2,11 @@ import type { ColorBuffer, DotBuffer, DotSurface } from "./types"
 import type { ColorInput } from "./palette"
 import { resolveColor } from "./palette"
 
-export function createBuffer(cols: number, rows: number): DotBuffer {
+function createBuffer(cols: number, rows: number): DotBuffer {
   return new Float32Array(cols * rows)
 }
 
-export function createColorBuffer(cols: number, rows: number): ColorBuffer {
+function createColorBuffer(cols: number, rows: number): ColorBuffer {
   return new Uint32Array(cols * rows)
 }
 
