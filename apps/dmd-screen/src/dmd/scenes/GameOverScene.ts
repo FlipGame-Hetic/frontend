@@ -12,21 +12,15 @@ export class GameOverScene implements Scene {
     this.score = score
   }
 
-  render({ buffer, cols, rows, elapsedMs }: RenderContext): void {
+  render(ctx: RenderContext): void {
+    const { rows, elapsedMs } = ctx
     if (blink(elapsedMs, 500)) {
-      drawStringCentered(buffer, cols, "GAME OVER", Math.floor(rows * 0.1))
+      drawStringCentered(ctx, "GAME OVER", Math.floor(rows * 0.1))
     }
 
     const scoreText = padScore(this.score)
-    drawStringScaledCentered(
-      buffer,
-      cols,
-      scoreText,
-      Math.floor(rows * 0.4),
-      SCORE_SCALE,
-      SCORE_SPACING,
-    )
+    drawStringScaledCentered(ctx, scoreText, Math.floor(rows * 0.4), SCORE_SCALE, SCORE_SPACING)
 
-    drawCorners(buffer, cols, rows)
+    drawCorners(ctx)
   }
 }

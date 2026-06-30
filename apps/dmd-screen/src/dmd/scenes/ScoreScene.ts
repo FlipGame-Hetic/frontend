@@ -50,7 +50,7 @@ export class ScoreScene implements Scene {
   }
 
   render(ctx: RenderContext): void {
-    const { buffer, cols, rows, elapsedMs } = ctx
+    const { cols, rows, elapsedMs } = ctx
     const { score, player, multiplier, multiplierStartedAt, multiplierDurationMs } = this.data
 
     const now = performance.now()
@@ -77,31 +77,31 @@ export class ScoreScene implements Scene {
         multY += jy
       }
 
-      drawString(buffer, cols, multText, multX, multY, 1, 1.0)
+      drawString(ctx, multText, multX, multY, 1, 1.0)
 
       const barFill = Math.max(0, remaining / multiplierDurationMs)
       const barFilledPx = Math.round(barFill * BAR_WIDTH)
       const barX = Math.floor((cols - BAR_WIDTH) / 2)
       for (let i = 0; i < BAR_WIDTH; i++) {
         const brightness = i < barFilledPx ? 0.9 : 0.12
-        setPixel(buffer, cols, barX + i, BAR_Y, brightness)
-        setPixel(buffer, cols, barX + i, BAR_Y + 1, brightness)
+        setPixel(ctx, barX + i, BAR_Y, brightness)
+        setPixel(ctx, barX + i, BAR_Y + 1, brightness)
       }
     }
 
     const scoreText = padScore(score)
     const scoreY = Math.floor(rows * SCORE_Y_RATIO)
-    drawStringScaledCentered(buffer, cols, scoreText, scoreY, SCORE_SCALE, SCORE_SPACING)
+    drawStringScaledCentered(ctx, scoreText, scoreY, SCORE_SCALE, SCORE_SPACING)
 
     const { lives, maxLives } = this.data
     const playerText = "PLAYER " + String(player)
     const playerX = Math.floor(cols * 0.1)
     const infoY = rows - 9
-    drawString(buffer, cols, playerText, playerX, infoY)
+    drawString(ctx, playerText, playerX, infoY)
 
     const hx = cols - HEARTS_MARGIN - heartsWidth(maxLives)
-    drawHearts(buffer, cols, hx, infoY, lives, maxLives)
+    drawHearts(ctx, hx, infoY, lives, maxLives)
 
-    drawCorners(buffer, cols, rows)
+    drawCorners(ctx)
   }
 }

@@ -1,4 +1,5 @@
-import type { DotBuffer } from "./types"
+import type { DotSurface } from "./types"
+import type { ColorInput } from "./palette"
 import { setPixel } from "./buffer"
 
 const CHAR_WIDTH = 5
@@ -58,12 +59,12 @@ const FONT_5x7: Record<string, number[]> = {
 }
 
 function drawChar(
-  buffer: DotBuffer,
-  cols: number,
+  s: DotSurface,
   char: string,
   x: number,
   y: number,
   brightness = 1.0,
+  color?: ColorInput,
 ): void {
   const data = FONT_5x7[char.toUpperCase()]
   if (!data) return
@@ -72,20 +73,20 @@ function drawChar(
     const bits = data[row] ?? 0
     for (let col = 0; col < CHAR_WIDTH; col++) {
       if (bits & (1 << (CHAR_WIDTH - 1 - col))) {
-        setPixel(buffer, cols, x + col, y + row, brightness)
+        setPixel(s, x + col, y + row, brightness, color)
       }
     }
   }
 }
 
 function drawCharScaled(
-  buffer: DotBuffer,
-  cols: number,
+  s: DotSurface,
   char: string,
   x: number,
   y: number,
   scale: number,
   brightness = 1.0,
+  color?: ColorInput,
 ): void {
   const data = FONT_5x7[char.toUpperCase()]
   if (!data) return
@@ -96,7 +97,7 @@ function drawCharScaled(
       if (bits & (1 << (CHAR_WIDTH - 1 - col))) {
         for (let dy = 0; dy < scale; dy++) {
           for (let dx = 0; dx < scale; dx++) {
-            setPixel(buffer, cols, x + col * scale + dx, y + row * scale + dy, brightness)
+            setPixel(s, x + col * scale + dx, y + row * scale + dy, brightness, color)
           }
         }
       }
@@ -105,18 +106,18 @@ function drawCharScaled(
 }
 
 function drawStringScaled(
-  buffer: DotBuffer,
-  cols: number,
+  s: DotSurface,
   text: string,
   x: number,
   y: number,
   scale: number,
   spacing = 1,
   brightness = 1.0,
+  color?: ColorInput,
 ): void {
   let cursorX = x
   for (const char of text) {
-    drawCharScaled(buffer, cols, char, cursorX, y, scale, brightness)
+    drawCharScaled(s, char, cursorX, y, scale, brightness, color)
     cursorX += CHAR_WIDTH * scale + spacing
   }
 }
@@ -126,33 +127,33 @@ function measureStringScaled(text: string, scale: number, spacing = 1): number {
   return text.length * CHAR_WIDTH * scale + (text.length - 1) * spacing
 }
 
-/** Draws `text` horizontally centered within `cols` at row `y`. */
+/** Draws `text` horizontally centered within the surface at row `y`. */
 export function drawStringScaledCentered(
-  buffer: DotBuffer,
-  cols: number,
+  s: DotSurface,
   text: string,
   y: number,
   scale: number,
   spacing = 1,
   brightness = 1.0,
+  color?: ColorInput,
 ): void {
   const width = measureStringScaled(text, scale, spacing)
-  const x = Math.floor((cols - width) / 2)
-  drawStringScaled(buffer, cols, text, x, y, scale, spacing, brightness)
+  const x = Math.floor((s.cols - width) / 2)
+  drawStringScaled(s, text, x, y, scale, spacing, brightness, color)
 }
 
 export function drawString(
-  buffer: DotBuffer,
-  cols: number,
+  s: DotSurface,
   text: string,
   x: number,
   y: number,
   spacing = 1,
   brightness = 1.0,
+  color?: ColorInput,
 ): void {
   let cursorX = x
   for (const char of text) {
-    drawChar(buffer, cols, char, cursorX, y, brightness)
+    drawChar(s, char, cursorX, y, brightness, color)
     cursorX += CHAR_WIDTH + spacing
   }
 }
@@ -162,16 +163,16 @@ export function measureString(text: string, spacing = 1): number {
   return text.length * CHAR_WIDTH + (text.length - 1) * spacing
 }
 
-/** Draws `text` horizontally centered within `cols` at row `y`. */
+/** Draws `text` horizontally centered within the surface at row `y`. */
 export function drawStringCentered(
-  buffer: DotBuffer,
-  cols: number,
+  s: DotSurface,
   text: string,
   y: number,
   spacing = 1,
   brightness = 1.0,
+  color?: ColorInput,
 ): void {
   const width = measureString(text, spacing)
-  const x = Math.floor((cols - width) / 2)
-  drawString(buffer, cols, text, x, y, spacing, brightness)
+  const x = Math.floor((s.cols - width) / 2)
+  drawString(s, text, x, y, spacing, brightness, color)
 }

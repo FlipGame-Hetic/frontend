@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from "react"
 import type { DmdConfig } from "./config"
 import type { Scene } from "./types"
-import { clearBuffer, createBuffer } from "./buffer"
+import { clearBuffer, clearColor, createSurface } from "./buffer"
 import { drawActiveDotsToCanvas, drawDotGridToCanvas } from "./renderer"
 import { useAnimationFrame } from "./useAnimationFrame"
 
@@ -16,7 +16,7 @@ export function DmdCanvas({ config, scene }: DmdCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null)
   const sizeRef = useRef({ width: 0, height: 0, dpr: 1 })
-  const bufferRef = useRef(createBuffer(config.cols, config.rows))
+  const surfaceRef = useRef(createSurface(config.cols, config.rows))
   const sceneRef = useRef(scene)
   const gridCanvasRef = useRef<HTMLCanvasElement | null>(null)
   const gridCacheKeyRef = useRef("")
@@ -26,9 +26,9 @@ export function DmdCanvas({ config, scene }: DmdCanvasProps) {
     sceneRef.current = scene
   })
 
-  // Recreate buffer when grid size changes
+  // Recreate surface when grid size changes
   useEffect(() => {
-    bufferRef.current = createBuffer(config.cols, config.rows)
+    surfaceRef.current = createSurface(config.cols, config.rows)
   }, [config.cols, config.rows])
 
   // Handle canvas sizing with ResizeObserver + HiDPI
@@ -104,13 +104,12 @@ export function DmdCanvas({ config, scene }: DmdCanvasProps) {
       const { width, height } = sizeRef.current
       if (width === 0 || height === 0) return
 
-      const buffer = bufferRef.current
-      clearBuffer(buffer)
+      const surface = surfaceRef.current
+      clearBuffer(surface.buffer)
+      clearColor(surface.color)
 
       sceneRef.current.render({
-        buffer,
-        cols: config.cols,
-        rows: config.rows,
+        ...surface,
         deltaMs,
         elapsedMs,
       })
@@ -121,7 +120,7 @@ export function DmdCanvas({ config, scene }: DmdCanvasProps) {
       } else {
         drawDotGridToCanvas(ctx, config, width, height)
       }
-      drawActiveDotsToCanvas(ctx, buffer, config, width, height)
+      drawActiveDotsToCanvas(ctx, surface, config, width, height)
     },
     [config, getGridCanvas],
   )

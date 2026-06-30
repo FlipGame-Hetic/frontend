@@ -1,4 +1,5 @@
-import type { DotBuffer } from "./types"
+import type { DotSurface } from "./types"
+import type { ColorInput } from "./palette"
 import { setPixel } from "./buffer"
 import { HEART_SPACING } from "./constants"
 
@@ -6,17 +7,17 @@ import { HEART_SPACING } from "./constants"
 const HEART_BITMAP = [0b01010, 0b11111, 0b11111, 0b01110, 0b00100]
 
 export function drawHeart(
-  buffer: DotBuffer,
-  cols: number,
+  s: DotSurface,
   x: number,
   y: number,
   brightness: number,
+  color?: ColorInput,
 ): void {
   for (let row = 0; row < HEART_BITMAP.length; row++) {
     const bits = HEART_BITMAP[row] ?? 0
     for (let col = 0; col < 5; col++) {
       if (bits & (1 << (4 - col))) {
-        setPixel(buffer, cols, x + col, y + row, brightness)
+        setPixel(s, x + col, y + row, brightness, color)
       }
     }
   }
@@ -24,16 +25,16 @@ export function drawHeart(
 
 // Draw maxCount hearts: first filledCount at `brightness`, rest at `dimBrightness`
 export function drawHearts(
-  buffer: DotBuffer,
-  cols: number,
+  s: DotSurface,
   x: number,
   y: number,
   filledCount: number,
   maxCount: number,
   brightness = 1.0,
   dimBrightness = 0.15,
+  color?: ColorInput,
 ): void {
   for (let i = 0; i < maxCount; i++) {
-    drawHeart(buffer, cols, x + i * HEART_SPACING, y, i < filledCount ? brightness : dimBrightness)
+    drawHeart(s, x + i * HEART_SPACING, y, i < filledCount ? brightness : dimBrightness, color)
   }
 }

@@ -20,13 +20,14 @@ export class SelectScene implements Scene {
     this.value = value.toUpperCase()
   }
 
-  render({ buffer, cols, rows, elapsedMs }: RenderContext): void {
-    drawStringCentered(buffer, cols, this.title, Math.floor(rows * TITLE_Y_RATIO))
+  render(ctx: RenderContext): void {
+    const { rows, elapsedMs } = ctx
+    drawStringCentered(ctx, this.title, Math.floor(rows * TITLE_Y_RATIO))
 
     if (this.value && blink(elapsedMs, this.blinkPeriodMs)) {
-      drawStringCentered(buffer, cols, this.value, Math.floor(rows * VALUE_Y_RATIO))
+      drawStringCentered(ctx, this.value, Math.floor(rows * VALUE_Y_RATIO))
     }
 
-    drawStringCentered(buffer, cols, HINT, rows - 10, 1, HINT_BRIGHTNESS)
+    drawStringCentered(ctx, HINT, rows - 10, 1, HINT_BRIGHTNESS)
   }
 }
