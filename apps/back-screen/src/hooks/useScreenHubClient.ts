@@ -24,7 +24,7 @@ export function useScreenHubClient(): ConnectionStatus {
     token: TOKEN,
     onEvent: (envelope: ScreenEnvelope) => {
       if (isScreenEvent(envelope, "MenuButton")) {
-        if (envelope.payload.state > 0) handleMenuButton(envelope.payload.id)
+        handleMenuButton(envelope.payload.id, envelope.payload.state)
         return
       }
       if (isScreenEvent(envelope, "phase_change")) {
