@@ -56,6 +56,20 @@ export const BALL_SAVER_STATUS_TEXT_CONFIG = {
   },
 } as const satisfies Record<BallSaverSide, BallSaverStatusTextConfig>
 
+// Holographic look for the raised saver mesh : white rim, pink scrolling scan lines, semi-opaque volume
+export const BALL_SAVER_HOLO_FILL_COLOR = "#a81459"
+export const BALL_SAVER_HOLO_RIM_COLOR = "#ffffff"
+// Pushes rim and fill past 1.0 so the global bloom (luminanceThreshold 1.0) lights them up, kept low so faces don't wash out
+export const BALL_SAVER_HOLO_HDR_FACTOR = 1.5
+// Alpha at the center of the volume, the fresnel rim ramps it up toward 1 on the edges
+export const BALL_SAVER_HOLO_BASE_ALPHA = 0.55
+// How many scan lines per world unit on Y
+export const BALL_SAVER_HOLO_LINE_DENSITY = 45
+// World units per second the scan lines scroll upward
+export const BALL_SAVER_HOLO_SCROLL_SPEED = 0.6
+// How strongly the white fresnel edge is added on top of the pink fill
+export const BALL_SAVER_HOLO_RIM_STRENGTH = 0.5
+
 export const BALL_SAVER_POST_EXIT_DELAY_MS = 250
 export const BALL_SAVER_MIN_CONTACT_DURATION_MS = 40
 export const BALL_SAVER_COOLDOWN_MS = 5000
