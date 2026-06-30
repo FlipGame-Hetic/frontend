@@ -4,8 +4,9 @@ import { playNavigationBackward, playNavigationForward } from "@/audio/menuSound
 import { playCreditsMusic, stopCreditsMusic } from "@/audio/creditsMusic"
 import { useBackScreenStore } from "@/stores/useBackScreenStore"
 import { MODE_OPTIONS, CHARACTER_OPTIONS } from "@/scenes/scene.types"
+import { GAME_OVER_BUTTON_STALE_MS } from "./menuConfig"
 
-const gameOverButtonsBlockedUntilRelease = new Set<ButtonId>()
+const gameOverButtonsBlockedAt = new Map<ButtonId, number>()
 const pressedMenuButtons = new Set<ButtonId>()
 const gameOverSceneChangeButtons = new Set<ButtonId>([
   BUTTON_IDS.flipperLeft,
@@ -13,23 +14,53 @@ const gameOverSceneChangeButtons = new Set<ButtonId>([
   BUTTON_IDS.start,
 ])
 
-function isGameOverInputLocked(): boolean {
+useBackScreenStore.subscribe((state, prev) => {
+  if (state.phase === GAME_PHASE.GameOver && prev.phase !== GAME_PHASE.GameOver) {
+    const now = Date.now()
+    gameOverSceneChangeButtons.forEach((id) => {
+      if (pressedMenuButtons.has(id) && !gameOverButtonsBlockedAt.has(id)) {
+        gameOverButtonsBlockedAt.set(id, now)
+      }
+    })
+    return
+  }
+
+  if (prev.phase === GAME_PHASE.GameOver && state.phase !== GAME_PHASE.GameOver) {
+    gameOverButtonsBlockedAt.clear()
+  }
+})
+
+function isGameOverInputLocked(now = Date.now()): boolean {
   const { phase, gameOverInputUnlockAt } = useBackScreenStore.getState()
-  return phase === GAME_PHASE.GameOver && Date.now() < gameOverInputUnlockAt
+  return phase === GAME_PHASE.GameOver && now < gameOverInputUnlockAt
 }
 
-function shouldIgnoreGameOverButtonInput(id: ButtonId, wasPressed: boolean): boolean {
+function shouldIgnoreGameOverButtonInput(
+  id: ButtonId,
+  wasPressed: boolean,
+  now = Date.now(),
+): boolean {
   if (!gameOverSceneChangeButtons.has(id)) return false
 
   const { phase } = useBackScreenStore.getState()
   if (phase !== GAME_PHASE.GameOver) return false
 
-  if (isGameOverInputLocked() || wasPressed) {
-    gameOverButtonsBlockedUntilRelease.add(id)
+  const blockedAt = gameOverButtonsBlockedAt.get(id)
+  const locked = isGameOverInputLocked(now)
+
+  // Cabinet release events can be lost around scene changes; do not leave restart/back locked forever.
+  if (blockedAt !== undefined && !locked && now - blockedAt >= GAME_OVER_BUTTON_STALE_MS) {
+    gameOverButtonsBlockedAt.delete(id)
+    pressedMenuButtons.delete(id)
+    return false
+  }
+
+  if (locked || wasPressed) {
+    if (blockedAt === undefined) gameOverButtonsBlockedAt.set(id, now)
     return true
   }
 
-  return gameOverButtonsBlockedUntilRelease.has(id)
+  return blockedAt !== undefined
 }
 
 function skipLocked(options: { locked?: boolean }[], from: number, dir: 1 | -1): number {
@@ -159,15 +190,20 @@ const menuButtonHandlers: Record<ButtonId, () => void> = {
 }
 
 export function handleMenuButton(id: ButtonId, state = 1): void {
+  const now = Date.now()
   const wasPressed = pressedMenuButtons.has(id)
 
   if (state <= 0) {
     pressedMenuButtons.delete(id)
-    gameOverButtonsBlockedUntilRelease.delete(id)
+    gameOverButtonsBlockedAt.delete(id)
+    return
+  }
+
+  if (shouldIgnoreGameOverButtonInput(id, wasPressed, now)) {
+    pressedMenuButtons.add(id)
     return
   }
 
   pressedMenuButtons.add(id)
-  if (shouldIgnoreGameOverButtonInput(id, wasPressed)) return
   menuButtonHandlers[id]()
 }

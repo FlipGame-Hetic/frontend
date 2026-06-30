@@ -6,10 +6,10 @@ export const DEFAULT_CAMERA: { position: Vector3Tuple; fov: number } = {
 }
 
 export const CABINET_CAMERA = {
-  fov: 38,
+  fov: 36,
   posX: 0,
   posY: 18.3,
-  posZ: 13.6,
+  posZ: 13.7,
   rotX: -52,
   rotY: 0,
   rotZ: 0,
