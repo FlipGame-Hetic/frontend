@@ -11,7 +11,7 @@ const clamp01 = (value: number): number => {
   return Math.min(Math.max(value, 0), 1)
 }
 
-export const normalizeBouncerHitForce = (
+const normalizeBouncerHitForce = (
   velocity: { x: number; y: number; z: number },
   maxSpeed = HAPTIC_MAX_BALL_SPEED,
 ): number => {

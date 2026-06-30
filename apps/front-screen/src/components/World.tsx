@@ -1,6 +1,6 @@
 import { Canvas } from "@react-three/fiber"
 import type { ReactNode } from "react"
-import { DEFAULT_CAMERA } from "./cameraConfig"
+import { DEFAULT_CAMERA } from "./camera/cameraConfig"
 import NightCityEnvironment from "./environment/NightCityEnvironment"
 import LoadingScreen from "./loading/LoadingScreen"
 import PostProcessing from "./postprocessing/PostProcessing"

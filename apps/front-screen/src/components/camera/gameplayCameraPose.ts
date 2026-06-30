@@ -1,23 +1,5 @@
-import { Euler, Object3D, Quaternion, Vector3, type Vector3Tuple } from "three"
-
-export const DEFAULT_CAMERA: { position: Vector3Tuple; fov: number } = {
-  position: [0, 13, 15],
-  fov: 35,
-}
-
-export const CABINET_CAMERA = {
-  fov: 38,
-  posX: 0,
-  posY: 18.3,
-  posZ: 13.6,
-  rotX: -52,
-  rotY: 0,
-  rotZ: 0,
-}
-
-export const DEMO_IDLE_DELAY_SECONDS = 8
-export const DEMO_TRANSITION_DURATION_SECONDS = 1.5
-export const CAMERA_DIRECTOR_FRAME_PRIORITY = -10
+import { Euler, Object3D, Quaternion, Vector3 } from "three"
+import { DEFAULT_CAMERA } from "./cameraConfig"
 
 export interface CameraPose {
   position: Vector3

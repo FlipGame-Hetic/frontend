@@ -19,10 +19,11 @@ type MenuContext = Exclude<GamePhase, typeof GAME_PHASE.Playing | typeof GAME_PH
 export type GameMode = "solo" | "duo" | "boss"
 
 export type ComboDirection = "L" | "R"
-export type PlungerChargeSource = "under_plunger" | "plunger"
 export type BallHitType = "bumper" | "rail" | "slingshot" | "drain" | "target" | "spinner"
 
-export interface BallHitPayload {
+type PlungerChargeSource = "under_plunger" | "plunger"
+
+interface BallHitPayload {
   hits: {
     id: string
     type: BallHitType
