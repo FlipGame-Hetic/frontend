@@ -1,14 +1,14 @@
-import { Canvas, type CameraProps } from "@react-three/fiber"
+import { Canvas } from "@react-three/fiber"
 import type { ReactNode } from "react"
+import { DEFAULT_CAMERA } from "./cameraConfig"
 import NightCityEnvironment from "./environment/NightCityEnvironment"
 import PostProcessing from "./postprocessing/PostProcessing"
 
 interface WorldProps {
-  cameraSettings: CameraProps
   children: ReactNode
 }
 
-const World = ({ cameraSettings, children }: WorldProps) => {
+const World = ({ children }: WorldProps) => {
   return (
     <div className="h-dvh w-full">
       <Canvas
@@ -16,7 +16,7 @@ const World = ({ cameraSettings, children }: WorldProps) => {
         dpr={[1, 2]}
         gl={{ powerPreference: "high-performance" }}
         shadows="percentage"
-        camera={cameraSettings}
+        camera={DEFAULT_CAMERA}
         onCreated={({ gl }) => {
           // Enables material.clippingPlanes so the multiball gate can trim the parts of its meshes that overflow its frame
           gl.localClippingEnabled = true

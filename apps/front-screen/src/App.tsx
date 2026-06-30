@@ -1,7 +1,6 @@
 import DebugProvider from "@/debug/DebugProvider"
 import { ConnectionOverlay, useDebugOverlayShown } from "@frontend/ui"
 import { runtimeEnvironment } from "@frontend/utils"
-import type { CameraProps } from "@react-three/fiber"
 import { Leva } from "leva"
 import { Suspense, useEffect } from "react"
 import BallsManager from "./components/balls/BallsManager"
@@ -42,8 +41,6 @@ const App = () => {
     void useCharactersStore.getState().load()
   }, [])
 
-  const cameraSettings = { position: [0, 13, 15] as [number, number, number], fov: 35 }
-
   return (
     <DebugProvider>
       <SoundManager />
@@ -52,7 +49,7 @@ const App = () => {
         titleBar={{ title: "Tweaks GUI" }}
         theme={{ sizes: { rootWidth: "350px" } }}
       />
-      <World cameraSettings={cameraSettings as CameraProps}>
+      <World>
         <SceneAmbientLight />
         <directionalLight
           position={[0, 13, 12]}
@@ -68,11 +65,7 @@ const App = () => {
           shadow-bias={-0.001}
           shadow-normalBias={0.1}
         />
-        {runtimeEnvironment.isProductionCabinet ? (
-          <CabinetCamera />
-        ) : (
-          <DefaultCamera cameraPosition={cameraSettings.position} cameraFov={cameraSettings.fov} />
-        )}
+        {runtimeEnvironment.isProductionCabinet ? <CabinetCamera /> : <DefaultCamera />}
         <ScreenShakeController />
         <TronGridFloor />
         <PhysicsManager showStats={overlayShown}>
