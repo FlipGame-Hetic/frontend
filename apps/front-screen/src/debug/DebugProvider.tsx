@@ -1,5 +1,6 @@
 import { button, useControls } from "leva"
 import { useEffect, useRef, type ReactNode } from "react"
+import { useDebugOverlayShown } from "@frontend/ui"
 import { runtimeEnvironment } from "@frontend/utils"
 import { requestFrontScreenStartGame } from "@/hooks/useScreenHub"
 import useMultiballStore from "@/stores/useMultiballStore"
@@ -17,8 +18,10 @@ import {
 } from "@/components/bonusZone/bonusZoneConfig"
 import { DebugContext, type DebugControls } from "@/debug/debugContext"
 import { getDebugBallId } from "@/debug/getDebugBallId"
+import BackendAdminControls from "./BackendAdminControls"
 
 const DebugProvider = ({ children }: { children: ReactNode }) => {
+  const debugOverlayShown = useDebugOverlayShown()
   // Uses the live tweak slider with a Ref so the 'Trigger Mutiball' button reads the current count after changing it via Leva
   const ballCountRef = useRef(MULTIBALL_BALL_COUNT)
 
@@ -79,7 +82,12 @@ const DebugProvider = ({ children }: { children: ReactNode }) => {
 
   const value: DebugControls = { ...mainControls, ...multiballControls }
 
-  return <DebugContext.Provider value={value}>{children}</DebugContext.Provider>
+  return (
+    <>
+      {debugOverlayShown ? <BackendAdminControls /> : null}
+      <DebugContext.Provider value={value}>{children}</DebugContext.Provider>
+    </>
+  )
 }
 
 export default DebugProvider

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react"
-import { nextBackoffDelay } from "./wsConfig"
+import { nextReconnectDelay } from "./wsConfig"
 import type { ConnectionStatus } from "@frontend/types"
 
 export interface UseReconnectingSocketOptions<T> {
@@ -50,6 +50,7 @@ export function useReconnectingSocket<T>(
 
     // Flipped true by cleanup so async socket callbacks stop acting after unmount
     let disposed = false
+    reconnectAttempt.current = 0
 
     function connect() {
       if (disposed) return
@@ -79,8 +80,8 @@ export function useReconnectingSocket<T>(
       ws.onclose = () => {
         if (disposed) return
         setStatus("disconnected")
-        // Increases the delay before next attempt
-        const delay = nextBackoffDelay(reconnectAttempt.current++)
+        const delay = nextReconnectDelay(reconnectAttempt.current)
+        reconnectAttempt.current += 1
         reconnectTimer.current = setTimeout(connect, delay)
       }
 

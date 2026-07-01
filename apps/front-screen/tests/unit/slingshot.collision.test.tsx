@@ -63,6 +63,7 @@ vi.mock("@react-three/rapier", () => {
 })
 
 import Slingshot from "@/components/slingshots/Slingshot"
+import { SLINGSHOT_IMPULSE_STRENGTH } from "@/components/slingshots/slingshotConfig"
 
 const callCollision = () => {
   if (!handlers.onCollisionEnter) throw new Error("Expected Slingshot collision handler")
@@ -109,6 +110,9 @@ describe("Slingshot — handleCollision", () => {
       event_type: "BumperTriangle",
       payload: { ball_id: "ball-s" },
     })
-    expect(mockBallBody.applyImpulse).toHaveBeenCalledWith({ x: 4, y: 0, z: 0 }, true)
+    expect(mockBallBody.applyImpulse).toHaveBeenCalledWith(
+      { x: SLINGSHOT_IMPULSE_STRENGTH * mockBallBody.mass(), y: 0, z: 0 },
+      true,
+    )
   })
 })

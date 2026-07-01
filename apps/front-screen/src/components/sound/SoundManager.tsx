@@ -60,28 +60,18 @@ const SoundManager = () => {
   const musicMutedRef = useRef(sound.musicMuted)
 
   useKeyBinding(
-    "l",
-    () => {
-      setSound({ sfxMuted: !sfxMutedRef.current })
-    },
-    { match: "key" },
-  )
-
-  useKeyBinding(
     "m",
     () => {
-      setSound({ musicMuted: !musicMutedRef.current })
+      const shouldMute = !(musicMutedRef.current && sfxMutedRef.current)
+      setSound({ musicMuted: shouldMute, sfxMuted: shouldMute })
     },
     { match: "key" },
   )
 
   useEffect(() => {
     sfxMutedRef.current = sound.sfxMuted
-  }, [sound.sfxMuted])
-
-  useEffect(() => {
     musicMutedRef.current = sound.musicMuted
-  }, [sound.musicMuted])
+  }, [sound.sfxMuted, sound.musicMuted])
 
   useEffect(() => {
     setSfxEnabled(!sound.sfxMuted)
