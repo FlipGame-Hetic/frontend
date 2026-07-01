@@ -12,12 +12,17 @@ export function drawHeart(
   y: number,
   brightness: number,
   color?: ColorInput,
+  scale = 1,
 ): void {
   for (let row = 0; row < HEART_BITMAP.length; row++) {
     const bits = HEART_BITMAP[row] ?? 0
     for (let col = 0; col < 5; col++) {
       if (bits & (1 << (4 - col))) {
-        setPixel(s, x + col, y + row, brightness, color)
+        for (let dy = 0; dy < scale; dy++) {
+          for (let dx = 0; dx < scale; dx++) {
+            setPixel(s, x + col * scale + dx, y + row * scale + dy, brightness, color)
+          }
+        }
       }
     }
   }
@@ -33,8 +38,16 @@ export function drawHearts(
   brightness = 1.0,
   dimBrightness = 0.15,
   color?: ColorInput,
+  scale = 1,
 ): void {
   for (let i = 0; i < maxCount; i++) {
-    drawHeart(s, x + i * HEART_SPACING, y, i < filledCount ? brightness : dimBrightness, color)
+    drawHeart(
+      s,
+      x + i * HEART_SPACING * scale,
+      y,
+      i < filledCount ? brightness : dimBrightness,
+      color,
+      scale,
+    )
   }
 }

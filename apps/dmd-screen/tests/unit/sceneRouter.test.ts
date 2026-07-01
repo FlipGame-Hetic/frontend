@@ -4,7 +4,13 @@ import type { ScreenEnvelope } from "@frontend/types"
 
 function makeScenes() {
   return {
-    playing: { update: vi.fn() },
+    playing: {
+      setScore: vi.fn(),
+      setMultiplier: vi.fn(),
+      setLives: vi.fn(),
+      pushDelta: vi.fn(),
+      enter: vi.fn(),
+    },
     game_over: { update: vi.fn() },
     combo: { update: vi.fn() },
     mode_select: { update: vi.fn() },
@@ -17,14 +23,14 @@ function env(eventType: string, payload: unknown): ScreenEnvelope {
 }
 
 describe("ScreenEventRouter", () => {
-  it("routes phase_change to the score scene and notifies the phase hook", () => {
+  it("triggers the score scene intro and notifies the hook on entering playing", () => {
     const scenes = makeScenes()
     const onPhaseChange = vi.fn()
     const router = new ScreenEventRouter(scenes, { onPhaseChange, onComboFlash: vi.fn() })
 
-    router.handle(env("phase_change", { phase: "playing", player: 2, ball: 3 }))
+    router.handle(env("phase_change", { phase: "playing" }))
 
-    expect(scenes.playing.update).toHaveBeenCalledWith({ player: 2, ballNumber: 3 })
+    expect(scenes.playing.enter).toHaveBeenCalled()
     expect(onPhaseChange).toHaveBeenCalledWith("playing")
   })
 
@@ -36,7 +42,7 @@ describe("ScreenEventRouter", () => {
     router.handle(env("LifeUpdate", { lives_remaining: 3 }))
     router.handle(env("LifeUpdate", { lives_remaining: 2 }))
 
-    expect(scenes.playing.update).toHaveBeenLastCalledWith({ lives: 2, maxLives: 3 })
+    expect(scenes.playing.setLives).toHaveBeenLastCalledWith(2, 3)
   })
 
   it("fires the combo flash hook and forwards a parsed sequence", () => {
@@ -54,14 +60,28 @@ describe("ScreenEventRouter", () => {
     const scenes = makeScenes()
     const router = new ScreenEventRouter(scenes, { onPhaseChange: vi.fn(), onComboFlash: vi.fn() })
 
-    router.handle(env("ScoreUpdate", { score: 1234, player: "1", ball: 2, multiplier: 2 }))
+    router.handle(env("ScoreUpdate", { score: 1234, multiplier: 2 }))
 
-    expect(scenes.playing.update).toHaveBeenCalledWith({
-      score: 1234,
-      player: 1,
-      ballNumber: 2,
-      multiplier: 2,
-    })
+    expect(scenes.playing.setScore).toHaveBeenCalledWith(1234)
+    expect(scenes.playing.setMultiplier).toHaveBeenCalledWith(2)
     expect(scenes.game_over.update).toHaveBeenCalledWith(1234)
+  })
+
+  it("routes a ScoreDelta to a floating score pop", () => {
+    const scenes = makeScenes()
+    const router = new ScreenEventRouter(scenes, { onPhaseChange: vi.fn(), onComboFlash: vi.fn() })
+
+    router.handle(env("ScoreDelta", { delta: 500, reason: "bumper", total: 5000 }))
+
+    expect(scenes.playing.pushDelta).toHaveBeenCalledWith(500)
+  })
+
+  it("passes the multiplier and its duration on MultiplierUpdate", () => {
+    const scenes = makeScenes()
+    const router = new ScreenEventRouter(scenes, { onPhaseChange: vi.fn(), onComboFlash: vi.fn() })
+
+    router.handle(env("MultiplierUpdate", { multiplier: 3, duration_ms: 4000 }))
+
+    expect(scenes.playing.setMultiplier).toHaveBeenCalledWith(3, 4000)
   })
 })

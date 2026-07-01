@@ -1,8 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 import type { RenderContext } from "@/dmd/types"
 import { createSurface } from "@/dmd/buffer"
-import { heartsWidth, HEART_SPACING } from "@/dmd/constants"
-import { BAR_WIDTH, BAR_Y } from "@/dmd/scenes/scoreSceneConfig"
+import { HEARTS_X, HEARTS_Y } from "@/dmd/scenes/scoreSceneConfig"
 import { ARROW_GAP, ARROW_W, COMBO_SCALE } from "@/dmd/scenes/comboSceneConfig"
 import { IdleScene } from "@/dmd/scenes/IdleScene"
 import { PausedScene } from "@/dmd/scenes/PausedScene"
@@ -14,16 +13,26 @@ import { ComboScene } from "@/dmd/scenes/ComboScene"
 const COLS = 128
 const ROWS = 72
 
-function makeCtx(elapsedMs = 0): RenderContext {
+function makeCtx(elapsedMs = 0, deltaMs = 16): RenderContext {
   return {
     ...createSurface(COLS, ROWS),
-    deltaMs: 16,
+    deltaMs,
     elapsedMs,
   }
 }
 
 function litCount(ctx: RenderContext): number {
   return Array.from(ctx.buffer).filter((value) => value > 0).length
+}
+
+function litInRect(ctx: RenderContext, x0: number, y0: number, x1: number, y1: number): number {
+  let n = 0
+  for (let y = y0; y < y1; y++) {
+    for (let x = x0; x < x1; x++) {
+      if ((ctx.buffer[y * ctx.cols + x] ?? 0) > 0) n++
+    }
+  }
+  return n
 }
 
 afterEach(() => {
@@ -69,27 +78,34 @@ describe("DMD scenes", () => {
     expect(ctx.buffer[0]).toBeCloseTo(0.3)
   })
 
-  it("ScoreScene renders score info, hearts, and a multiplier timer bar", () => {
-    vi.spyOn(performance, "now").mockReturnValue(1000)
+  it("ScoreScene renders a hero score and hearts once the intro completes", () => {
     const scene = new ScoreScene()
-    scene.update({
-      score: 1234,
-      player: 2,
-      lives: 2,
-      maxLives: 3,
-      multiplier: 2,
-      multiplierStartedAt: 500,
-      multiplierDurationMs: 1000,
-    })
-    const ctx = makeCtx(100)
+    scene.enter()
+    scene.setScore(1234)
+    scene.setLives(2, 3)
+    // Advance internal timers (roll-up + intro) on throwaway surfaces.
+    for (let i = 0; i < 50; i++) scene.render(makeCtx(i * 16))
 
+    const ctx = makeCtx(800)
     scene.render(ctx)
 
-    const infoY = ROWS - 9
-    const hx = COLS - 2 - heartsWidth(3)
-    expect(ctx.buffer[infoY * COLS + hx + 1]).toBeCloseTo(1)
-    expect(ctx.buffer[infoY * COLS + hx + HEART_SPACING * 2 + 1]).toBeCloseTo(0.15)
-    expect(ctx.buffer[BAR_Y * COLS + Math.floor((COLS - BAR_WIDTH) / 2)]).toBeCloseTo(0.9)
+    expect(litCount(ctx)).toBeGreaterThan(40)
+    // A filled heart is bright at the top-left once the intro has finished.
+    // (Heart top row is 0b01010; at 2x scale the first lit column lands at x+2.)
+    expect(ctx.buffer[HEARTS_Y * COLS + HEARTS_X + 2]).toBeGreaterThan(0.4)
+  })
+
+  it("ScoreScene shows a multiplier badge only while a buff is active", () => {
+    const active = new ScoreScene()
+    active.setMultiplier(2, 4000)
+    const onCtx = makeCtx(0)
+    active.render(onCtx)
+    expect(litInRect(onCtx, COLS - 30, ROWS - 14, COLS - 4, ROWS - 4)).toBeGreaterThan(0)
+
+    const idle = new ScoreScene()
+    const offCtx = makeCtx(0)
+    idle.render(offCtx)
+    expect(litInRect(offCtx, COLS - 30, ROWS - 14, COLS - 4, ROWS - 4)).toBe(0)
   })
 
   it("ComboScene renders combo text, arrows, and shared corners", () => {
