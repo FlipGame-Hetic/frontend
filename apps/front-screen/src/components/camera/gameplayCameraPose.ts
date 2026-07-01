@@ -1,4 +1,4 @@
-import { Euler, Object3D, Quaternion, Vector3 } from "three"
+import { Euler, PerspectiveCamera, Quaternion, Vector3 } from "three"
 import { DEFAULT_CAMERA } from "./cameraConfig"
 
 export interface CameraPose {
@@ -23,10 +23,10 @@ interface GameplayCameraPoseOptions {
 }
 
 const getDefaultCameraQuaternion = (position: Vector3): Quaternion => {
-  const cameraRig = new Object3D()
-  cameraRig.position.copy(position)
-  cameraRig.lookAt(0, 0, 0)
-  return cameraRig.quaternion.clone()
+  const camera = new PerspectiveCamera()
+  camera.position.copy(position)
+  camera.lookAt(0, 0, 0)
+  return camera.quaternion.clone()
 }
 
 export const getGameplayCameraPose = ({
