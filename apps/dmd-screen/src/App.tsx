@@ -89,7 +89,7 @@ function App() {
 
   return (
     <>
-      <DmdCanvas config={config} scene={activeScene} />
+      <DmdCanvas config={config} scene={activeScene} transitionKey={effectivePhase} />
       <ConnectionOverlay status={status} />
       <Leva hidden={!overlayShown} titleBar={{ title: "DMD Dev" }} />
     </>
