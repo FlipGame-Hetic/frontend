@@ -17,8 +17,6 @@ export interface RoutableScenes {
   }
   game_over: { update(score: number): void }
   combo: { update(data: { sequence?: ComboDirection[] }): void }
-  mode_select: { update(value: string): void }
-  character_select: { update(value: string): void }
 }
 
 /**
@@ -84,16 +82,6 @@ export class ScreenEventRouter {
     if (isScreenEvent(envelope, "MultiplierUpdate")) {
       const { multiplier, duration_ms } = envelope.payload
       this.scenes.playing.setMultiplier(multiplier, duration_ms)
-      return
-    }
-
-    if (isScreenEvent(envelope, "mode_selected")) {
-      this.scenes.mode_select.update(envelope.payload.mode)
-      return
-    }
-
-    if (isScreenEvent(envelope, "character_selected")) {
-      this.scenes.character_select.update(envelope.payload.character)
       return
     }
 

@@ -5,9 +5,9 @@ import { HEARTS_X, HEARTS_Y } from "@/dmd/scenes/scoreSceneConfig"
 import { ARROW_GAP, ARROW_W, COMBO_SCALE } from "@/dmd/scenes/comboSceneConfig"
 import { IdleScene } from "@/dmd/scenes/IdleScene"
 import { PausedScene } from "@/dmd/scenes/PausedScene"
-import { SelectScene } from "@/dmd/scenes/SelectScene"
 import { GameOverScene } from "@/dmd/scenes/GameOverScene"
 import { ScoreScene } from "@/dmd/scenes/ScoreScene"
+import { PreGameScene } from "@/dmd/scenes/PreGameScene"
 import { ComboScene } from "@/dmd/scenes/ComboScene"
 
 const COLS = 128
@@ -58,16 +58,6 @@ describe("DMD scenes", () => {
     expect(litCount(ctx)).toBeGreaterThan(20)
   })
 
-  it("SelectScene renders title, blinking value, and hint", () => {
-    const scene = new SelectScene("SELECT MODE", 600)
-    scene.update("classic")
-    const ctx = makeCtx(0)
-
-    scene.render(ctx)
-
-    expect(litCount(ctx)).toBeGreaterThan(120)
-  })
-
   it("GameOverScene renders the final score and shared corners", () => {
     const scene = new GameOverScene()
     scene.update(9876)
@@ -107,6 +97,16 @@ describe("DMD scenes", () => {
     const offCtx = makeCtx(0)
     idle.render(offCtx)
     expect(litInRect(offCtx, COLS - 30, ROWS - 14, COLS - 4, ROWS - 4)).toBe(0)
+  })
+
+  it("PreGameScene renders the synthwave road, sun, and skyline", () => {
+    const scene = new PreGameScene()
+    const ctx = makeCtx(0)
+
+    scene.render(ctx)
+
+    // Horizon line spans the full width, plus sun / road / buildings on top.
+    expect(litCount(ctx)).toBeGreaterThan(150)
   })
 
   it("ComboScene renders combo text, arrows, and shared corners", () => {

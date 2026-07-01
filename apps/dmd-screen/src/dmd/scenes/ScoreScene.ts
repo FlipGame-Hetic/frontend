@@ -33,8 +33,8 @@ import {
   INTRO_MS,
 } from "./scoreSceneConfig"
 
-const SCORE_COLOR = "cyan"
-const GHOST_PINK = "pink"
+const SCORE_COLOR = "orange" // classic old-school pinball score
+const GHOST_RED = "red"
 const GHOST_CYAN = "cyan"
 const HEART_COLOR = "red"
 const MULT_COLOR = "yellow"
@@ -131,8 +131,8 @@ export class ScoreScene implements Scene {
       const width = measureScore(text, fit.scale, fit.spacing)
       const x = Math.floor((cols - width) / 2)
       const y = Math.floor((rows - SCORE_GLYPH_HEIGHT * fit.scale) / 2) + yRise
-      // Chromatic aberration: dim pink ghost left, dim cyan ghost right, bright body on top.
-      drawScore(ctx, text, x - 1, y, fit.scale, ghostBright, fit.spacing, GHOST_PINK)
+      // Chromatic aberration: dim red ghost left, dim cyan ghost right, bright body on top.
+      drawScore(ctx, text, x - 1, y, fit.scale, ghostBright, fit.spacing, GHOST_RED)
       drawScore(ctx, text, x + 1, y, fit.scale, ghostBright * 0.8, fit.spacing, GHOST_CYAN)
       drawScore(ctx, text, x, y, fit.scale, bodyBright, fit.spacing, SCORE_COLOR)
     } else {
