@@ -9,7 +9,7 @@ export interface CreditSection {
   entries: CreditEntry[]
 }
 
-export const SCROLL_SPEED_PX_PER_SEC = 60
+export const SCROLL_SPEED_PX_PER_SEC = 65
 export const START_DELAY_MS = 900
 
 const MAX = "Maxime Bidan"
@@ -42,19 +42,11 @@ export const CREDITS_SECTIONS: CreditSection[] = [
         ],
       },
       {
-        title: "Effets sonores additionnels",
-        items: ["Divers effets sonores - Pixabay (free use)"],
-      },
-      {
         title: "Shaders",
         items: [
           "BlackHole (swirl, portal) — MisterPrada (Shadertoy)",
           "Matrix rain shader — raja (Shadertoy)",
         ],
-      },
-      {
-        title: "Polices",
-        items: ["Rajdhani", "Share Tech Mono", "Orbitron"],
       },
     ],
   },
@@ -62,7 +54,6 @@ export const CREDITS_SECTIONS: CreditSection[] = [
     heading: "Réflexion & conception",
     entries: [
       { title: "Game design, game logic & système de combat", items: [MAX, ARTHUR, ARNAUD] },
-      { title: "Architecture logicielle & monorepo", items: [MAX, ARNAUD] },
       { title: "Personnages, Boss & ultimes", items: [ARTHUR, MAX, ARNAUD, LOUIS] },
       { title: "Lore & univers", items: [ARTHUR, MAX] },
     ],
@@ -71,11 +62,10 @@ export const CREDITS_SECTIONS: CreditSection[] = [
     heading: "Développement",
     entries: [
       { title: "Gestion de projet", items: [ARNAUD, ARTHUR, MAX] },
-      { title: "Front screen, physique (Rapier) & game feel", items: [ARTHUR] },
+      { title: "Front screen, physique & game feel", items: [ARTHUR] },
       { title: "Back screen, menu, crédits", items: [ARTHUR, ALEXIS] },
       { title: "DMD (Dot Matrix Display)", items: [MAX] },
       { title: "Backend, WebSocket, bases de données & déploiement", items: [ARNAUD] },
-      { title: "CI / CD", items: [ARNAUD, MAX] },
       { title: "Tests unitaires & documentation", items: [ALL] },
     ],
   },
