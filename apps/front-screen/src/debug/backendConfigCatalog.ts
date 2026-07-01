@@ -1,6 +1,6 @@
 import type { BackendConfigKey } from "./backendConfigTypes"
 
-export type BackendConfigCategory =
+type BackendConfigCategory =
   | "Core"
   | "Scoring"
   | "Multiball"
@@ -20,7 +20,7 @@ export interface BackendConfigCategoryDefinition {
   collapsed: boolean
 }
 
-export type BackendConfigNumberKind = "float" | "integer"
+type BackendConfigNumberKind = "float" | "integer"
 
 export interface BackendConfigField {
   key: BackendConfigKey
