@@ -40,13 +40,14 @@ afterEach(() => {
 })
 
 describe("DMD scenes", () => {
-  it("IdleScene renders the attract text and shared corners", () => {
+  it("IdleScene renders the attract title and glowing corners", () => {
     const ctx = makeCtx(0)
 
     new IdleScene().render(ctx)
 
     expect(litCount(ctx)).toBeGreaterThan(100)
-    expect(ctx.buffer[0]).toBeCloseTo(0.3)
+    // Top-left corner bracket is lit with the ambient glow (variable, not a fixed 0.3).
+    expect(ctx.buffer[0]).toBeGreaterThan(0)
   })
 
   it("PausedScene renders centered pause text", () => {

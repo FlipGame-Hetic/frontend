@@ -46,6 +46,7 @@ const FONT_5x7: Record<string, number[]> = {
   X: [0b10001, 0b10001, 0b01010, 0b00100, 0b01010, 0b10001, 0b10001],
   Y: [0b10001, 0b10001, 0b01010, 0b00100, 0b00100, 0b00100, 0b00100],
   Z: [0b11111, 0b00001, 0b00010, 0b00100, 0b01000, 0b10000, 0b11111],
+  É: [0b00110, 0b01100, 0b11111, 0b10000, 0b11110, 0b10000, 0b11111],
   " ": [0b00000, 0b00000, 0b00000, 0b00000, 0b00000, 0b00000, 0b00000],
   ".": [0b00000, 0b00000, 0b00000, 0b00000, 0b00000, 0b00000, 0b00100],
   ",": [0b00000, 0b00000, 0b00000, 0b00000, 0b00000, 0b00100, 0b01000],
@@ -105,7 +106,7 @@ function drawCharScaled(
   }
 }
 
-function drawStringScaled(
+export function drawStringScaled(
   s: DotSurface,
   text: string,
   x: number,
@@ -122,7 +123,7 @@ function drawStringScaled(
   }
 }
 
-function measureStringScaled(text: string, scale: number, spacing = 1): number {
+export function measureStringScaled(text: string, scale: number, spacing = 1): number {
   if (text.length === 0) return 0
   return text.length * CHAR_WIDTH * scale + (text.length - 1) * spacing
 }
