@@ -4,8 +4,7 @@ import type { Scene } from "./types"
 import { clearBuffer, clearColor, createSurface } from "./buffer"
 import { drawActiveDotsToCanvas, drawDotGridToCanvas } from "./renderer"
 import { useAnimationFrame } from "./useAnimationFrame"
-import { fadeBuffer } from "./transitionFx"
-import { easeInOutQuad } from "./ease"
+import { glitchDissolve } from "./transitionFx"
 
 const DMD_TARGET_FPS = 30
 const TRANSITION_MS = 320
@@ -31,6 +30,7 @@ export function DmdCanvas({ config, scene, transitionKey }: DmdCanvasProps) {
   const transitionMsRef = useRef(TRANSITION_MS) // start settled (no transition on mount)
   const fromBufferRef = useRef<Float32Array | null>(null)
   const fromColorRef = useRef<Uint32Array | null>(null)
+  const thresholdsRef = useRef<Float32Array | null>(null)
 
   // Keep scene ref in sync (also covers combo-overlay swaps within a phase)
   useEffect(() => {
@@ -41,10 +41,14 @@ export function DmdCanvas({ config, scene, transitionKey }: DmdCanvasProps) {
   useEffect(() => {
     if (transitionKey === keyRef.current) return
     keyRef.current = transitionKey
-    // Snapshot the last rendered frame so we can fade it out.
+    // Snapshot the last rendered frame so we can dissolve it out.
     const surface = surfaceRef.current
     fromBufferRef.current = surface.buffer.slice()
     fromColorRef.current = surface.color.slice()
+    // Per-row flip points give the dissolve its uneven, glitchy timing.
+    const thresholds = new Float32Array(surface.rows)
+    for (let i = 0; i < thresholds.length; i++) thresholds[i] = Math.random()
+    thresholdsRef.current = thresholds
     transitionMsRef.current = 0
   }, [transitionKey])
 
@@ -134,24 +138,19 @@ export function DmdCanvas({ config, scene, transitionKey }: DmdCanvasProps) {
       if (tms < TRANSITION_MS) {
         transitionMsRef.current = tms + deltaMs
         const t = Math.min(1, tms / TRANSITION_MS)
-        if (t < 0.5) {
-          // Fade OUT the frozen snapshot of the previous scene.
-          const fromBuffer = fromBufferRef.current
-          const fromColor = fromColorRef.current
-          if (
-            fromBuffer &&
-            fromColor &&
-            fromBuffer.length === surface.buffer.length &&
-            fromColor.length === surface.color.length
-          ) {
-            surface.buffer.set(fromBuffer)
-            surface.color.set(fromColor)
-          }
-          fadeBuffer(surface.buffer, easeInOutQuad(1 - t * 2))
-        } else {
-          // Fade IN the incoming scene.
-          sceneRef.current.render({ ...surface, deltaMs, elapsedMs })
-          fadeBuffer(surface.buffer, easeInOutQuad(t * 2 - 1))
+        // Render the incoming scene, then glitch-dissolve the old snapshot over it.
+        sceneRef.current.render({ ...surface, deltaMs, elapsedMs })
+        const fromBuffer = fromBufferRef.current
+        const fromColor = fromColorRef.current
+        const thresholds = thresholdsRef.current
+        if (
+          fromBuffer &&
+          fromColor &&
+          thresholds &&
+          fromBuffer.length === surface.buffer.length &&
+          thresholds.length === surface.rows
+        ) {
+          glitchDissolve(surface, fromBuffer, fromColor, t, thresholds, Math.random)
         }
       } else {
         sceneRef.current.render({ ...surface, deltaMs, elapsedMs })
