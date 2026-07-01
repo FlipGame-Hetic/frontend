@@ -1,18 +1,19 @@
 import { readRuntimeEnv } from "@frontend/utils"
 
-const RECONNECT_BASE_MS = 1000
-const RECONNECT_MAX_MS = 15000
+const RECONNECT_BASE_MS = 800
+const RECONNECT_MAX_MS = 3000
+const RECONNECT_JITTER_RATIO = 0.25
 
 type WsEnvKey = "VITE_WS_URL" | "VITE_SCREEN_HUB_URL" | "VITE_API_URL"
 
 type RuntimeLocation = Pick<Location, "hostname" | "protocol">
 
-export const nextBackoffDelay = (attempt: number): number => {
-  const exponential = Math.min(RECONNECT_MAX_MS, RECONNECT_BASE_MS * 2 ** attempt)
-  // Approx. 20% jitter so every screen doesn't reconnect on the same beat and stampede the server after an outage
-  const jitter = exponential * 0.2 * (Math.random() * 2 - 1)
+export const nextReconnectDelay = (attempt: number): number => {
+  const maxBaseDelay = RECONNECT_MAX_MS / (1 + RECONNECT_JITTER_RATIO)
+  const baseDelay = Math.min(maxBaseDelay, RECONNECT_BASE_MS * 2 ** attempt)
+  const jitter = baseDelay * RECONNECT_JITTER_RATIO * Math.random()
 
-  return Math.round(exponential + jitter)
+  return Math.round(baseDelay + jitter)
 }
 
 const readLocation = (): RuntimeLocation | undefined => {

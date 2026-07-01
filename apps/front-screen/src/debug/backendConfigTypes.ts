@@ -1,0 +1,72 @@
+export interface BackendGameConfig {
+  default_lives: number
+  ultime_charge_ratio: number
+  ball_saver_score: number
+  bumper_score: number
+  bumper_triangle_score: number
+  portal_score: number
+  multiball_ring_threshold: number
+  multiball_score: number
+  timer_bonus_seconds: number
+  timer_bonus_score: number
+  timer_bonus_multiplier: number
+  tilt_penalty_1: number
+  tilt_penalty_2: number
+  boss_0_hp: number
+  boss_1_hp: number
+  boss_2_hp: number
+  boss_0_difficulty_scale: number
+  boss_1_difficulty_scale: number
+  boss_2_difficulty_scale: number
+  endless_base_difficulty_scale: number
+  endless_level_scale_exponent: number
+  combo_buffer_max: number
+  combo_detection_window_ms: number
+  combo_penalty_repeat: number
+  combo_penalty_pts: number
+  combo_2_bonus: number
+  combo_3_bonus: number
+  combo_4_bonus: number
+  combo_5_bonus: number
+  combo_6_bonus: number
+  combo_7_bonus: number
+  combo_8_bonus: number
+  combo_9_bonus: number
+  combo_10_bonus: number
+  combo_11_bonus: number
+  combo_14_bonus: number
+  combo_15_bonus: number
+  combo_16_bonus: number
+  enforcer_charge_max: number
+  enforcer_weight_bumper: number
+  enforcer_weight_rail: number
+  enforcer_weight_combo: number
+  enforcer_weight_other: number
+  viper_charge_max: number
+  viper_ulti_duration_ms: number
+  viper_rampage_multiplier: number
+  ghost_charge_max: number
+  oracle_charge_max: number
+  oracle_ulti_duration_ms: number
+  oracle_slow_factor: number
+  oracle_time_rate: number
+  oracle_activation_min_ratio: number
+  streak_window_ms: number
+  streak_tier_1_count: number
+  streak_tier_2_count: number
+  streak_tier_3_count: number
+  streak_tier_1_multiplier: number
+  streak_tier_2_multiplier: number
+  streak_tier_3_multiplier: number
+  rail_tick_interval_ms: number
+  rail_max_session_ms: number
+  rail_base_score: number
+  rail_max_fib_step: number
+  boss_death_anim_ms: number
+  boss_score_threshold: number
+  pve_tick_interval_ms: number
+}
+
+export type BackendConfigKey = keyof BackendGameConfig
+
+export type BackendConfigPatch = Partial<BackendGameConfig>
