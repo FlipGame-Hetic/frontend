@@ -1,3 +1,5 @@
+import { useEffect } from "react"
+import { warmBossClips } from "@/boss/bossVideoPreload"
 import { RetroBackground } from "@/components/RetroBackground"
 import { useKeyboardInput } from "@/hooks/useKeyboardInput"
 import { useScreenHubClient } from "@/hooks/useScreenHubClient"
@@ -9,6 +11,11 @@ import { ConnectionOverlay } from "@frontend/ui"
 function App() {
   const hubStatus = useScreenHubClient()
   useKeyboardInput()
+
+  // warm boss clips into blob URLs so first boss reveal has no fetch/decoder hitch
+  useEffect(() => {
+    warmBossClips()
+  }, [])
 
   const phase = useBackScreenStore((s) => s.phase)
 

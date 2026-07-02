@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef } from "react"
 import type { DmdConfig } from "./config"
 import type { Scene } from "./types"
 import { clearBuffer, clearColor, createSurface } from "./buffer"
+import { createDotSpriteCache, type DotSpriteCache } from "./dotSprites"
 import { drawActiveDotsToCanvas, drawDotGridToCanvas } from "./renderer"
 import { useAnimationFrame } from "./useAnimationFrame"
 import { glitchDissolve } from "./transitionFx"
@@ -24,6 +25,7 @@ export function DmdCanvas({ config, scene, transitionKey }: DmdCanvasProps) {
   const sceneRef = useRef(scene)
   const gridCanvasRef = useRef<HTMLCanvasElement | null>(null)
   const gridCacheKeyRef = useRef("")
+  const dotSpritesRef = useRef<DotSpriteCache | null>(null)
 
   // Scene-to-scene transition state
   const keyRef = useRef(transitionKey)
@@ -127,7 +129,7 @@ export function DmdCanvas({ config, scene, transitionKey }: DmdCanvasProps) {
       const ctx = ctxRef.current
       if (!ctx) return
 
-      const { width, height } = sizeRef.current
+      const { width, height, dpr } = sizeRef.current
       if (width === 0 || height === 0) return
 
       const surface = surfaceRef.current
@@ -162,7 +164,8 @@ export function DmdCanvas({ config, scene, transitionKey }: DmdCanvasProps) {
       } else {
         drawDotGridToCanvas(ctx, config, width, height)
       }
-      drawActiveDotsToCanvas(ctx, surface, config, width, height)
+      dotSpritesRef.current ??= createDotSpriteCache()
+      drawActiveDotsToCanvas(ctx, surface, config, width, height, dpr, dotSpritesRef.current)
     },
     [config, getGridCanvas],
   )

@@ -1,5 +1,14 @@
 import { RAJDHANI_BOLD_FONT_URL } from "@frontend/assets/font-urls"
 
+// Cap simultaneous "score" popups so multiball ScoreDelta bursts can't spawn unbounded troika layers
+export const SCORE_POPUPS_CAP = 8
+
+// Max number of hits that can be displayed at once
+export const HITS_CAP = 16
+export const HIT_EXPIRY_MS = 2000
+// Shorter than HIT_EXPIRY_MS : a hit can still be retained yet too old to confidently pair with an incoming delta
+export const HIT_MATCH_WINDOW_MS = 1500
+
 export const SCORE_POPUP_DURATION = 1.2
 export const SCORE_POPUP_FADE_IN = 0.15
 export const SCORE_POPUP_FADE_OUT_START = 0.85
