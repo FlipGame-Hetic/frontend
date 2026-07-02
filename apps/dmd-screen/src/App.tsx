@@ -10,7 +10,7 @@ import { useDmdDevControls } from "@/dmd/useDmdDevControls"
 import { ScoreScene } from "@/dmd/scenes/ScoreScene"
 import { IdleScene } from "@/dmd/scenes/IdleScene"
 import { PausedScene } from "@/dmd/scenes/PausedScene"
-import { SelectScene } from "@/dmd/scenes/SelectScene"
+import { PreGameScene } from "@/dmd/scenes/PreGameScene"
 import { GameOverScene } from "@/dmd/scenes/GameOverScene"
 import { ComboScene } from "@/dmd/scenes/ComboScene"
 import { ScreenEventRouter } from "@/dmd/sceneRouter"
@@ -19,8 +19,6 @@ const SCREEN_ID = "dmd_screen" as const
 const TOKEN = readScreenToken()
 
 const COMBO_FLASH_MS = 1800
-const MODE_BLINK_MS = 600
-const CHARACTER_BLINK_MS = 500
 
 function App() {
   const { config, devPhase } = useDmdDevControls()
@@ -29,18 +27,20 @@ function App() {
   const [comboActive, setComboActive] = useState(false)
   const comboTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const scenes = useMemo(
-    () => ({
+  const scenes = useMemo(() => {
+    // The two select phases both route to one pre-game scene — players look at the
+    // backglass while choosing, so the DMD just runs a synthwave loop.
+    const preGame = new PreGameScene()
+    return {
       idle: new IdleScene(),
-      mode_select: new SelectScene("SELECT MODE", MODE_BLINK_MS),
-      character_select: new SelectScene("PICK FIGHTER", CHARACTER_BLINK_MS),
+      mode_select: preGame,
+      character_select: preGame,
       playing: new ScoreScene(),
       paused: new PausedScene(),
       game_over: new GameOverScene(),
       combo: new ComboScene(),
-    }),
-    [],
-  )
+    }
+  }, [])
 
   useEffect(() => {
     return () => {
@@ -89,7 +89,7 @@ function App() {
 
   return (
     <>
-      <DmdCanvas config={config} scene={activeScene} />
+      <DmdCanvas config={config} scene={activeScene} transitionKey={effectivePhase} />
       <ConnectionOverlay status={status} />
       <Leva hidden={!overlayShown} titleBar={{ title: "DMD Dev" }} />
     </>
