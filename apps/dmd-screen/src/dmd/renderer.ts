@@ -1,6 +1,10 @@
 import type { DmdConfig } from "./config"
-import type { DotSurface } from "./types"
-import { hexToRgb, isColorSet, unpackRgb } from "./palette"
+import type { DotBuffer } from "./types"
+
+function hexToRgb(hex: string): [number, number, number] {
+  const n = parseInt(hex.slice(1), 16)
+  return [(n >> 16) & 0xff, (n >> 8) & 0xff, n & 0xff]
+}
 
 /**
  * Paints the dim "ghost grid" of unlit dots. Split out from the lit dots so
@@ -43,47 +47,34 @@ export function drawDotGridToCanvas(
 
 /**
  * Paints the lit dots with a glow on top of the ghost grid, reading brightness
- * and per-dot color from the surface. Cells with no explicit color fall back to
- * config.dotColor. The glow color is only updated when the dot color changes, so
- * a one-color run costs a single shadow update.
+ * from the buffer and skipping dark cells.
  */
 export function drawActiveDotsToCanvas(
   ctx: CanvasRenderingContext2D,
-  surface: DotSurface,
+  buffer: DotBuffer,
   config: DmdConfig,
   width: number,
   height: number,
 ): void {
-  const { buffer, color, cols, rows } = surface
-  const { dotColor, gapRatio } = config
+  const { cols, rows, dotColor, gapRatio } = config
 
   const cellW = width / cols
   const cellH = height / rows
   const cellSize = Math.min(cellW, cellH)
   const radius = (cellSize * (1 - gapRatio)) / 2
 
-  const [defR, defG, defB] = hexToRgb(dotColor)
+  const [r, g, b] = hexToRgb(dotColor)
+  const rgbStr = String(r) + "," + String(g) + "," + String(b)
 
+  // Draw active dots with glow
+  ctx.shadowColor = "rgba(" + rgbStr + ",0.6)"
   ctx.shadowBlur = radius * 1.5
-  let lastColorKey = NaN
 
   for (let row = 0; row < rows; row++) {
     const cy = row * cellH + cellH / 2
     for (let col = 0; col < cols; col++) {
-      const idx = row * cols + col
-      const brightness = buffer[idx] ?? 0
+      const brightness = buffer[row * cols + col] ?? 0
       if (brightness <= 0) continue
-
-      const cell = color[idx] ?? 0
-      const set = isColorSet(cell)
-      const [r, g, b] = set ? unpackRgb(cell) : [defR, defG, defB]
-      const rgbStr = String(r) + "," + String(g) + "," + String(b)
-
-      const colorKey = set ? cell : -1
-      if (colorKey !== lastColorKey) {
-        ctx.shadowColor = "rgba(" + rgbStr + ",0.6)"
-        lastColorKey = colorKey
-      }
 
       const cx = col * cellW + cellW / 2
       ctx.fillStyle = "rgba(" + rgbStr + "," + String(brightness) + ")"
