@@ -84,7 +84,7 @@ export const clampVelocityToPlayfieldInto = (
   return out
 }
 
-export const clampVelocityToPlayfield = (
+const clampVelocityToPlayfield = (
   velocity: Position3Type,
   maxTangentSpeed: number,
   minNormalSpeed: number,
@@ -128,12 +128,4 @@ export const clampNormalToPlayfieldInto = (
   out.y = tangentVelocity.y + PLAYFIELD_UNIT_NORMAL.y * normalSpeed
   out.z = tangentVelocity.z + PLAYFIELD_UNIT_NORMAL.z * normalSpeed
   return out
-}
-
-export const clampNormalToPlayfield = (
-  velocity: Position3Type,
-  minNormalSpeed: number,
-  maxNormalSpeed: number,
-): Position3Type => {
-  return clampNormalToPlayfieldInto(velocity, minNormalSpeed, maxNormalSpeed, { x: 0, y: 0, z: 0 })
 }
