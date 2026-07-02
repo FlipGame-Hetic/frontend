@@ -1,6 +1,6 @@
 import type { DmdConfig } from "./config"
 import type { DotSurface } from "./types"
-import type { DotSpriteCache } from "./dotSprites"
+import { GLOW_ALPHA, GLOW_BLUR_FACTOR, type DotSpriteCache } from "./dotSprites"
 import { hexToRgb, isColorSet, unpackRgb } from "./palette"
 
 /**
@@ -69,8 +69,12 @@ export function drawActiveDotsToCanvas(
 
   if (sprites) sprites.configure(radius, dpr)
 
-  ctx.shadowBlur = radius * 1.5
   let lastColorKey = NaN
+  // True while the live shadow-blur glow (fallback path) is armed on the context.
+  // Tracking it lets each path tear down the other's state exactly once at the
+  // boundary, so a sprite disc never inherits a stale shadow and a fallback dot
+  // never inherits a leftover globalAlpha.
+  let shadowArmed = false
 
   for (let row = 0; row < rows; row++) {
     const cy = row * cellH + cellH / 2
@@ -91,6 +95,12 @@ export function drawActiveDotsToCanvas(
       if (glow) {
         // Glow-only sprite scaled by brightness (blur is linear) + analytic opaque
         // disc, both under globalAlpha=brightness — pixel-identical to the shadow path.
+        if (shadowArmed) {
+          ctx.shadowColor = "transparent"
+          ctx.shadowBlur = 0
+          shadowArmed = false
+          lastColorKey = NaN
+        }
         const cssW = glow.width / dpr
         ctx.globalAlpha = brightness
         ctx.drawImage(glow, cx - cssW / 2, cy - cssW / 2, cssW, cssW)
@@ -104,8 +114,16 @@ export function drawActiveDotsToCanvas(
         continue
       }
 
+      // Fallback: live shadow-blur glow drawn opaque, brightness baked into the
+      // fill alpha — so globalAlpha must be 1, not a value left by a sprite dot.
+      ctx.globalAlpha = 1
+      if (!shadowArmed) {
+        ctx.shadowBlur = radius * GLOW_BLUR_FACTOR
+        shadowArmed = true
+        lastColorKey = NaN
+      }
       if (colorKey !== lastColorKey) {
-        ctx.shadowColor = "rgba(" + rgbStr + ",0.6)"
+        ctx.shadowColor = "rgba(" + rgbStr + "," + String(GLOW_ALPHA) + ")"
         lastColorKey = colorKey
       }
 

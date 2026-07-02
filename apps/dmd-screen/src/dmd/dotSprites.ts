@@ -8,9 +8,15 @@
 /** Cap the number of baked sprites so a rogue rainbow scene cannot leak canvases. */
 const MAX_SPRITES = 64
 
+/**
+ * Glow appearance, shared with the analytic fallback in renderer.ts so a baked
+ * sprite and a live shadow-blur render identically. Change them here only.
+ */
+export const GLOW_BLUR_FACTOR = 1.5 // blur radius as a multiple of the dot radius
+export const GLOW_ALPHA = 0.6 // alpha of the glow halo
+
 export interface DotSpriteCache {
   getGlowSprite(colorKey: number, r: number, g: number, b: number): HTMLCanvasElement | null
-  readonly paddingCss: number
   configure(radiusCss: number, dpr: number): void
 }
 
@@ -28,7 +34,7 @@ export function createDotSpriteCache(
     if (nextRadius === radiusCss && nextDpr === dpr) return
     radiusCss = nextRadius
     dpr = nextDpr
-    blur = radiusCss * 1.5
+    blur = radiusCss * GLOW_BLUR_FACTOR
     // square side big enough to hold the disc plus its full blur skirt
     side = 2 * Math.ceil(radiusCss + 2 * blur)
     paddingCss = side / 2
@@ -62,7 +68,7 @@ export function createDotSpriteCache(
     // scale this baked halo later via globalAlpha.
     const offsetDevice = side * dpr
     ctx.shadowBlur = blur
-    ctx.shadowColor = "rgba(" + rgb + ",0.6)"
+    ctx.shadowColor = "rgba(" + rgb + "," + String(GLOW_ALPHA) + ")"
     ctx.shadowOffsetX = offsetDevice
     ctx.fillStyle = "rgb(" + rgb + ")"
     ctx.beginPath()
@@ -75,9 +81,6 @@ export function createDotSpriteCache(
 
   return {
     getGlowSprite,
-    get paddingCss() {
-      return paddingCss
-    },
     configure,
   }
 }

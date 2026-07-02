@@ -176,7 +176,6 @@ function makeFakeSpriteCache(sprite: HTMLCanvasElement | null): DotSpriteCache {
   return {
     configure: vi.fn(),
     getGlowSprite: vi.fn(() => sprite),
-    paddingCss: 4,
   } as unknown as DotSpriteCache
 }
 
@@ -225,6 +224,54 @@ describe("drawActiveDotsToCanvas — sprite path", () => {
     if (!fill) throw new Error("active dot was not filled")
     expect(fill.fillStyle).toBe("rgba(18,52,86,0.5)")
     expect(fill.shadowColor).toBe("rgba(18,52,86,0.6)")
+  })
+})
+
+// A frame that mixes both paths only happens once the sprite cache is full
+// (>MAX_SPRITES colors), but when it does the two paths must not leak canvas
+// state into each other.
+describe("drawActiveDotsToCanvas — mixed sprite/fallback frame", () => {
+  const dummySprite = { width: 8, height: 8 } as unknown as HTMLCanvasElement
+
+  function makeSelectiveSpriteCache(
+    spriteFor: (colorKey: number) => HTMLCanvasElement | null,
+  ): DotSpriteCache {
+    return {
+      configure: vi.fn(),
+      getGlowSprite: vi.fn((colorKey: number) => spriteFor(colorKey)),
+    } as unknown as DotSpriteCache
+  }
+
+  it("does not leak globalAlpha from a sprite dot onto a following fallback dot", () => {
+    const surface = createSurface(2, 1)
+    setPixel(surface, 0, 0, 0.5) // default color -> sprite
+    setPixel(surface, 1, 0, 0.25, "cyan") // cyan -> no sprite -> fallback
+    const rec = makeRecordingCtx()
+    const sprites = makeSelectiveSpriteCache((key) => (key === -1 ? dummySprite : null))
+
+    drawActiveDotsToCanvas(rec.ctx, surface, config, 20, 10, 2, sprites)
+
+    expect(rec.ops.map((op) => op.type)).toEqual(["drawImage", "fill", "fill"])
+    const fallbackFill = rec.ops[2]
+    if (!fallbackFill) throw new Error("fallback dot was not filled")
+    // brightness belongs in the rgba alpha, not a leftover globalAlpha
+    expect(fallbackFill.globalAlpha).toBe(1)
+    expect(fallbackFill.fillStyle).toBe("rgba(0,240,255,0.25)")
+  })
+
+  it("does not leave a stale glow shadow on a sprite disc after a fallback dot", () => {
+    const surface = createSurface(2, 1)
+    setPixel(surface, 0, 0, 0.8, "cyan") // cyan -> fallback, arms the shadow
+    setPixel(surface, 1, 0, 0.5) // default -> sprite; its disc must not glow
+    const rec = makeRecordingCtx()
+    const sprites = makeSelectiveSpriteCache((key) => (key === -1 ? dummySprite : null))
+
+    drawActiveDotsToCanvas(rec.ctx, surface, config, 20, 10, 2, sprites)
+
+    expect(rec.ops.map((op) => op.type)).toEqual(["fill", "drawImage", "fill"])
+    const discFill = rec.ops[2]
+    if (!discFill) throw new Error("sprite disc was not filled")
+    expect(discFill.shadowColor).toBe("transparent")
   })
 })
 
