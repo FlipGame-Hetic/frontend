@@ -2,10 +2,10 @@ import { isPointInPlungerLaneSensor } from "@/components/plunger/plungerConfig"
 import useBallStore from "@/stores/useBallStore"
 import useGameStore from "@/stores/useGameStore"
 import usePortalTraversalStore from "@/stores/usePortalTraversalStore"
-import type { PositionType } from "@/types/worldTypes"
+import type { Position3Type, PositionType } from "@/types/worldTypes"
 import { GAME_PHASE } from "@frontend/types"
 import { useFrame } from "@react-three/fiber"
-import type { RapierRigidBody } from "@react-three/rapier"
+import type { RapierCollider, RapierRigidBody } from "@react-three/rapier"
 import { BallCollider, RigidBody, useAfterPhysicsStep, useRapier } from "@react-three/rapier"
 import { useEffect, useRef } from "react"
 import type { Vector3Like } from "three"
@@ -19,11 +19,11 @@ import {
 } from "../physics/collision/stuckBallWatchdog"
 import { isPointInSnapExemptZone } from "../physics/snap/snapExemptZones"
 import {
-  clampNormalToPlayfield,
-  clampVelocityToPlayfield,
+  clampNormalToPlayfieldInto,
+  clampVelocityToPlayfieldInto,
   PLAYFIELD_DOWN,
   PLAYFIELD_UNIT_NORMAL,
-  projectOnPlayfield,
+  projectOnPlayfieldInto,
 } from "../playfield/playfieldConfig"
 import { cleanupPortalBall } from "../portal/portalTraversalState"
 import {
@@ -80,6 +80,10 @@ interface BallProps {
   maxNormalSpeed: number
   color?: string
 }
+
+// Snap only against solid fixed geometry : skip sensors and dynamic bodies. Hoisted to module scope so it isn't reallocated every physics step
+const isSnapGround = (collider: RapierCollider) =>
+  !collider.isSensor() && (collider.parent()?.isFixed() ?? false)
 
 // Nudge a wedged ball with a fixed 2D impulse so it can never be pushed up off the ground
 const applyUnstickImpulse = (body: RapierRigidBody, dir: Vector3Like) => {
@@ -139,6 +143,10 @@ const Ball = ({
   const meshRef = useBallMaterial(color)
   const { rapier } = useRapier()
 
+  // Reused across steps/frames : the ground ray (origin mutated each step, dir stays the shared PLAYFIELD_DOWN) and a scratch vector for every setLinvel/setTranslation/applyImpulse, so the hot paths allocate nothing
+  const rayRef = useRef<InstanceType<typeof rapier.Ray> | null>(null)
+  const scratchRef = useRef<Position3Type>({ x: 0, y: 0, z: 0 })
+
   useEffect(() => {
     // Registered by the registry : once triggered by the drain, the ball stops being snapped/clamped and is treated as drained
     registerBallFade(id, () => {
@@ -168,12 +176,18 @@ const Ball = ({
 
     // On a rail or inside a snap-exempt zone (rails/tunnels entrances), skip the ground snap and only clamp how fast it leaves the plane
     if (isOnRail(id) || isPointInSnapExemptZone(pos)) {
-      body.setLinvel(clampNormalToPlayfield(vel, minNormalSpeed, maxNormalSpeed), true)
+      body.setLinvel(
+        clampNormalToPlayfieldInto(vel, minNormalSpeed, maxNormalSpeed, scratchRef.current),
+        true,
+      )
       return
     }
 
-    // Cast straight "down" the tilt to find the surface directly under the ball
-    const groundRay = new rapier.Ray({ x: pos.x, y: pos.y, z: pos.z }, PLAYFIELD_DOWN)
+    // Cast straight "down" the tilt to find the surface directly under the ball, reusing this ball's ray and only moving its origin
+    const groundRay = (rayRef.current ??= new rapier.Ray({ x: 0, y: 0, z: 0 }, PLAYFIELD_DOWN))
+    groundRay.origin.x = pos.x
+    groundRay.origin.y = pos.y
+    groundRay.origin.z = pos.z
 
     // Rails are excluded (IGNORE_RAILS group) so the ball doesn't try to rest on a rail collider as if it were ground
     const hit = world.castRay(
@@ -191,28 +205,28 @@ const Ball = ({
       undefined,
       // filterExcludeRigidBody
       body,
-      // filterPredicate: Snap only against solid fixed geometry : skip sensors and dynamic bodies
-      (collider) => !collider.isSensor() && (collider.parent()?.isFixed() ?? false),
+      // filterPredicate
+      isSnapGround,
     )
 
     if (!hit) {
-      body.setLinvel(clampNormalToPlayfield(vel, minNormalSpeed, maxNormalSpeed), true)
+      body.setLinvel(
+        clampNormalToPlayfieldInto(vel, minNormalSpeed, maxNormalSpeed, scratchRef.current),
+        true,
+      )
       return
     }
 
     // Reposition along the normal so the ball rests exactly on the surface, closing any gap or penetration past epsilon
     const gap = hit.timeOfImpact - radius
     if (Math.abs(gap) > BALL_SNAP_EPSILON) {
-      body.setTranslation(
-        {
-          x: pos.x - PLAYFIELD_UNIT_NORMAL.x * gap,
-          y: pos.y - PLAYFIELD_UNIT_NORMAL.y * gap,
-          z: pos.z - PLAYFIELD_UNIT_NORMAL.z * gap,
-        },
-        true,
-      )
+      const scratch = scratchRef.current
+      scratch.x = pos.x - PLAYFIELD_UNIT_NORMAL.x * gap
+      scratch.y = pos.y - PLAYFIELD_UNIT_NORMAL.y * gap
+      scratch.z = pos.z - PLAYFIELD_UNIT_NORMAL.z * gap
+      body.setTranslation(scratch, true)
     }
-    body.setLinvel(projectOnPlayfield(vel), true)
+    body.setLinvel(projectOnPlayfieldInto(vel, scratchRef.current), true)
   })
 
   useFrame((_, delta) => {
@@ -221,7 +235,7 @@ const Ball = ({
 
     const pos = body.translation()
     // Publish position to the registry so off-React readers (score popups, portals) can place effects on this ball
-    setBallPosition(id, { x: pos.x, y: pos.y, z: pos.z })
+    setBallPosition(id, pos.x, pos.y, pos.z)
 
     // Safety net : if the ball tunneled past the drain sensor and fell below the table, fade it so it can't be lost forever
     if (pos.y <= DRAIN_SAFETY_FALLBACK_Y) {
@@ -232,11 +246,12 @@ const Ball = ({
     // Every frame, cap the ball's in-plane speed (higher in the plunger lane to allow a strong launch) to prevent accumulated impulse from bumpers' bounce, and keep it pinned to the tilted plane
     const inPlungerLane = isPointInPlungerLaneSensor(pos)
     const vel = body.linvel()
-    const clampedVelocity = clampVelocityToPlayfield(
+    const clampedVelocity = clampVelocityToPlayfieldInto(
       vel,
       inPlungerLane ? laneMaxTangentSpeed : maxTangentSpeed,
       minNormalSpeed,
       maxNormalSpeed,
+      scratchRef.current,
     )
     body.setLinvel(clampedVelocity, true)
 
@@ -247,7 +262,11 @@ const Ball = ({
         RAIL_BASE_ACCEL + timeOnRailRef.current * RAIL_BOOST_PER_SECOND,
         RAIL_MAX_ACCEL,
       )
-      body.applyImpulse({ x: 0, y: 0, z: accel * delta * mass }, true)
+      const scratch = scratchRef.current
+      scratch.x = 0
+      scratch.y = 0
+      scratch.z = accel * delta * mass
+      body.applyImpulse(scratch, true)
     } else {
       timeOnRailRef.current = 0
     }

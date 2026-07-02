@@ -1,5 +1,6 @@
 import type { DmdConfig } from "./config"
 import type { DotSurface } from "./types"
+import type { DotSpriteCache } from "./dotSprites"
 import { hexToRgb, isColorSet, unpackRgb } from "./palette"
 
 /**
@@ -53,6 +54,8 @@ export function drawActiveDotsToCanvas(
   config: DmdConfig,
   width: number,
   height: number,
+  dpr = 1,
+  sprites?: DotSpriteCache,
 ): void {
   const { buffer, color, cols, rows } = surface
   const { dotColor, gapRatio } = config
@@ -63,6 +66,8 @@ export function drawActiveDotsToCanvas(
   const radius = (cellSize * (1 - gapRatio)) / 2
 
   const [defR, defG, defB] = hexToRgb(dotColor)
+
+  if (sprites) sprites.configure(radius, dpr)
 
   ctx.shadowBlur = radius * 1.5
   let lastColorKey = NaN
@@ -80,12 +85,30 @@ export function drawActiveDotsToCanvas(
       const rgbStr = String(r) + "," + String(g) + "," + String(b)
 
       const colorKey = set ? cell : -1
+      const cx = col * cellW + cellW / 2
+
+      const glow = sprites ? sprites.getGlowSprite(colorKey, r, g, b) : null
+      if (glow) {
+        // Glow-only sprite scaled by brightness (blur is linear) + analytic opaque
+        // disc, both under globalAlpha=brightness — pixel-identical to the shadow path.
+        const cssW = glow.width / dpr
+        ctx.globalAlpha = brightness
+        ctx.drawImage(glow, cx - cssW / 2, cy - cssW / 2, cssW, cssW)
+        if (colorKey !== lastColorKey) {
+          ctx.fillStyle = "rgb(" + rgbStr + ")"
+          lastColorKey = colorKey
+        }
+        ctx.beginPath()
+        ctx.arc(cx, cy, radius, 0, Math.PI * 2)
+        ctx.fill()
+        continue
+      }
+
       if (colorKey !== lastColorKey) {
         ctx.shadowColor = "rgba(" + rgbStr + ",0.6)"
         lastColorKey = colorKey
       }
 
-      const cx = col * cellW + cellW / 2
       ctx.fillStyle = "rgba(" + rgbStr + "," + String(brightness) + ")"
       ctx.beginPath()
       ctx.arc(cx, cy, radius, 0, Math.PI * 2)
@@ -93,6 +116,7 @@ export function drawActiveDotsToCanvas(
     }
   }
 
+  ctx.globalAlpha = 1
   // Reset shadow
   ctx.shadowColor = "transparent"
   ctx.shadowBlur = 0

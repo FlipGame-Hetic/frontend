@@ -5,6 +5,7 @@ import { useFrame, useThree } from "@react-three/fiber"
 import { createBossMatrixMaterial } from "../bossMatrixShader"
 import { BOSS_SHADER_CONFIG } from "../bossShaderConfig"
 import { pickRandom } from "../bossDamageConfig"
+import { resolveWarmClipUrl } from "../bossVideoPreload"
 import type { BossClips } from "../bossConfig"
 import { useBackScreenStore } from "@/stores/useBackScreenStore"
 
@@ -27,7 +28,7 @@ const BossVideoShader = ({ clips }: BossVideoShaderProps) => {
 
   useLayoutEffect(() => {
     const idleVideo = document.createElement("video")
-    idleVideo.src = pickRandom(clips.idle) ?? ""
+    idleVideo.src = resolveWarmClipUrl(pickRandom(clips.idle) ?? "")
     idleVideo.loop = true
     idleVideo.muted = true
     idleVideo.playsInline = true
@@ -59,7 +60,7 @@ const BossVideoShader = ({ clips }: BossVideoShaderProps) => {
       const token = ++fxToken
       lastFx = src
       fxHoldRef.current = hold
-      fxVideo.src = src
+      fxVideo.src = resolveWarmClipUrl(src)
       damageRef.current = 1
       fxVideo
         .play()

@@ -28,15 +28,22 @@ export const dotPlayfieldNormal = (vector: Position3Type) => {
   )
 }
 
-// Drops the normal speed, keeping only the part of the velocity that slides along the tilted surface
-export const projectOnPlayfield = (vector: Position3Type): Position3Type => {
+// Out-param variant : same math writing into out, so hot paths can avoid allocating
+export const projectOnPlayfieldInto = (
+  vector: Position3Type,
+  out: Position3Type,
+): Position3Type => {
   const normalSpeed = dotPlayfieldNormal(vector)
 
-  return {
-    x: vector.x - PLAYFIELD_UNIT_NORMAL.x * normalSpeed,
-    y: vector.y - PLAYFIELD_UNIT_NORMAL.y * normalSpeed,
-    z: vector.z - PLAYFIELD_UNIT_NORMAL.z * normalSpeed,
-  }
+  out.x = vector.x - PLAYFIELD_UNIT_NORMAL.x * normalSpeed
+  out.y = vector.y - PLAYFIELD_UNIT_NORMAL.y * normalSpeed
+  out.z = vector.z - PLAYFIELD_UNIT_NORMAL.z * normalSpeed
+  return out
+}
+
+// Drops the normal speed, keeping only the part of the velocity that slides along the tilted surface
+export const projectOnPlayfield = (vector: Position3Type): Position3Type => {
+  return projectOnPlayfieldInto(vector, { x: 0, y: 0, z: 0 })
 }
 
 // Direction in-plane of a vector, taking into account the tilt of the playfield
@@ -54,11 +61,13 @@ export const normalizedPlayfieldDirection = (vector: Position3Type): Position3Ty
   }
 }
 
-export const clampVelocityToPlayfield = (
+// Out-param variant : same math writing into out, so hot paths can avoid allocating
+export const clampVelocityToPlayfieldInto = (
   velocity: Position3Type,
   maxTangentSpeed: number,
   minNormalSpeed: number,
   maxNormalSpeed: number,
+  out: Position3Type,
 ): Position3Type => {
   const normalSpeed = Math.min(
     maxNormalSpeed,
@@ -69,11 +78,23 @@ export const clampVelocityToPlayfield = (
   const tangentRatio =
     tangentSpeed > maxTangentSpeed && tangentSpeed > 0 ? maxTangentSpeed / tangentSpeed : 1
 
-  return {
-    x: tangentVelocity.x * tangentRatio + PLAYFIELD_UNIT_NORMAL.x * normalSpeed,
-    y: tangentVelocity.y * tangentRatio + PLAYFIELD_UNIT_NORMAL.y * normalSpeed,
-    z: tangentVelocity.z * tangentRatio + PLAYFIELD_UNIT_NORMAL.z * normalSpeed,
-  }
+  out.x = tangentVelocity.x * tangentRatio + PLAYFIELD_UNIT_NORMAL.x * normalSpeed
+  out.y = tangentVelocity.y * tangentRatio + PLAYFIELD_UNIT_NORMAL.y * normalSpeed
+  out.z = tangentVelocity.z * tangentRatio + PLAYFIELD_UNIT_NORMAL.z * normalSpeed
+  return out
+}
+
+export const clampVelocityToPlayfield = (
+  velocity: Position3Type,
+  maxTangentSpeed: number,
+  minNormalSpeed: number,
+  maxNormalSpeed: number,
+): Position3Type => {
+  return clampVelocityToPlayfieldInto(velocity, maxTangentSpeed, minNormalSpeed, maxNormalSpeed, {
+    x: 0,
+    y: 0,
+    z: 0,
+  })
 }
 
 export const clampBallVelocityToPlayfield = (
@@ -91,19 +112,28 @@ export const clampBallVelocityToPlayfield = (
   )
 }
 
-export const clampNormalToPlayfield = (
+// Out-param variant : same math writing into out, so hot paths can avoid allocating
+export const clampNormalToPlayfieldInto = (
   velocity: Position3Type,
   minNormalSpeed: number,
   maxNormalSpeed: number,
+  out: Position3Type,
 ): Position3Type => {
   const normalSpeed = Math.min(
     maxNormalSpeed,
     Math.max(minNormalSpeed, dotPlayfieldNormal(velocity)),
   )
   const tangentVelocity = projectOnPlayfield(velocity)
-  return {
-    x: tangentVelocity.x + PLAYFIELD_UNIT_NORMAL.x * normalSpeed,
-    y: tangentVelocity.y + PLAYFIELD_UNIT_NORMAL.y * normalSpeed,
-    z: tangentVelocity.z + PLAYFIELD_UNIT_NORMAL.z * normalSpeed,
-  }
+  out.x = tangentVelocity.x + PLAYFIELD_UNIT_NORMAL.x * normalSpeed
+  out.y = tangentVelocity.y + PLAYFIELD_UNIT_NORMAL.y * normalSpeed
+  out.z = tangentVelocity.z + PLAYFIELD_UNIT_NORMAL.z * normalSpeed
+  return out
+}
+
+export const clampNormalToPlayfield = (
+  velocity: Position3Type,
+  minNormalSpeed: number,
+  maxNormalSpeed: number,
+): Position3Type => {
+  return clampNormalToPlayfieldInto(velocity, minNormalSpeed, maxNormalSpeed, { x: 0, y: 0, z: 0 })
 }

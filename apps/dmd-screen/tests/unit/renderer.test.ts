@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest"
 import type { DmdConfig } from "@/dmd/config"
+import type { DotSpriteCache } from "@/dmd/dotSprites"
 import { createSurface, setPixel } from "@/dmd/buffer"
 import { drawActiveDotsToCanvas, drawDotGridToCanvas } from "@/dmd/renderer"
 
@@ -104,6 +105,126 @@ describe("drawActiveDotsToCanvas", () => {
     expect(fill.fillStyle).toBe("rgba(255,45,107,0.25)")
     expect(ctx.shadowColor).toBe("transparent")
     expect(ctx.shadowBlur).toBe(0)
+  })
+})
+
+interface DrawOp {
+  type: "drawImage" | "fill"
+  globalAlpha: number
+  fillStyle: string
+  shadowColor: string
+}
+
+interface RecordingCtx {
+  ctx: CanvasRenderingContext2D
+  ops: DrawOp[]
+  shadowColorWrites: string[]
+  getGlobalAlpha(): number
+}
+
+function makeRecordingCtx(): RecordingCtx {
+  const ops: DrawOp[] = []
+  const shadowColorWrites: string[] = []
+  let globalAlpha = 1
+  let fillStyle = ""
+  let shadowColor = ""
+  let shadowBlur = 0
+  const ctx = {
+    get globalAlpha() {
+      return globalAlpha
+    },
+    set globalAlpha(v: number) {
+      globalAlpha = v
+    },
+    get fillStyle() {
+      return fillStyle
+    },
+    set fillStyle(v: string) {
+      fillStyle = v
+    },
+    get shadowColor() {
+      return shadowColor
+    },
+    set shadowColor(v: string) {
+      shadowColor = v
+      shadowColorWrites.push(v)
+    },
+    get shadowBlur() {
+      return shadowBlur
+    },
+    set shadowBlur(v: number) {
+      shadowBlur = v
+    },
+    beginPath: vi.fn(),
+    arc: vi.fn(),
+    fill: vi.fn(() => {
+      ops.push({ type: "fill", globalAlpha, fillStyle, shadowColor })
+    }),
+    drawImage: vi.fn(() => {
+      ops.push({ type: "drawImage", globalAlpha, fillStyle, shadowColor })
+    }),
+  }
+  return {
+    ctx: ctx as unknown as CanvasRenderingContext2D,
+    ops,
+    shadowColorWrites,
+    getGlobalAlpha: () => globalAlpha,
+  }
+}
+
+function makeFakeSpriteCache(sprite: HTMLCanvasElement | null): DotSpriteCache {
+  return {
+    configure: vi.fn(),
+    getGlowSprite: vi.fn(() => sprite),
+    paddingCss: 4,
+  } as unknown as DotSpriteCache
+}
+
+describe("drawActiveDotsToCanvas — sprite path", () => {
+  const dummySprite = { width: 8, height: 8 } as unknown as HTMLCanvasElement
+
+  it("draws the glow before the disc and scales both by brightness", () => {
+    const surface = createSurface(2, 1)
+    setPixel(surface, 0, 0, 0.5)
+    setPixel(surface, 1, 0, 1.0, "cyan")
+    const rec = makeRecordingCtx()
+    const sprites = makeFakeSpriteCache(dummySprite)
+
+    drawActiveDotsToCanvas(rec.ctx, surface, config, 20, 10, 2, sprites)
+
+    expect(rec.ops.map((op) => op.type)).toEqual(["drawImage", "fill", "drawImage", "fill"])
+    // glow drawImage precedes the disc fill per dot, both at that dot's brightness
+    expect(rec.ops.map((op) => op.globalAlpha)).toEqual([0.5, 0.5, 1.0, 1.0])
+    expect(rec.getGlobalAlpha()).toBe(1)
+  })
+
+  it("never writes a glow shadow color on the sprite path", () => {
+    const surface = createSurface(2, 1)
+    setPixel(surface, 0, 0, 0.5)
+    setPixel(surface, 1, 0, 1.0, "cyan")
+    const rec = makeRecordingCtx()
+    const sprites = makeFakeSpriteCache(dummySprite)
+
+    drawActiveDotsToCanvas(rec.ctx, surface, config, 20, 10, 2, sprites)
+
+    // only the post-loop reset writes shadowColor; no per-dot glow shadow
+    expect(rec.shadowColorWrites).toEqual(["transparent"])
+    for (const op of rec.ops) expect(op.shadowColor).toBe("")
+  })
+
+  it("falls back to the shadow path when the cache returns null", () => {
+    const surface = createSurface(2, 1)
+    setPixel(surface, 0, 0, 0.5)
+    const rec = makeRecordingCtx()
+    const sprites = makeFakeSpriteCache(null)
+
+    drawActiveDotsToCanvas(rec.ctx, surface, config, 20, 10, 2, sprites)
+
+    expect(rec.ops.map((op) => op.type)).toEqual(["fill"])
+    const fill = rec.ops[0]
+    if (!fill) throw new Error("active dot was not filled")
+    expect(fill.fillStyle).toBe("rgba(18,52,86,0.5)")
+    expect(fill.shadowColor).toBe("rgba(18,52,86,0.6)")
   })
 })
 

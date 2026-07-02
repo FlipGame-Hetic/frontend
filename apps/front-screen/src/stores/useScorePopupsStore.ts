@@ -39,6 +39,20 @@ interface ScorePopupsState {
 // Monotonic id source kept outside the store so incrementing it doesn't trigger a render on its own
 let nextId = 0
 
+// Cap simultaneous "score" popups so multiball ScoreDelta bursts can't spawn unbounded troika layers
+const SCORE_POPUPS_CAP = 8
+
+// Appends a score popup and drops the oldest score popups over the cap ; countdown/trigger popups are gameplay comms, never capped
+const appendScorePopup = (popups: ScorePopup[], popup: ScorePopup): ScorePopup[] => {
+  const next = [...popups, popup]
+  const overflow = next.filter((p) => p.kind === "score").length - SCORE_POPUPS_CAP
+  if (overflow <= 0) return next
+  let dropped = 0
+  return next.filter((p) =>
+    p.kind === "score" && dropped < overflow ? ((dropped += 1), false) : true,
+  )
+}
+
 // Max number of hits that can be displayed at once
 const HITS_CAP = 16
 const HIT_EXPIRY_MS = 2000
@@ -89,7 +103,13 @@ const useScorePopupsStore = create<ScorePopupsState>((set, get) => ({
     const color = getCurrentBallColorSnapshot()
 
     set((state) => ({
-      popups: [...state.popups, { id: nextId++, kind: "score", amount, position, color }],
+      popups: appendScorePopup(state.popups, {
+        id: nextId++,
+        kind: "score",
+        amount,
+        position,
+        color,
+      }),
     }))
   },
   removePopup: (id) => {
@@ -125,7 +145,13 @@ const useScorePopupsStore = create<ScorePopupsState>((set, get) => ({
 
     set((state) => ({
       recentHits: remainingHits,
-      popups: [...state.popups, { id: nextId++, kind: "score", amount, position, color }],
+      popups: appendScorePopup(state.popups, {
+        id: nextId++,
+        kind: "score",
+        amount,
+        position,
+        color,
+      }),
     }))
   },
   spawnMultiballCountdownPopup: (remaining, position) => {
