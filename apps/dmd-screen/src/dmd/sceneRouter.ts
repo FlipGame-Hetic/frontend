@@ -15,7 +15,7 @@ export interface RoutableScenes {
     pushDelta(delta: number): void
     enter(): void
   }
-  game_over: { update(score: number): void }
+  game_over: { update(score: number): void; enter(): void }
   combo: { update(data: { sequence?: ComboDirection[] }): void }
 }
 
@@ -46,6 +46,8 @@ export class ScreenEventRouter {
       if (envelope.payload.phase === GAME_PHASE.Playing) {
         this.maxLives = 0
         this.scenes.playing.enter()
+      } else if (envelope.payload.phase === GAME_PHASE.GameOver) {
+        this.scenes.game_over.enter()
       }
       this.hooks.onPhaseChange(envelope.payload.phase)
       return
@@ -68,6 +70,7 @@ export class ScreenEventRouter {
 
     if (isScreenEvent(envelope, "GameOver")) {
       this.scenes.game_over.update(envelope.payload.final_score)
+      this.scenes.game_over.enter()
       this.hooks.onPhaseChange(GAME_PHASE.GameOver)
       return
     }

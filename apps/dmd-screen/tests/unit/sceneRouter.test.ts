@@ -11,7 +11,7 @@ function makeScenes() {
       pushDelta: vi.fn(),
       enter: vi.fn(),
     },
-    game_over: { update: vi.fn() },
+    game_over: { update: vi.fn(), enter: vi.fn() },
     combo: { update: vi.fn() },
     mode_select: { update: vi.fn() },
     character_select: { update: vi.fn() },
@@ -65,6 +65,27 @@ describe("ScreenEventRouter", () => {
     expect(scenes.playing.setScore).toHaveBeenCalledWith(1234)
     expect(scenes.playing.setMultiplier).toHaveBeenCalledWith(2)
     expect(scenes.game_over.update).toHaveBeenCalledWith(1234)
+  })
+
+  it("sets the final score and triggers the intro on a GameOver event", () => {
+    const scenes = makeScenes()
+    const onPhaseChange = vi.fn()
+    const router = new ScreenEventRouter(scenes, { onPhaseChange, onComboFlash: vi.fn() })
+
+    router.handle(env("GameOver", { final_score: 42000 }))
+
+    expect(scenes.game_over.update).toHaveBeenCalledWith(42000)
+    expect(scenes.game_over.enter).toHaveBeenCalled()
+    expect(onPhaseChange).toHaveBeenCalledWith("game_over")
+  })
+
+  it("triggers the game-over intro on a phase_change into game_over", () => {
+    const scenes = makeScenes()
+    const router = new ScreenEventRouter(scenes, { onPhaseChange: vi.fn(), onComboFlash: vi.fn() })
+
+    router.handle(env("phase_change", { phase: "game_over" }))
+
+    expect(scenes.game_over.enter).toHaveBeenCalled()
   })
 
   it("routes a ScoreDelta to a floating score pop", () => {
