@@ -26,8 +26,18 @@ function firstClipUrl(): string {
   return url
 }
 
-function createFetchMock(response: Response) {
-  return vi.fn<typeof fetch>(() => Promise.resolve(response))
+type FetchResponse = Pick<Response, "ok" | "status" | "blob">
+
+function createFetchResponse(status = 200, blob = {} as Blob): FetchResponse {
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    blob: () => Promise.resolve(blob),
+  }
+}
+
+function createFetchMock(response: FetchResponse) {
+  return vi.fn<typeof fetch>(() => Promise.resolve(response as Response))
 }
 
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0))
@@ -58,7 +68,7 @@ describe("bossVideoPreload", () => {
   })
 
   it("fetches each unique clip url exactly once (dedup across registry)", async () => {
-    const fetchMock = createFetchMock(new Response(new Blob(), { status: 200 }))
+    const fetchMock = createFetchMock(createFetchResponse())
     global.fetch = fetchMock as unknown as typeof fetch
 
     const { warmBossClips } = await loadModule()
@@ -91,7 +101,7 @@ describe("bossVideoPreload", () => {
   })
 
   it("falls back to the network url when fetch fails", async () => {
-    const fetchMock = createFetchMock(new Response(null, { status: 500 }))
+    const fetchMock = createFetchMock(createFetchResponse(500))
     global.fetch = fetchMock as unknown as typeof fetch
 
     const { warmBossClips, resolveWarmClipUrl } = await loadModule()
