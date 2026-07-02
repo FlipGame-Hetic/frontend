@@ -1,33 +1,33 @@
 import type { ComboDirection } from "@frontend/types"
-import type { RenderContext, Scene } from "../types"
+import type { DotSurface, RenderContext, Scene } from "../types"
 import { setPixel } from "../buffer"
 import { drawStringScaledCentered } from "../font"
 import { blink } from "../anim"
 import { drawCorners } from "../frame"
 import { COMBO_SCALE, COMBO_SPACING, ARROW_W, ARROW_GAP } from "./comboSceneConfig"
 
-function drawLeftArrow(buffer: Float32Array, cols: number, x: number, y: number): void {
-  setPixel(buffer, cols, x + 2, y, 1.0)
-  setPixel(buffer, cols, x + 1, y + 1, 1.0)
-  setPixel(buffer, cols, x, y + 2, 1.0)
-  setPixel(buffer, cols, x + 1, y + 3, 1.0)
-  setPixel(buffer, cols, x + 2, y + 4, 1.0)
-  setPixel(buffer, cols, x + 3, y + 1, 0.5)
-  setPixel(buffer, cols, x + 4, y + 1, 0.5)
-  setPixel(buffer, cols, x + 3, y + 3, 0.5)
-  setPixel(buffer, cols, x + 4, y + 3, 0.5)
+function drawLeftArrow(s: DotSurface, x: number, y: number): void {
+  setPixel(s, x + 2, y, 1.0)
+  setPixel(s, x + 1, y + 1, 1.0)
+  setPixel(s, x, y + 2, 1.0)
+  setPixel(s, x + 1, y + 3, 1.0)
+  setPixel(s, x + 2, y + 4, 1.0)
+  setPixel(s, x + 3, y + 1, 0.5)
+  setPixel(s, x + 4, y + 1, 0.5)
+  setPixel(s, x + 3, y + 3, 0.5)
+  setPixel(s, x + 4, y + 3, 0.5)
 }
 
-function drawRightArrow(buffer: Float32Array, cols: number, x: number, y: number): void {
-  setPixel(buffer, cols, x + 2, y, 1.0)
-  setPixel(buffer, cols, x + 3, y + 1, 1.0)
-  setPixel(buffer, cols, x + 4, y + 2, 1.0)
-  setPixel(buffer, cols, x + 3, y + 3, 1.0)
-  setPixel(buffer, cols, x + 2, y + 4, 1.0)
-  setPixel(buffer, cols, x, y + 1, 0.5)
-  setPixel(buffer, cols, x + 1, y + 1, 0.5)
-  setPixel(buffer, cols, x, y + 3, 0.5)
-  setPixel(buffer, cols, x + 1, y + 3, 0.5)
+function drawRightArrow(s: DotSurface, x: number, y: number): void {
+  setPixel(s, x + 2, y, 1.0)
+  setPixel(s, x + 3, y + 1, 1.0)
+  setPixel(s, x + 4, y + 2, 1.0)
+  setPixel(s, x + 3, y + 3, 1.0)
+  setPixel(s, x + 2, y + 4, 1.0)
+  setPixel(s, x, y + 1, 0.5)
+  setPixel(s, x + 1, y + 1, 0.5)
+  setPixel(s, x, y + 3, 0.5)
+  setPixel(s, x + 1, y + 3, 0.5)
 }
 
 export class ComboScene implements Scene {
@@ -38,13 +38,13 @@ export class ComboScene implements Scene {
   }
 
   render(ctx: RenderContext): void {
-    const { buffer, cols, rows, elapsedMs } = ctx
+    const { cols, rows, elapsedMs } = ctx
 
     const contentH = COMBO_SCALE * 7 + 6 + 5
     const comboY = Math.floor((rows - contentH) / 2)
 
     if (blink(elapsedMs, 350)) {
-      drawStringScaledCentered(buffer, cols, "COMBO", comboY, COMBO_SCALE, COMBO_SPACING, 1.0)
+      drawStringScaledCentered(ctx, "COMBO", comboY, COMBO_SCALE, COMBO_SPACING, 1.0)
     }
 
     if (this.sequence) {
@@ -55,14 +55,14 @@ export class ComboScene implements Scene {
 
       for (const side of sequence) {
         if (side === "L") {
-          drawLeftArrow(buffer, cols, arrowX, arrowY)
+          drawLeftArrow(ctx, arrowX, arrowY)
         } else {
-          drawRightArrow(buffer, cols, arrowX, arrowY)
+          drawRightArrow(ctx, arrowX, arrowY)
         }
         arrowX += ARROW_W + ARROW_GAP
       }
     }
 
-    drawCorners(buffer, cols, rows)
+    drawCorners(ctx)
   }
 }
