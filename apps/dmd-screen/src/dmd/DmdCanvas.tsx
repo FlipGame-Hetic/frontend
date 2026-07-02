@@ -1,34 +1,60 @@
 import { useCallback, useEffect, useRef } from "react"
 import type { DmdConfig } from "./config"
 import type { Scene } from "./types"
-import { clearBuffer, createBuffer } from "./buffer"
+import { clearBuffer, clearColor, createSurface } from "./buffer"
 import { drawActiveDotsToCanvas, drawDotGridToCanvas } from "./renderer"
 import { useAnimationFrame } from "./useAnimationFrame"
+import { glitchDissolve } from "./transitionFx"
 
 const DMD_TARGET_FPS = 30
+const TRANSITION_MS = 320
 
 interface DmdCanvasProps {
   config: DmdConfig
   scene: Scene
+  /** Changing this (e.g. the game phase) plays a fade transition to the new scene. */
+  transitionKey?: string
 }
 
-export function DmdCanvas({ config, scene }: DmdCanvasProps) {
+export function DmdCanvas({ config, scene, transitionKey }: DmdCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null)
   const sizeRef = useRef({ width: 0, height: 0, dpr: 1 })
-  const bufferRef = useRef(createBuffer(config.cols, config.rows))
+  const surfaceRef = useRef(createSurface(config.cols, config.rows))
   const sceneRef = useRef(scene)
   const gridCanvasRef = useRef<HTMLCanvasElement | null>(null)
   const gridCacheKeyRef = useRef("")
 
-  // Keep scene ref in sync
+  // Scene-to-scene transition state
+  const keyRef = useRef(transitionKey)
+  const transitionMsRef = useRef(TRANSITION_MS) // start settled (no transition on mount)
+  const fromBufferRef = useRef<Float32Array | null>(null)
+  const fromColorRef = useRef<Uint32Array | null>(null)
+  const thresholdsRef = useRef<Float32Array | null>(null)
+
+  // Keep scene ref in sync (also covers combo-overlay swaps within a phase)
   useEffect(() => {
     sceneRef.current = scene
   })
 
-  // Recreate buffer when grid size changes
+  // Start a fade only when the phase key changes (not on combo-overlay swaps).
   useEffect(() => {
-    bufferRef.current = createBuffer(config.cols, config.rows)
+    if (transitionKey === keyRef.current) return
+    keyRef.current = transitionKey
+    // Snapshot the last rendered frame so we can dissolve it out.
+    const surface = surfaceRef.current
+    fromBufferRef.current = surface.buffer.slice()
+    fromColorRef.current = surface.color.slice()
+    // Per-row flip points give the dissolve its uneven, glitchy timing.
+    const thresholds = new Float32Array(surface.rows)
+    for (let i = 0; i < thresholds.length; i++) thresholds[i] = Math.random()
+    thresholdsRef.current = thresholds
+    transitionMsRef.current = 0
+  }, [transitionKey])
+
+  // Recreate surface when grid size changes
+  useEffect(() => {
+    surfaceRef.current = createSurface(config.cols, config.rows)
   }, [config.cols, config.rows])
 
   // Handle canvas sizing with ResizeObserver + HiDPI
@@ -104,16 +130,31 @@ export function DmdCanvas({ config, scene }: DmdCanvasProps) {
       const { width, height } = sizeRef.current
       if (width === 0 || height === 0) return
 
-      const buffer = bufferRef.current
-      clearBuffer(buffer)
+      const surface = surfaceRef.current
+      clearBuffer(surface.buffer)
+      clearColor(surface.color)
 
-      sceneRef.current.render({
-        buffer,
-        cols: config.cols,
-        rows: config.rows,
-        deltaMs,
-        elapsedMs,
-      })
+      const tms = transitionMsRef.current
+      if (tms < TRANSITION_MS) {
+        transitionMsRef.current = tms + deltaMs
+        const t = Math.min(1, tms / TRANSITION_MS)
+        // Render the incoming scene, then glitch-dissolve the old snapshot over it.
+        sceneRef.current.render({ ...surface, deltaMs, elapsedMs })
+        const fromBuffer = fromBufferRef.current
+        const fromColor = fromColorRef.current
+        const thresholds = thresholdsRef.current
+        if (
+          fromBuffer &&
+          fromColor &&
+          thresholds &&
+          fromBuffer.length === surface.buffer.length &&
+          thresholds.length === surface.rows
+        ) {
+          glitchDissolve(surface, fromBuffer, fromColor, t, thresholds, Math.random)
+        }
+      } else {
+        sceneRef.current.render({ ...surface, deltaMs, elapsedMs })
+      }
 
       const gridCanvas = getGridCanvas()
       if (gridCanvas) {
@@ -121,7 +162,7 @@ export function DmdCanvas({ config, scene }: DmdCanvasProps) {
       } else {
         drawDotGridToCanvas(ctx, config, width, height)
       }
-      drawActiveDotsToCanvas(ctx, buffer, config, width, height)
+      drawActiveDotsToCanvas(ctx, surface, config, width, height)
     },
     [config, getGridCanvas],
   )
