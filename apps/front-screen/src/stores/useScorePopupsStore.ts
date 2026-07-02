@@ -2,6 +2,12 @@ import {
   getAnyBallPosition,
   getBallPosition,
 } from "@/components/balls/runtime/ballPositionRegistry"
+import {
+  HIT_EXPIRY_MS,
+  HIT_MATCH_WINDOW_MS,
+  HITS_CAP,
+  SCORE_POPUPS_CAP,
+} from "@/components/scorePopups/scorePopupConfig"
 import { getCurrentBallColorSnapshot } from "@/config/characterConfig"
 import type { Position3Type } from "@/types/worldTypes"
 import { create } from "zustand"
@@ -39,9 +45,6 @@ interface ScorePopupsState {
 // Monotonic id source kept outside the store so incrementing it doesn't trigger a render on its own
 let nextId = 0
 
-// Cap simultaneous "score" popups so multiball ScoreDelta bursts can't spawn unbounded troika layers
-const SCORE_POPUPS_CAP = 8
-
 // Appends a score popup and drops the oldest score popups over the cap ; countdown/trigger popups are gameplay comms, never capped
 const appendScorePopup = (popups: ScorePopup[], popup: ScorePopup): ScorePopup[] => {
   const next = [...popups, popup]
@@ -52,12 +55,6 @@ const appendScorePopup = (popups: ScorePopup[], popup: ScorePopup): ScorePopup[]
     p.kind === "score" && dropped < overflow ? ((dropped += 1), false) : true,
   )
 }
-
-// Max number of hits that can be displayed at once
-const HITS_CAP = 16
-const HIT_EXPIRY_MS = 2000
-// Shorter than HIT_EXPIRY_MS : a hit can still be retained yet too old to confidently pair with an incoming delta
-const HIT_MATCH_WINDOW_MS = 1500
 
 const pruneHits = (hits: HitRecord[], now: number): HitRecord[] => {
   const fresh = hits.filter((hit) => now - hit.ts < HIT_EXPIRY_MS)

@@ -8,6 +8,9 @@ export const GRAVITY_Z = 26
 export const TIME_STEP = 1 / 240
 export const SLOW_MOTION_SPEED = 0.25
 
+// Cap the frame delta before scaling : rapier's step() runs a 1/240 accumulator, so one long frame would fire up to 120 catch-up substeps and cascade. 1/20 is a no-op at any frame rate >= 20fps and only engages when already hitching
+export const MAX_FRAME_DELTA = 1 / 20
+
 export const toVector3 = (
   position: [number, number, number] | { x: number; y: number; z: number },
 ): Vector3 => {
