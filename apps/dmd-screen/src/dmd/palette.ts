@@ -66,3 +66,9 @@ export function isColorSet(cell: number): boolean {
 export function unpackRgb(cell: number): [number, number, number] {
   return [(cell >> 16) & 0xff, (cell >> 8) & 0xff, cell & 0xff]
 }
+
+/** Parses a "#RRGGBB" (or bare "RRGGBB") string into [r, g, b] (0–255). */
+export function hexToRgb(hex: string): [number, number, number] {
+  const n = parseInt(hex.startsWith("#") ? hex.slice(1) : hex, 16)
+  return [(n >> 16) & 0xff, (n >> 8) & 0xff, n & 0xff]
+}

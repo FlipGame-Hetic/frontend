@@ -23,6 +23,14 @@ describe("scoreFont", () => {
     expect(big.fits).toBe(true)
   })
 
+  it("caps the scale at maxScale even when a larger size would fit", () => {
+    // "000.000" fits at scale 3, but the game-over score wants it a step smaller.
+    expect(fitScore("000.000", 118).scale).toBe(3)
+    const capped = fitScore("000.000", 118, 2)
+    expect(capped.scale).toBe(2)
+    expect(capped.fits).toBe(true)
+  })
+
   it("reports fits=false when even the smallest size overflows", () => {
     expect(fitScore("0.000.000.000.000", 40).fits).toBe(false)
   })

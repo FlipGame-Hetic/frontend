@@ -2,7 +2,7 @@ import type { RenderContext, Scene } from "../types"
 import { setPixel } from "../buffer"
 import { drawStringScaled, measureStringScaled } from "../font"
 import { drawCorners } from "../frame"
-import { drawScore, measureScore } from "../scoreFont"
+import { drawScore, fitScore, measureScore } from "../scoreFont"
 import { SceneTransition } from "../sceneTransition"
 import { formatScore } from "@frontend/utils"
 import {
@@ -38,11 +38,6 @@ const BEAT_COLOR = "red"
 const SCORE_BODY = "red" // classic hero font, tinted red for the death screen
 const GHOST_DARK = "#7a0000" // deep blood-red aberration ghost (left)
 const GHOST_HOT = "#ff5a7a" // hot pink-red aberration ghost (right)
-
-interface ScoreFit {
-  scale: number
-  spacing: number
-}
 
 /**
  * The "Slam & Flatline" game-over scene. On `enter()` a red flash bursts, the big
@@ -165,7 +160,7 @@ export class GameOverScene implements Scene {
   private renderScore(ctx: RenderContext, cols: number, p: number): void {
     const shown = Math.round(this.finalScore * p) // roll up 0 → final with the slam
     const text = formatScore(shown)
-    const fit = fitScoreCapped(text)
+    const fit = fitScore(text, SCORE_MAX_WIDTH, SCORE_SCALE_MAX)
     const width = measureScore(text, fit.scale, fit.spacing)
     const x = Math.floor((cols - width) / 2)
     const bright = 0.35 + 0.65 * p
@@ -175,21 +170,4 @@ export class GameOverScene implements Scene {
     drawScore(ctx, text, x + 1, SCORE_Y, fit.scale, ghost * 0.9, fit.spacing, GHOST_HOT)
     drawScore(ctx, text, x, SCORE_Y, fit.scale, bright, fit.spacing, SCORE_BODY)
   }
-}
-
-/**
- * Largest { scale, spacing } that fits, capped at {@link SCORE_SCALE_MAX} so the
- * game-over score reads a step smaller than the full-size in-game hero score.
- */
-function fitScoreCapped(text: string): ScoreFit {
-  const combos: readonly ScoreFit[] = [
-    { scale: SCORE_SCALE_MAX, spacing: 2 },
-    { scale: SCORE_SCALE_MAX, spacing: 1 },
-    { scale: 1, spacing: 2 },
-    { scale: 1, spacing: 1 },
-  ]
-  for (const c of combos) {
-    if (measureScore(text, c.scale, c.spacing) <= SCORE_MAX_WIDTH) return c
-  }
-  return { scale: 1, spacing: 1 }
 }

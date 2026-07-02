@@ -1,5 +1,15 @@
 import { describe, it, expect, vi } from "vitest"
-import { resolveColor, isColorSet, unpackRgb, PALETTE } from "@/dmd/palette"
+import { resolveColor, isColorSet, unpackRgb, hexToRgb, PALETTE } from "@/dmd/palette"
+
+describe("hexToRgb", () => {
+  it("splits a #rrggbb string into [r, g, b] components", () => {
+    expect(hexToRgb("#123456")).toEqual([0x12, 0x34, 0x56])
+  })
+
+  it("tolerates a bare hex string without the leading #", () => {
+    expect(hexToRgb("00f0ff")).toEqual([0x00, 0xf0, 0xff])
+  })
+})
 
 describe("resolveColor", () => {
   it("resolves a palette name to packed rgb with the set flag", () => {

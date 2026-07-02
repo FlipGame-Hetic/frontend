@@ -85,11 +85,13 @@ export interface ScoreFit {
 
 /**
  * Chooses the largest { scale, spacing } whose rendered width fits `maxWidth`,
- * keeping the hero score as big as possible. Returns `fits: false` when even the
- * smallest combination overflows, so the caller can fall back to a thinner font.
+ * keeping the hero score as big as possible. `maxScale` caps the size (the
+ * game-over score wants a step smaller than the in-game one). Returns
+ * `fits: false` when even the smallest combination overflows, so the caller can
+ * fall back to a thinner font.
  */
-export function fitScore(text: string, maxWidth: number): ScoreFit {
-  const scales = [3, 2, 1]
+export function fitScore(text: string, maxWidth: number, maxScale = 3): ScoreFit {
+  const scales = [3, 2, 1].filter((s) => s <= maxScale)
   const spacings = [2, 1]
   for (const scale of scales) {
     for (const spacing of spacings) {
