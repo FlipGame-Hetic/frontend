@@ -21,8 +21,11 @@ import {
   BackendConfigPatchQueue,
 } from "./backendConfigPatchQueue"
 import type { BackendGameConfig } from "./backendConfigTypes"
+import { runtimeEnvironment } from "@frontend/utils"
 
-const ADMIN_TOKEN_COMMAND = "docker exec backend-api-1 app generate-admin-token"
+const ADMIN_TOKEN_COMMAND = runtimeEnvironment.isProductionCabinet
+  ? "docker exec flip-spammer-api-1 app generate-admin-token"
+  : "docker exec backend-api-1 app generate-admin-token"
 const INITIAL_STATUS = "Paste token, then load config"
 
 type SetLevaValues = (values: Record<string, unknown>) => void
